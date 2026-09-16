@@ -21,4 +21,5 @@
 - [A1] `clang-format` is missing on the dev Mac; `check.sh` currently warns and skips C++ format — install with `brew install clang-format` so later WPs get a real format gate.
 - [A2] `Oversampling::decimate` assumes `nHost ≤ maxBlockSize` (scratch is sized in `prepare`). Callers must chunk, as `BirdVoice` does. A bounds check would make misuse fail loudly.
 - [D1] Custom **tseg** JSON adapter (schema 1.2: SILENCE/NOISE/BIRD_SOUND + `type_label`) — recordings already exist; D1 parked until after Phase B.
+- [B2] ℓ = 0 bypasses the one-pole rather than using the written 22 kHz cutoff — a 22 kHz pole at 192 kHz is ~1 dB down at 12 kHz and would break the analytic-magnitude test.
 

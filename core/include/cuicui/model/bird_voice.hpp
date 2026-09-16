@@ -7,6 +7,7 @@
 #include "cuicui/dsp/smoother.hpp"
 #include "cuicui/model/labial_oscillator.hpp"
 #include "cuicui/model/test_saw.hpp"
+#include "cuicui/model/trachea.hpp"
 #include "cuicui/params.hpp"
 
 #include <algorithm>
@@ -56,7 +57,7 @@ struct VoiceState {
     std::uint32_t nonFiniteResets = 0;
 };
 
-/// Voice: test oscillator (A1/A2) or labial source (B1) at the internal rate, then half-band decimation.
+/// Voice: test oscillator (A1/A2) or labial source (B1) → trachea (B2) → DC → decimation.
 class BirdVoice {
 public:
     void prepare(const ProcessSpec& spec) {
@@ -73,9 +74,18 @@ public:
         internal_.assign(static_cast<std::size_t>(spec_.maxBlockSize * os_), 0.0f);
         saw_.prepare(internal_rate_);
         osc_.prepare(internal_rate_);
+        trachea_.prepare(internal_rate_, model::kTracheaMaxLengthMm);
         dc_.prepare(internal_rate_, 20.0);
         out_smoother_.prepare(spec_.hostSampleRate);
         out_smoother_.setTimeConstantMs(smoothing_ms_);
+        len_sm_.prepare(internal_rate_);
+        ref_sm_.prepare(internal_rate_);
+        loss_sm_.prepare(internal_rate_);
+        gain_sm_.prepare(internal_rate_);
+        len_sm_.setTimeConstantMs(specOf(ParamId::TracheaLengthMm).smoothingMs);
+        ref_sm_.setTimeConstantMs(specOf(ParamId::TracheaReflection).smoothingMs);
+        loss_sm_.setTimeConstantMs(specOf(ParamId::TracheaLoss).smoothingMs);
+        gain_sm_.setTimeConstantMs(specOf(ParamId::TracheaInputGain).smoothingMs);
         reset(settings_.seed);
     }
 
@@ -85,7 +95,8 @@ public:
         sine_phase_ = 0.0;
         saw_.reset();
         osc_.resetToRest(model::kAlphaRest, specOf(ParamId::SrcLBeta).def);
-        dc_.prime(osc_.x());
+        snapTrachea();
+        primeDcFromSource(source_ == VoiceSource::Labial ? osc_.x() : 0.0);
         oversampling_.reset();
         out_smoother_.snap(static_cast<float>(settings_.out_gain_db));
         std::fill(internal_.begin(), internal_.end(), 0.0f);
@@ -96,9 +107,18 @@ public:
     void setSettings(const VoiceSettings& s) noexcept {
         settings_ = s;
         out_smoother_.setTarget(static_cast<float>(settings_.out_gain_db));
+        len_sm_.setTarget(static_cast<float>(settings_.trachea_length_mm));
+        ref_sm_.setTarget(static_cast<float>(settings_.trachea_reflection));
+        loss_sm_.setTarget(static_cast<float>(settings_.trachea_loss));
+        gain_sm_.setTarget(static_cast<float>(settings_.trachea_input_gain));
     }
 
-    void setSource(VoiceSource src) noexcept { source_ = src; }
+    void setSource(VoiceSource src) noexcept {
+        source_ = src;
+        use_trachea_ = (src == VoiceSource::Labial);
+    }
+
+    void setTracheaEnabled(bool on) noexcept { use_trachea_ = on; }
 
     void setTestWaveform(TestWaveform w) noexcept { waveform_ = w; }
 
@@ -117,7 +137,8 @@ public:
     /// Place the oscillator on the silent rest branch at (alpha, beta). Call after reset.
     void primeLabial(double alpha, double beta) noexcept {
         osc_.resetToRest(alpha, beta);
-        dc_.prime(osc_.x());
+        snapTrachea();
+        primeDcFromSource(osc_.x());
     }
 
     /// Override registry smoothing for `out.gain_db` (0 = zipper / unsmoothed). Call after prepare.
@@ -162,9 +183,47 @@ public:
     [[nodiscard]] double internalRate() const noexcept { return internal_rate_; }
     [[nodiscard]] const dsp::Oversampling& oversampling() const noexcept { return oversampling_; }
     [[nodiscard]] const model::LabialOscillator& oscillator() const noexcept { return osc_; }
+    [[nodiscard]] const model::Trachea& trachea() const noexcept { return trachea_; }
+    [[nodiscard]] bool tracheaEnabled() const noexcept { return use_trachea_; }
 
 private:
     static float lerp(float a, float b, float u) noexcept { return a + u * (b - a); }
+
+    void snapTrachea() noexcept {
+        len_sm_.snap(static_cast<float>(settings_.trachea_length_mm));
+        ref_sm_.snap(static_cast<float>(settings_.trachea_reflection));
+        loss_sm_.snap(static_cast<float>(settings_.trachea_loss));
+        gain_sm_.snap(static_cast<float>(settings_.trachea_input_gain));
+        trachea_.setParams(settings_.trachea_length_mm,
+                           settings_.trachea_reflection,
+                           settings_.trachea_loss,
+                           settings_.trachea_input_gain);
+        trachea_.reset();
+    }
+
+    void applySmoothedTracheaParams() noexcept {
+        trachea_.setParams(static_cast<double>(len_sm_.next()),
+                           static_cast<double>(ref_sm_.next()),
+                           static_cast<double>(loss_sm_.next()),
+                           static_cast<double>(gain_sm_.next()));
+    }
+
+    [[nodiscard]] double throughTrachea(double source) noexcept {
+        if (!use_trachea_) {
+            return source;
+        }
+        applySmoothedTracheaParams();
+        return trachea_.process(source);
+    }
+
+    void primeDcFromSource(double sourceSteady) noexcept {
+        if (use_trachea_) {
+            trachea_.prime(sourceSteady);
+            dc_.prime(trachea_.lastOutput());
+        } else {
+            dc_.prime(sourceSteady);
+        }
+    }
 
     void processBlock(float* out, int n, int offsetInCall, int callLen) noexcept {
         const int nInt = n * os_;
@@ -231,7 +290,11 @@ private:
                 }
                 break;
             }
-            internal_[static_cast<std::size_t>(i)] = static_cast<float>(amp * static_cast<double>(s));
+            double y = amp * static_cast<double>(s);
+            if (use_trachea_) {
+                y = dc_.tick(throughTrachea(y));
+            }
+            internal_[static_cast<std::size_t>(i)] = static_cast<float>(y);
         }
     }
 
@@ -255,7 +318,7 @@ private:
             const double alpha = model::alphaFromPressure(static_cast<double>(lastP), static_cast<double>(off));
             lastA = static_cast<float>(alpha);
             osc_.step(alpha, static_cast<double>(lastB), gamma);
-            const double y = 0.5 * dc_.tick(osc_.x());
+            const double y = 0.5 * dc_.tick(throughTrachea(osc_.x()));
             internal_[static_cast<std::size_t>(i)] = static_cast<float>(y);
         }
         telemetry_.pressure = lastP;
@@ -271,11 +334,14 @@ private:
     dsp::Oversampling oversampling_;
     dsp::Smoother out_smoother_;
     dsp::DcBlocker dc_;
+    dsp::Smoother len_sm_, ref_sm_, loss_sm_, gain_sm_;
     dsp::Rng rng_{1};
     model::TestSaw saw_;
     model::LabialOscillator osc_;
+    model::Trachea trachea_;
     std::vector<float> internal_;
     VoiceSource source_ = VoiceSource::Test;
+    bool use_trachea_ = false;
     TestWaveform waveform_ = TestWaveform::Sine;
     double internal_rate_ = 192000.0;
     double sine_phase_ = 0.0;

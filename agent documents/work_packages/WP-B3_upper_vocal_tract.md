@@ -125,3 +125,13 @@ Final message: this is **milestone M1**; invite the human to spend time listenin
 - Do not differentiate the flow numerically for radiation; use the state formula (exact and noise-free).
 - With very small gape the beak inertance is large; the resonance still follows f_H by construction (C_h adapts), but implied volumes become large — this is fine for control, report the numbers.
 - Keep the matrix update out of the per-sample path when parameters are static.
+
+## Notes from WP-B2 (2026-09-16)
+
+- Chain today: labial `x` → `Trachea` → 20 Hz DC blocker → `×0.5` → half-band decimation → `out.gain_db`. Put the UVT **between trachea and DC blocker** (r < 0 still needs the DC block after the tube).
+- `Trachea` is `core/include/cuicui/model/trachea.hpp`. `prepare(rate, maxLengthMm=480)` allocates; `setParams` is immediate (voice already smooths length/r/loss/A at 20 ms). Min delay D is clamped to 3 samples.
+- ℓ = 0 bypasses the one-pole (true lossless comb). ℓ > 0 uses f_c = 22000·(3000/22000)^ℓ. A 22 kHz pole at 192 kHz is not transparent enough for the 0.3 dB analytic test.
+- `BirdVoice::setSource(Labial)` enables the trachea; `setTracheaEnabled(false)` for dry source (B3 item 01). Test oscillator stays dry unless a render spec mentions `trachea.*`.
+- Python: `cuicui_core.trachea_process(x, rate, length_mm, r, loss, A)` and `render_labial(..., use_trachea=True, trachea_length_mm=33, ...)`.
+- Default `trachea.reflection` is still +0.5 (D-012); B2 asks the human which sign they prefer from items 01–03.
+- D1 is still `optional`.

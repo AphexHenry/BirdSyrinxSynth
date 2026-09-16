@@ -6,6 +6,7 @@
 #include "cuicui/params.hpp"
 
 #include <cmath>
+#include <initializer_list>
 #include <string_view>
 #include <vector>
 
@@ -27,8 +28,7 @@ inline int oversampling_from_spec(const RenderSpec& spec, const RenderOptions& o
     return os;
 }
 
-inline bool spec_uses_labial(const RenderSpec& spec) {
-    constexpr std::string_view keys[] = {"resp.pressure", "src.L.beta", "src.L.alpha_offset", "src.gamma"};
+inline bool spec_has_any(const RenderSpec& spec, std::initializer_list<std::string_view> keys) {
     for (const auto key : keys) {
         const std::string id(key);
         if (spec.params.count(id) != 0 || spec.automation.count(id) != 0) {
@@ -36,6 +36,15 @@ inline bool spec_uses_labial(const RenderSpec& spec) {
         }
     }
     return false;
+}
+
+inline bool spec_uses_labial(const RenderSpec& spec) {
+    return spec_has_any(spec, {"resp.pressure", "src.L.beta", "src.L.alpha_offset", "src.gamma"});
+}
+
+inline bool spec_uses_trachea(const RenderSpec& spec) {
+    return spec_has_any(spec,
+                        {"trachea.length_mm", "trachea.reflection", "trachea.loss", "trachea.input_gain"});
 }
 
 /// Render a spec through BirdVoice (test oscillator or B1 labial source + oversampling).
@@ -54,6 +63,10 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     const auto* bSpec = findParam("src.L.beta");
     const auto* oSpec = findParam("src.L.alpha_offset");
     const auto* gSpec = findParam("src.gamma");
+    const auto* tLen = findParam("trachea.length_mm");
+    const auto* tRef = findParam("trachea.reflection");
+    const auto* tLoss = findParam("trachea.loss");
+    const auto* tGain = findParam("trachea.input_gain");
     const double defFreq = freqSpec ? freqSpec->def : 440.0;
     const double defGain = gainSpec ? gainSpec->def : -12.0;
     const double defOut = outSpec ? outSpec->def : 0.0;
@@ -61,6 +74,10 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     const double defB = bSpec ? bSpec->def : 0.3;
     const double defOff = oSpec ? oSpec->def : 0.0;
     const double defGamma = gSpec ? gSpec->def : 24000.0;
+    const double defTLen = tLen ? tLen->def : 33.0;
+    const double defTRef = tRef ? tRef->def : 0.5;
+    const double defTLoss = tLoss ? tLoss->def : 0.3;
+    const double defTGain = tGain ? tGain->def : 1.0;
 
     const auto freqA = spec.automationFor("test.freq_hz", defFreq);
     const auto gainA = spec.automationFor("test.gain_db", defGain);
@@ -68,6 +85,10 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     const auto pA = spec.automationFor("resp.pressure", defP);
     const auto bA = spec.automationFor("src.L.beta", defB);
     const auto oA = spec.automationFor("src.L.alpha_offset", defOff);
+    const auto tLenA = spec.automationFor("trachea.length_mm", defTLen);
+    const auto tRefA = spec.automationFor("trachea.reflection", defTRef);
+    const auto tLossA = spec.automationFor("trachea.loss", defTLoss);
+    const auto tGainA = spec.automationFor("trachea.input_gain", defTGain);
 
     ProcessSpec ps;
     ps.hostSampleRate = static_cast<double>(sr);
@@ -76,7 +97,6 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
 
     BirdVoice voice;
     voice.prepare(ps);
-    voice.reset(spec.seed);
     const bool labial = spec_uses_labial(spec);
     voice.setSource(labial ? VoiceSource::Labial : VoiceSource::Test);
     if (!labial) {
@@ -85,18 +105,26 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
             wave = TestWaveform::Sine;
         }
         voice.setTestWaveform(wave);
+        if (spec_uses_trachea(spec)) {
+            voice.setTracheaEnabled(true);
+        }
     }
     if (!opt.apply_smoothing) {
         voice.setOutGainSmoothingMs(0.0);
     }
 
+    auto clampP = [](const ParamSpec* s, double v) { return s ? clampParam(*s, v) : v; };
+
     VoiceSettings settings;
     settings.seed = spec.seed;
     settings.out_gain_db = spec.staticParam("out.gain_db", defOut);
     settings.src_gamma = spec.staticParam("src.gamma", defGamma);
+    settings.trachea_length_mm = clampP(tLen, tLenA.valueAt(0.0));
+    settings.trachea_reflection = clampP(tRef, tRefA.valueAt(0.0));
+    settings.trachea_loss = clampP(tLoss, tLossA.valueAt(0.0));
+    settings.trachea_input_gain = clampP(tGain, tGainA.valueAt(0.0));
     voice.setSettings(settings);
-
-    auto clampP = [](const ParamSpec* s, double v) { return s ? clampParam(*s, v) : v; };
+    voice.reset(spec.seed);
 
     if (labial) {
         const double off0 = clampP(oSpec, oA.valueAt(0.0));
@@ -128,6 +156,12 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
         const float og0 = static_cast<float>(clampP(outSpec, outA.valueAt(t0)));
         const float og1 = static_cast<float>(clampP(outSpec, outA.valueAt(t1)));
         voice.setOutGainRamp(og0, og1);
+        settings.out_gain_db = static_cast<double>(og1);
+        settings.trachea_length_mm = clampP(tLen, tLenA.valueAt(t1));
+        settings.trachea_reflection = clampP(tRef, tRefA.valueAt(t1));
+        settings.trachea_loss = clampP(tLoss, tLossA.valueAt(t1));
+        settings.trachea_input_gain = clampP(tGain, tGainA.valueAt(t1));
+        voice.setSettings(settings);
         voice.process(from, to, buf.data() + i, ns);
         i += ns;
     }

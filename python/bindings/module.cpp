@@ -3,6 +3,7 @@
 #include "cuicui/io/render_spec.hpp"
 #include "cuicui/model/bird_voice.hpp"
 #include "cuicui/model/labial_oscillator.hpp"
+#include "cuicui/model/trachea.hpp"
 #include "cuicui/params.hpp"
 
 #include <nanobind/nanobind.h>
@@ -132,10 +133,40 @@ NB_MODULE(cuicui_core, m) {
         "Integrate the labial oscillator at the internal rate. Releases the GIL.");
 
     m.def(
+        "trachea_process",
+        [](nb::ndarray<nb::numpy, const double, nb::ndim<1>, nb::c_contig> source, double internal_rate,
+           double length_mm, double reflection, double loss, double input_gain) {
+            const std::size_t n = source.shape(0);
+            auto x = copy_f64_1d(source);
+            auto* y = new std::vector<double>(n);
+            {
+                nb::gil_scoped_release release;
+                cuicui::model::Trachea tr;
+                tr.prepare(internal_rate, cuicui::model::kTracheaMaxLengthMm);
+                tr.setParams(length_mm, reflection, loss, input_gain);
+                tr.reset();
+                for (std::size_t i = 0; i < n; ++i) {
+                    (*y)[i] = tr.process(x[i]);
+                }
+            }
+            nb::capsule owner(y, [](void* p) noexcept { delete static_cast<std::vector<double>*>(p); });
+            return nb::ndarray<nb::numpy, double, nb::ndim<1>>(y->data(), {n}, owner);
+        },
+        nb::arg("source"),
+        nb::arg("internal_rate"),
+        nb::arg("length_mm") = 33.0,
+        nb::arg("reflection") = 0.5,
+        nb::arg("loss") = 0.0,
+        nb::arg("input_gain") = 1.0,
+        "Delayed-feedback trachea at the internal rate. Releases the GIL.");
+
+    m.def(
         "render_labial",
         [](nb::ndarray<nb::numpy, const float, nb::ndim<1>, nb::c_contig> pressure,
            nb::ndarray<nb::numpy, const float, nb::ndim<1>, nb::c_contig> beta, double gamma,
-           double sample_rate, int oversampling, double gain_db, double alpha_offset) {
+           double sample_rate, int oversampling, double gain_db, double alpha_offset, bool use_trachea,
+           double trachea_length_mm, double trachea_reflection, double trachea_loss,
+           double trachea_input_gain) {
             if (pressure.shape(0) != beta.shape(0)) {
                 throw std::invalid_argument("render_labial: pressure and beta must have the same length");
             }
@@ -159,12 +190,17 @@ NB_MODULE(cuicui_core, m) {
                 spec.oversampling = oversampling;
                 cuicui::BirdVoice voice;
                 voice.prepare(spec);
-                voice.reset(1);
                 voice.setSource(cuicui::VoiceSource::Labial);
+                voice.setTracheaEnabled(use_trachea);
                 cuicui::VoiceSettings settings;
                 settings.src_gamma = gamma;
                 settings.out_gain_db = gain_db;
+                settings.trachea_length_mm = trachea_length_mm;
+                settings.trachea_reflection = trachea_reflection;
+                settings.trachea_loss = trachea_loss;
+                settings.trachea_input_gain = trachea_input_gain;
                 voice.setSettings(settings);
+                voice.reset(1);
                 voice.setOutGainSmoothingMs(0.0);
                 voice.setOutGainRamp(static_cast<float>(gain_db), static_cast<float>(gain_db));
                 const double off = alpha_offset;
@@ -194,7 +230,12 @@ NB_MODULE(cuicui_core, m) {
         nb::arg("oversampling") = 0,
         nb::arg("gain_db") = 0.0,
         nb::arg("alpha_offset") = 0.0,
-        "Render the labial source through BirdVoice (host-rate pressure/beta arrays). Releases the GIL.");
+        nb::arg("use_trachea") = true,
+        nb::arg("trachea_length_mm") = 33.0,
+        nb::arg("trachea_reflection") = 0.5,
+        nb::arg("trachea_loss") = 0.3,
+        nb::arg("trachea_input_gain") = 1.0,
+        "Render the labial source through BirdVoice (optional trachea). Releases the GIL.");
 
     m.def(
         "decimator_stage_taps",
