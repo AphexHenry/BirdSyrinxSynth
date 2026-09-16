@@ -23,9 +23,9 @@
       "properties": {
         "test.freq_hz": { "type": "number" },
         "test.gain_db": { "type": "number" },
-        "test.waveform": { "type": "string", "enum": ["sine", "noise"] }
+        "test.waveform": { "type": "string", "enum": ["sine", "saw", "noise"] }
       },
-      "additionalProperties": { "type": "number" }
+      "additionalProperties": { "type": ["number", "string"] }
     },
     "automation": {
       "type": "object",

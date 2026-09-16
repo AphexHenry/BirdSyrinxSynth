@@ -1,3 +1,7 @@
+[build-system]
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"
+
 [project]
 name = "cuicui"
 version = "0.1.0"
@@ -11,10 +15,19 @@ dependencies = [
     "jsonschema",
     "pytest",
     "ruff",
+    "nanobind",
 ]
 
 [tool.uv]
+# The C++ module is built by CMake (`scripts/build.sh`) into python/cuicui_core*.so.
+# `uv pip install -e .` uses scikit-build-core when you want a wheel install.
 package = false
+
+[tool.scikit-build]
+wheel.packages = ["cuicui"]
+cmake.source-dir = "."
+build-dir = "../build/python"
+cmake.build-type = "Release"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -15,6 +15,12 @@ __pycache__/
 .mypy_cache/
 python/*.egg-info/
 python/.venv/
+python/CMakeFiles/
+python/*.a
+python/cuicui_core*.so
+python/*.so
+python/*.pyd
+python/*.dylib
 
 # Data (never commit raw recordings or large intermediates)
 data/raw/

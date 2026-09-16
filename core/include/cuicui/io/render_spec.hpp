@@ -17,26 +17,13 @@
 
 #include <nlohmann/json.hpp>
 
+#include "cuicui/params.hpp"
+
 namespace cuicui::io {
 
-/// Known parameter IDs in WP-A1. The full registry arrives in A2 (`saw` added then).
-inline constexpr std::array<std::string_view, 3> kKnownParamIds{
-    {"test.freq_hz", "test.gain_db", "test.waveform"}};
+inline bool is_known_param_id(std::string_view id) noexcept { return findParam(id) != nullptr; }
 
-inline bool is_known_param_id(std::string_view id) noexcept {
-    return std::find(kKnownParamIds.begin(), kKnownParamIds.end(), id) != kKnownParamIds.end();
-}
-
-inline std::string known_param_ids_list() {
-    std::ostringstream oss;
-    for (size_t i = 0; i < kKnownParamIds.size(); ++i) {
-        if (i != 0) {
-            oss << ", ";
-        }
-        oss << kKnownParamIds[i];
-    }
-    return oss.str();
-}
+inline std::string known_param_ids_list() { return knownParamIdsList(); }
 
 struct RenderSpecError : std::runtime_error {
     int exit_code;
@@ -94,7 +81,7 @@ struct RenderSpec {
     std::unordered_map<std::string, Automation> automation;
     std::string automation_interp = "linear";
     std::optional<double> normalize_peak_dbfs;
-    std::string waveform = "sine"; // test.waveform: "sine" | "noise" (A2 adds "saw")
+    std::string waveform = "sine"; // test.waveform: "sine" | "saw" | "noise"
 
     [[nodiscard]] double staticParam(const std::string& id, double default_value) const {
         const auto it = params.find(id);
@@ -155,8 +142,8 @@ inline RenderSpec parse_render_spec_json(const nlohmann::json& j) {
         }
     }
     if (j.contains("generator")) {
-        throw RenderSpecError(
-            "unknown field \"generator\"; use params.\"test.waveform\" with \"sine\" or \"noise\"");
+            throw RenderSpecError(
+            "unknown field \"generator\"; use params.\"test.waveform\" with \"sine\", \"saw\" or \"noise\"");
     }
     if (j.contains("output") && j.at("output").is_object()) {
         const auto& out = j.at("output");
@@ -177,23 +164,43 @@ inline RenderSpec parse_render_spec_json(const nlohmann::json& j) {
             check_id(it.key());
             if (it.key() == "test.waveform") {
                 if (!it.value().is_string()) {
-                    throw RenderSpecError("params.\"test.waveform\" must be a string (sine or noise)");
+                    throw RenderSpecError("params.\"test.waveform\" must be a string (sine, saw or noise)");
                 }
                 spec.waveform = it.value().get<std::string>();
-                if (spec.waveform != "sine" && spec.waveform != "noise") {
-                    throw RenderSpecError(
-                        "params.\"test.waveform\" must be \"sine\" or \"noise\" (saw arrives in A2)");
+                TestWaveform w{};
+                if (!parseTestWaveform(spec.waveform, w)) {
+                    throw RenderSpecError("params.\"test.waveform\" must be \"sine\", \"saw\" or \"noise\"");
                 }
+                spec.params[it.key()] = static_cast<double>(w);
+                continue;
+            }
+            if (it.key() == "engine.oversampling") {
+                int os = 0;
+                if (it.value().is_string()) {
+                    if (!parseOversamplingToken(it.value().get<std::string>(), os)) {
+                        throw RenderSpecError("params.\"engine.oversampling\" must be auto, 1, 2, 4 or 8");
+                    }
+                } else {
+                    os = it.value().get<int>();
+                    if (os != 0 && os != 1 && os != 2 && os != 4 && os != 8) {
+                        throw RenderSpecError("params.\"engine.oversampling\" must be auto, 1, 2, 4 or 8");
+                    }
+                }
+                spec.params[it.key()] = static_cast<double>(os);
                 continue;
             }
             spec.params[it.key()] = it.value().get<double>();
+            const auto* ps = findParam(it.key());
+            if (ps != nullptr) {
+                spec.params[it.key()] = clampParam(*ps, spec.params[it.key()]);
+            }
         }
     }
     if (j.contains("automation")) {
         for (auto it = j.at("automation").begin(); it != j.at("automation").end(); ++it) {
             check_id(it.key());
-            if (it.key() == "test.waveform") {
-                throw RenderSpecError("params.\"test.waveform\" cannot be automated");
+            if (it.key() == "test.waveform" || it.key() == "engine.oversampling") {
+                throw RenderSpecError("parameter \"" + it.key() + "\" cannot be automated");
             }
             Automation a;
             a.fallback = spec.staticParam(it.key(), 0.0);
@@ -209,6 +216,13 @@ inline RenderSpec parse_render_spec_json(const nlohmann::json& j) {
             a.sort();
             spec.automation[it.key()] = std::move(a);
         }
+    }
+    if (!j.contains("oversampling") && spec.params.count("engine.oversampling") != 0) {
+        const int os = static_cast<int>(spec.params["engine.oversampling"]);
+        spec.oversampling = (os == 0) ? "auto" : std::to_string(os);
+    }
+    if (!j.contains("seed") && spec.params.count("engine.seed") != 0) {
+        spec.seed = static_cast<std::uint64_t>(spec.params["engine.seed"]);
     }
     return spec;
 }

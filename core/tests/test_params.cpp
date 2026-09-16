@@ -1,0 +1,43 @@
+#include "cuicui/params.hpp"
+
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
+
+#include <string>
+
+using Catch::Matchers::WithinAbs;
+
+TEST_CASE("findParam locates registry entries") {
+    const auto* p = cuicui::findParam("src.L.beta");
+    REQUIRE(p != nullptr);
+    REQUIRE(p->pid == cuicui::ParamId::SrcLBeta);
+    REQUIRE(p->fast);
+    REQUIRE(p->min == Catch::Approx(-0.3));
+    REQUIRE(cuicui::findParam("not.a.param") == nullptr);
+}
+
+TEST_CASE("normalise/denormalise round trip") {
+    for (const auto& s : cuicui::kParamTable) {
+        const double mid = 0.5 * (s.min + s.max);
+        const double u = cuicui::toNormalised(s, mid);
+        const double back = cuicui::fromNormalised(s, u);
+        REQUIRE_THAT(back, WithinAbs(mid, 1e-6));
+        REQUIRE_THAT(cuicui::fromNormalised(s, 0.0), WithinAbs(s.min, 1e-12));
+        REQUIRE_THAT(cuicui::fromNormalised(s, 1.0), WithinAbs(s.max, 1e-9));
+        REQUIRE_THAT(cuicui::fromNormalised(s, cuicui::toNormalised(s, s.def)), WithinAbs(s.def, 1e-6));
+    }
+}
+
+TEST_CASE("clampParam respects min/max") {
+    const auto& s = cuicui::specOf(cuicui::ParamId::OutGainDb);
+    REQUIRE_THAT(cuicui::clampParam(s, -100.0), WithinAbs(s.min, 1e-15));
+    REQUIRE_THAT(cuicui::clampParam(s, 40.0), WithinAbs(s.max, 1e-15));
+}
+
+TEST_CASE("test.waveform names") {
+    cuicui::TestWaveform w{};
+    REQUIRE(cuicui::parseTestWaveform("saw", w));
+    REQUIRE(w == cuicui::TestWaveform::Saw);
+    REQUIRE(std::string(cuicui::testWaveformName(w)) == "saw");
+}

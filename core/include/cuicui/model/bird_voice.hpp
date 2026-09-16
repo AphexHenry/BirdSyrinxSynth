@@ -1,0 +1,219 @@
+#pragma once
+
+#include "cuicui/dsp/control_ramp.hpp"
+#include "cuicui/dsp/oversampling.hpp"
+#include "cuicui/dsp/rng.hpp"
+#include "cuicui/dsp/smoother.hpp"
+#include "cuicui/model/test_saw.hpp"
+#include "cuicui/params.hpp"
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <numbers>
+#include <vector>
+
+namespace cuicui {
+
+struct ControlFrame {
+    float resp_pressure = 0.0f;
+    float src_L_beta = 0.3f, src_R_beta = 0.3f;
+    float src_L_gate = 1.0f, src_R_gate = 0.0f;
+    float src_L_alpha_offset = 0.0f, src_R_alpha_offset = 0.0f;
+    float oec_freq_hz = 3000.0f;
+    float beak_gape = 0.5f;
+    float noise_beta_sigma = 0.005f;
+};
+
+struct VoiceSettings {
+    double body_size = 1.0, src_gamma = 24000.0;
+    double trachea_length_mm = 33.0, trachea_reflection = 0.5, trachea_loss = 0.3, trachea_input_gain = 1.0;
+    double oec_damping = 0.1, beak_damping = 0.3;
+    double out_radiation = 1.0, out_gain_db = 0.0;
+    double resp_attack_ms = 8.0, resp_release_ms = 15.0;
+    double noise_beta_bandwidth_hz = 300.0, noise_aspiration = 0.02, src_coupling = 0.0;
+    std::uint64_t seed = 1;
+};
+
+struct VoiceTelemetry {
+    float alpha_L = 0.0f, alpha_R = 0.0f, beta_L = 0.0f, beta_R = 0.0f, pressure = 0.0f;
+    float f0_estimate_hz = 0.0f, level_db = -120.0f;
+    std::uint32_t nonFiniteResets = 0;
+};
+
+/// POD snapshot (A2: test oscillator + RNG; delay lines stay in the voice).
+struct VoiceState {
+    double sine_phase = 0.0;
+    double saw_phase = 0.0;
+    float out_gain_y = 0.0f;
+    std::uint32_t rng0 = 1, rng1 = 0, rng2 = 0, rng3 = 0;
+};
+
+/// Skeleton voice: test oscillator at the internal rate, then half-band decimation.
+/// Later WPs replace the oscillator with the anatomical chain; prepare/process stay.
+class BirdVoice {
+public:
+    void prepare(const ProcessSpec& spec) {
+        spec_ = spec;
+        if (spec_.hostSampleRate <= 0.0) {
+            spec_.hostSampleRate = 48000.0;
+        }
+        if (spec_.maxBlockSize <= 0) {
+            spec_.maxBlockSize = 512;
+        }
+        os_ = spec_.resolvedOversampling();
+        internal_rate_ = spec_.internalRate();
+        oversampling_.prepare(spec_);
+        internal_.assign(static_cast<std::size_t>(spec_.maxBlockSize * os_), 0.0f);
+        saw_.prepare(internal_rate_);
+        out_smoother_.prepare(spec_.hostSampleRate);
+        out_smoother_.setTimeConstantMs(smoothing_ms_);
+        reset(settings_.seed);
+    }
+
+    void reset(std::uint64_t seed) {
+        settings_.seed = seed;
+        rng_.setSeed(seed);
+        sine_phase_ = 0.0;
+        saw_.reset();
+        oversampling_.reset();
+        out_smoother_.snap(static_cast<float>(settings_.out_gain_db));
+        std::fill(internal_.begin(), internal_.end(), 0.0f);
+        telemetry_ = {};
+        prepared_ = true;
+    }
+
+    void setSettings(const VoiceSettings& s) noexcept {
+        settings_ = s;
+        out_smoother_.setTarget(static_cast<float>(settings_.out_gain_db));
+    }
+
+    void setTestWaveform(TestWaveform w) noexcept { waveform_ = w; }
+
+    void setTestRamp(float freqFrom, float freqTo, float gainDbFrom, float gainDbTo) noexcept {
+        freq_from_ = freqFrom;
+        freq_to_ = freqTo;
+        gain_from_ = gainDbFrom;
+        gain_to_ = gainDbTo;
+    }
+
+    void setOutGainRamp(float fromDb, float toDb) noexcept {
+        out_from_ = fromDb;
+        out_to_ = toDb;
+    }
+
+    /// Override registry smoothing for `out.gain_db` (0 = zipper / unsmoothed). Call after prepare.
+    void setOutGainSmoothingMs(double ms) noexcept {
+        smoothing_ms_ = std::max(0.0, ms);
+        out_smoother_.setTimeConstantMs(smoothing_ms_);
+    }
+
+    void process(const ControlFrame& from, const ControlFrame& to, float* out, int numSamples) noexcept {
+        (void)from;
+        (void)to;
+        if (!prepared_ || out == nullptr || numSamples <= 0) {
+            return;
+        }
+        int done = 0;
+        while (done < numSamples) {
+            const int n = std::min(numSamples - done, spec_.maxBlockSize);
+            processBlock(out + done, n, done, numSamples);
+            done += n;
+        }
+    }
+
+    void saveState(VoiceState& s) const noexcept {
+        s.sine_phase = sine_phase_;
+        s.saw_phase = 0.0;
+        s.out_gain_y = out_smoother_.value();
+        s.rng0 = s.rng1 = s.rng2 = s.rng3 = 0;
+    }
+
+    void loadState(const VoiceState& s) noexcept {
+        sine_phase_ = s.sine_phase;
+        out_smoother_.snap(s.out_gain_y);
+    }
+
+    [[nodiscard]] VoiceTelemetry telemetry() const noexcept { return telemetry_; }
+    [[nodiscard]] int latencySamples() const noexcept { return oversampling_.latencySamples(); }
+    [[nodiscard]] int oversamplingFactor() const noexcept { return os_; }
+    [[nodiscard]] double internalRate() const noexcept { return internal_rate_; }
+    [[nodiscard]] const dsp::Oversampling& oversampling() const noexcept { return oversampling_; }
+
+private:
+    void processBlock(float* out, int n, int offsetInCall, int callLen) noexcept {
+        const int nInt = n * os_;
+        dsp::ControlRamp freqRamp, gainRamp;
+        const float u0 = static_cast<float>(offsetInCall) / static_cast<float>(callLen);
+        const float u1 = static_cast<float>(offsetInCall + n) / static_cast<float>(callLen);
+        const float f0 = freq_from_ + u0 * (freq_to_ - freq_from_);
+        const float f1 = freq_from_ + u1 * (freq_to_ - freq_from_);
+        const float g0 = gain_from_ + u0 * (gain_to_ - gain_from_);
+        const float g1 = gain_from_ + u1 * (gain_to_ - gain_from_);
+        freqRamp.set(f0, f1, nInt);
+        gainRamp.set(g0, g1, nInt);
+
+        constexpr double two_pi = 2.0 * std::numbers::pi;
+        const double dt = 1.0 / internal_rate_;
+        for (int i = 0; i < nInt; ++i) {
+            const double freq = std::max(0.0, static_cast<double>(freqRamp.next()));
+            const double gdb = static_cast<double>(gainRamp.next());
+            const double amp = std::pow(10.0, gdb / 20.0);
+            float s = 0.0f;
+            switch (waveform_) {
+            case TestWaveform::Saw:
+                s = saw_.tick(freq);
+                break;
+            case TestWaveform::Noise:
+                s = static_cast<float>(2.0 * static_cast<double>(rng_.uniform()) - 1.0);
+                break;
+            case TestWaveform::Sine:
+            default:
+                s = static_cast<float>(std::sin(sine_phase_));
+                sine_phase_ += two_pi * freq * dt;
+                if (sine_phase_ > two_pi) {
+                    sine_phase_ -= two_pi * std::floor(sine_phase_ / two_pi);
+                }
+                break;
+            }
+            internal_[static_cast<std::size_t>(i)] = static_cast<float>(amp * static_cast<double>(s));
+        }
+        oversampling_.decimate(internal_.data(), out, n);
+
+        const float og0 = out_from_ + u0 * (out_to_ - out_from_);
+        const float og1 = out_from_ + u1 * (out_to_ - out_from_);
+        dsp::ControlRamp outRamp;
+        outRamp.set(og0, og1, n);
+        float peak = 0.0f;
+        for (int i = 0; i < n; ++i) {
+            out_smoother_.setTarget(outRamp.next());
+            const float g = std::pow(10.0f, out_smoother_.next() / 20.0f);
+            out[i] *= g;
+            peak = std::max(peak, std::abs(out[i]));
+        }
+        telemetry_.f0_estimate_hz = f1;
+        telemetry_.level_db = peak > 1e-12f ? 20.0f * std::log10(peak) : -120.0f;
+        telemetry_.pressure = 0.0f;
+        telemetry_.beta_L = 0.0f;
+    }
+
+    ProcessSpec spec_{};
+    VoiceSettings settings_{};
+    VoiceTelemetry telemetry_{};
+    dsp::Oversampling oversampling_;
+    dsp::Smoother out_smoother_;
+    dsp::Rng rng_{1};
+    model::TestSaw saw_;
+    std::vector<float> internal_;
+    TestWaveform waveform_ = TestWaveform::Sine;
+    double internal_rate_ = 192000.0;
+    double sine_phase_ = 0.0;
+    double smoothing_ms_ = specOf(ParamId::OutGainDb).smoothingMs;
+    float freq_from_ = 440.0f, freq_to_ = 440.0f;
+    float gain_from_ = -12.0f, gain_to_ = -12.0f;
+    float out_from_ = 0.0f, out_to_ = 0.0f;
+    int os_ = 4;
+    bool prepared_ = false;
+};
+
+} // namespace cuicui

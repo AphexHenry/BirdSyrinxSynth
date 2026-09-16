@@ -45,6 +45,23 @@ def test_schema_rejects_wrong_format(tmp_path: Path) -> None:
         load_manifest(path)
 
 
+def test_schema_accepts_optional_figures(tmp_path: Path) -> None:
+    manifest = {
+        "format": "cuicui.listening_manifest",
+        "version": 1,
+        "wp": "A2",
+        "title": "Figures",
+        "figures": [
+            {"file": "plot.png", "title": "Decimator", "caption": "0–96 kHz"},
+        ],
+        "items": [],
+    }
+    path = tmp_path / "manifest.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    loaded = load_manifest(path)
+    assert loaded["figures"][0]["file"] == "plot.png"
+
+
 def test_listening_schema_file_exists() -> None:
     assert (ROOT / "schemas" / "listening_manifest.schema.json").is_file()
     assert (ROOT / "schemas" / "render_spec.schema.json").is_file()

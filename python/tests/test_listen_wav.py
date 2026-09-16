@@ -37,6 +37,7 @@ def _write_spec(
         "sample_rate": 48000,
         "duration_s": duration,
         "seed": 1,
+        "oversampling": 1,
         "params": {"test.freq_hz": freq, "test.gain_db": gain},
         "automation_interp": "linear",
         "output": {"normalize_peak_dbfs": None},

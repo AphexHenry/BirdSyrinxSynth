@@ -19,4 +19,5 @@
 - [planning] Windows build; AUv3 / iOS version.
 - [planning] "Dawn chorus" generator using several banks and densities over long time spans.
 - [A1] `clang-format` is missing on the dev Mac; `check.sh` currently warns and skips C++ format — install with `brew install clang-format` so later WPs get a real format gate.
+- [A2] `Oversampling::decimate` assumes `nHost ≤ maxBlockSize` (scratch is sized in `prepare`). Callers must chunk, as `BirdVoice` does. A bounds check would make misuse fail loudly.
 

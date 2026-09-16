@@ -18,6 +18,7 @@ Render a JSON spec to WAV:
 
 ```bash
 ./build/release/bin/bird_render path/to/spec.render.json -o out.wav
+./build/release/bin/bird_render --dump-params
 ```
 
 Build a listening page (after putting `manifest.json` and WAVs in `listening/<WP-ID>/`):

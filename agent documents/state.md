@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-09-16 — by: WP-A1 agent
+**Last updated:** 2026-09-16 — by: WP-A2 agent
 
 ## Status legend
 
@@ -21,7 +21,7 @@
 | # | WP | Title | Depends on | Status | Updated | Tag | Spec |
 |---|---|---|---|---|---|---|---|
 | 1 | A1 | Repository, build system, render CLI, listening kit | – | done | 2026-09-16 | wp-A1 | `work_packages/WP-A1_repo_build_render_listening.md` |
-| 2 | A2 | Parameter registry, control signals, oversampling, Python bindings | A1 | todo | | | `work_packages/WP-A2_params_oversampling_bindings.md` |
+| 2 | A2 | Parameter registry, control signals, oversampling, Python bindings | A1 | done | 2026-09-16 | wp-A2 | `work_packages/WP-A2_params_oversampling_bindings.md` |
 | 3 | D1 | Zebra finch dataset ingestion & catalogue | A1 | todo | | | `work_packages/WP-D1_dataset_ingestion.md` |
 | 4 | B1 | Labial oscillator (normal form) | A2 | todo | | | `work_packages/WP-B1_labial_oscillator.md` |
 | 5 | B2 | Trachea waveguide | B1 | todo | | | `work_packages/WP-B2_trachea.md` |
@@ -50,7 +50,7 @@
 
 ## Current capabilities
 
-The repo builds (CMake/Ninja), runs C++ and Python tests, renders a JSON spec to WAV via `bird_render`, and builds a listening HTML page with spectrograms. Sounds are test tones and seeded noise only — no bird model yet.
+The repo builds (CMake/Ninja), runs C++ and Python tests, and renders a JSON spec to WAV via `bird_render` or `cuicui_core.render_spec` (same engine). Parameters live in one registry (`bird_render --dump-params`). Audio can be oversampled (auto ≥ 176.4 kHz) and decimated with half-band filters. Sounds are still test sine / naive saw / noise — no bird model yet.
 
 ## Baselines
 
@@ -65,6 +65,7 @@ The repo builds (CMake/Ninja), runs C++ and Python tests, renders a JSON spec to
 
 - `clang-format` is not installed; `check.sh` skips the C++ format check (warns). `brew install clang-format` when convenient.
 - `uv` is in `tools/uv` (gitignored), not on the default PATH; use the `scripts/` wrappers.
+- `Oversampling::decimate` requires `nHost ≤ maxBlockSize` (chunk in the caller).
 
 ## Open questions for the human
 
@@ -80,3 +81,6 @@ The repo builds (CMake/Ninja), runs C++ and Python tests, renders a JSON spec to
 | 2026-09-16 | A1 | Cursor Grok 4.6 | WP-A1 awaiting approval (listening page opened) |
 | 2026-09-16 | A1 | Cursor Grok 4.6 | feedback: test.waveform instead of D-013 generator field |
 | 2026-09-16 | A1 | Cursor Grok 4.6 | approved, committed and tagged wp-A1 |
+| 2026-09-16 | A2 | Cursor Grok 4.6 | started WP-A2 (registry, oversampling, Python bindings) |
+| 2026-09-16 | A2 | Cursor Grok 4.6 | WP-A2 awaiting approval (listening page built) |
+| 2026-09-16 | A2 | Cursor Grok 4.6 | approved, committed and tagged wp-A2 |

@@ -45,14 +45,14 @@ TEST_CASE("render spec unknown parameter ID is exit code 2") {
     const char* json = R"({
       "format": "cuicui.render_spec",
       "version": 1,
-      "params": { "src.L.beta": 0.3 }
+      "params": { "not.a.param": 0.3 }
     })";
     try {
         cuicui::io::parse_render_spec_string(json);
         FAIL("expected RenderSpecError");
     } catch (const cuicui::io::RenderSpecError& e) {
         REQUIRE(e.exit_code == 2);
-        REQUIRE_THAT(std::string(e.what()), ContainsSubstring("src.L.beta"));
+        REQUIRE_THAT(std::string(e.what()), ContainsSubstring("not.a.param"));
         REQUIRE_THAT(std::string(e.what()), ContainsSubstring("test.freq_hz"));
         REQUIRE_THAT(std::string(e.what()), ContainsSubstring("test.gain_db"));
         REQUIRE_THAT(std::string(e.what()), ContainsSubstring("test.waveform"));
@@ -63,14 +63,14 @@ TEST_CASE("render spec unknown automation ID is exit code 2") {
     const char* json = R"({
       "format": "cuicui.render_spec",
       "version": 1,
-      "automation": { "body.size": [[0.0, 1.0]] }
+      "automation": { "not.a.param": [[0.0, 1.0]] }
     })";
     try {
         cuicui::io::parse_render_spec_string(json);
         FAIL("expected RenderSpecError");
     } catch (const cuicui::io::RenderSpecError& e) {
         REQUIRE(e.exit_code == 2);
-        REQUIRE_THAT(std::string(e.what()), ContainsSubstring("body.size"));
+        REQUIRE_THAT(std::string(e.what()), ContainsSubstring("not.a.param"));
     }
 }
 
@@ -93,11 +93,22 @@ TEST_CASE("render spec test.waveform noise") {
     REQUIRE(spec.waveform == "noise");
 }
 
+TEST_CASE("render spec test.waveform saw") {
+    const char* json = R"({
+      "format": "cuicui.render_spec",
+      "version": 1,
+      "params": { "test.waveform": "saw", "src.L.beta": 0.4 }
+    })";
+    const auto spec = cuicui::io::parse_render_spec_string(json);
+    REQUIRE(spec.waveform == "saw");
+    REQUIRE_THAT(spec.staticParam("src.L.beta", 0.0), WithinAbs(0.4, 1e-15));
+}
+
 TEST_CASE("render spec rejects invalid test.waveform") {
     const char* json = R"({
       "format": "cuicui.render_spec",
       "version": 1,
-      "params": { "test.waveform": "saw" }
+      "params": { "test.waveform": "square" }
     })";
     REQUIRE_THROWS_AS(cuicui::io::parse_render_spec_string(json), cuicui::io::RenderSpecError);
 }

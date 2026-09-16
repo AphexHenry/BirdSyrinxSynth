@@ -157,6 +157,16 @@ def build_page(manifest_path: Path | str) -> Path:
             cards.append(_item_html(item, item["file"], f"{stem}.spec.png", wave_rel))
         body_parts.append(f"<section class='row'>{''.join(cards)}</section>")
 
+    for fig in data.get("figures") or []:
+        caption = _esc(fig.get("caption", ""))
+        body_parts.append(
+            "<section class='row'><article class='card'>"
+            f"<h2>{_esc(fig.get('title', fig['file']))}</h2>"
+            f"<p class='listen-for'>{caption}</p>"
+            f"<img src='{_esc(fig['file'])}' alt='{_esc(fig.get('title', ''))}'>"
+            "</article></section>"
+        )
+
     page = f"""<!DOCTYPE html>
 <html lang="en">
 <head>

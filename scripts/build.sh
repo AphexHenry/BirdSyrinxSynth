@@ -17,15 +17,25 @@ need_cmd cmake
 need_cmd ninja
 need_cmd uv
 
-log "configure preset=${preset}"
-cmake --preset "${preset}"
-log "build preset=${preset}"
-cmake --build --preset "${preset}"
-
 log "python: uv sync"
 (
     cd "${ROOT}/python"
     uv sync --python 3.12
 )
+
+py="${ROOT}/python/.venv/bin/python"
+cmake_extra=()
+if [[ -x "${py}" ]]; then
+    cmake_extra+=(-DPython_EXECUTABLE="${py}")
+    nb_dir="$("${py}" -c "import nanobind; print(nanobind.cmake_dir())" 2>/dev/null || true)"
+    if [[ -n "${nb_dir}" ]]; then
+        cmake_extra+=(-Dnanobind_DIR="${nb_dir}")
+    fi
+fi
+
+log "configure preset=${preset}"
+cmake --preset "${preset}" "${cmake_extra[@]}"
+log "build preset=${preset}"
+cmake --build --preset "${preset}"
 
 log "BUILD OK (${preset})"

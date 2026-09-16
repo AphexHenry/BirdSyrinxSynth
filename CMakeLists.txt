@@ -7,6 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(CUICUI_WERROR "Treat warnings as errors for core/ and apps/" OFF)
+option(CUICUI_BUILD_BINDINGS "Build the nanobind module cuicui_core" ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
@@ -60,6 +61,11 @@ add_executable(cuicui_core_tests
     core/tests/test_render_spec.cpp
     core/tests/test_tone.cpp
     core/tests/test_version.cpp
+    core/tests/test_params.cpp
+    core/tests/test_smoother.cpp
+    core/tests/test_oversampling.cpp
+    core/tests/test_bird_voice.cpp
+    core/tests/test_alloc.cpp
 )
 target_link_libraries(cuicui_core_tests PRIVATE cuicui_core Catch2::Catch2WithMain)
 target_compile_definitions(cuicui_core_tests PRIVATE
@@ -71,3 +77,7 @@ cuicui_set_warnings(cuicui_core_tests)
 enable_testing()
 include("${catch2_SOURCE_DIR}/extras/Catch.cmake")
 catch_discover_tests(cuicui_core_tests)
+
+if(CUICUI_BUILD_BINDINGS)
+    add_subdirectory(python)
+endif()

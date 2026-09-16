@@ -66,3 +66,9 @@
 - **Decision:** use `params."test.waveform"` with values `sine` | `noise`, handled in `render_spec.hpp` like `test.freq_hz` / `test.gain_db`. A2 moves it into the registry and adds `saw`.
 - **Consequences:** no top-level `generator` field. CLI `--format` (WAV encoding) is unrelated and stays.
 
+### D-014 — Optional listening-manifest `figures` array
+- **Status:** accepted · 2026-09-16 · WP-A2
+- **Context:** WP-A2 must show the decimator magnitude response on the listening page. That plot is not an audio item.
+- **Decision:** allow an optional top-level `figures` array on `cuicui.listening_manifest` v1: `{file, title, caption?}`. Items stay as they are.
+- **Consequences:** `scripts/listen.sh` embeds those PNGs on the page. Additive; old manifests remain valid.
+
