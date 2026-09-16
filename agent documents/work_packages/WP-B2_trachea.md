@@ -108,3 +108,10 @@ In the final message, **ask the human which reflection sign they prefer** as def
 - The output tap is at D/2, the feedback tap at D — both fractional.
 - r < 0 creates a DC/low-frequency peak: the voice's DC blocker must come after the trachea.
 - Don't smooth the delay length inside `Trachea` again if the voice already smooths the parameter (double smoothing = sluggish size changes later).
+
+## Notes from WP-B1 (2026-09-16)
+
+- `BirdVoice` has `VoiceSource::Labial` and `::Test`. Offline render uses labial when the spec mentions `resp.pressure`, `src.L.beta`, `src.L.alpha_offset`, or `src.gamma`.
+- Output today: `0.5 * DcBlocker_20Hz(x)` at internal rate, then half-band decimation, then `out.gain_db`. Put the trachea **before** the DC blocker if r < 0 (this WP's pitfall).
+- `LabialOscillator` is `core/include/cuicui/model/labial_oscillator.hpp`. Prime from rest: `resetToRest(-0.1, beta)`.
+- D1 is parked (`optional`); do not auto-start it.

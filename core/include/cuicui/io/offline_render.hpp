@@ -2,9 +2,11 @@
 
 #include "cuicui/io/render_spec.hpp"
 #include "cuicui/model/bird_voice.hpp"
+#include "cuicui/model/labial_oscillator.hpp"
 #include "cuicui/params.hpp"
 
 #include <cmath>
+#include <string_view>
 #include <vector>
 
 namespace cuicui::io {
@@ -25,7 +27,18 @@ inline int oversampling_from_spec(const RenderSpec& spec, const RenderOptions& o
     return os;
 }
 
-/// Render a spec through the skeleton BirdVoice (test oscillator + oversampling).
+inline bool spec_uses_labial(const RenderSpec& spec) {
+    constexpr std::string_view keys[] = {"resp.pressure", "src.L.beta", "src.L.alpha_offset", "src.gamma"};
+    for (const auto key : keys) {
+        const std::string id(key);
+        if (spec.params.count(id) != 0 || spec.automation.count(id) != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/// Render a spec through BirdVoice (test oscillator or B1 labial source + oversampling).
 inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOptions& opt = {}) {
     const int sr = spec.sample_rate;
     const int n = static_cast<int>(std::llround(spec.duration_s * sr));
@@ -37,13 +50,24 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     const auto* freqSpec = findParam("test.freq_hz");
     const auto* gainSpec = findParam("test.gain_db");
     const auto* outSpec = findParam("out.gain_db");
+    const auto* pSpec = findParam("resp.pressure");
+    const auto* bSpec = findParam("src.L.beta");
+    const auto* oSpec = findParam("src.L.alpha_offset");
+    const auto* gSpec = findParam("src.gamma");
     const double defFreq = freqSpec ? freqSpec->def : 440.0;
     const double defGain = gainSpec ? gainSpec->def : -12.0;
     const double defOut = outSpec ? outSpec->def : 0.0;
+    const double defP = pSpec ? pSpec->def : 0.0;
+    const double defB = bSpec ? bSpec->def : 0.3;
+    const double defOff = oSpec ? oSpec->def : 0.0;
+    const double defGamma = gSpec ? gSpec->def : 24000.0;
 
     const auto freqA = spec.automationFor("test.freq_hz", defFreq);
     const auto gainA = spec.automationFor("test.gain_db", defGain);
     const auto outA = spec.automationFor("out.gain_db", defOut);
+    const auto pA = spec.automationFor("resp.pressure", defP);
+    const auto bA = spec.automationFor("src.L.beta", defB);
+    const auto oA = spec.automationFor("src.L.alpha_offset", defOff);
 
     ProcessSpec ps;
     ps.hostSampleRate = static_cast<double>(sr);
@@ -53,11 +77,15 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     BirdVoice voice;
     voice.prepare(ps);
     voice.reset(spec.seed);
-    TestWaveform wave = TestWaveform::Sine;
-    if (!parseTestWaveform(spec.waveform, wave)) {
-        wave = TestWaveform::Sine;
+    const bool labial = spec_uses_labial(spec);
+    voice.setSource(labial ? VoiceSource::Labial : VoiceSource::Test);
+    if (!labial) {
+        TestWaveform wave = TestWaveform::Sine;
+        if (!parseTestWaveform(spec.waveform, wave)) {
+            wave = TestWaveform::Sine;
+        }
+        voice.setTestWaveform(wave);
     }
-    voice.setTestWaveform(wave);
     if (!opt.apply_smoothing) {
         voice.setOutGainSmoothingMs(0.0);
     }
@@ -65,7 +93,16 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     VoiceSettings settings;
     settings.seed = spec.seed;
     settings.out_gain_db = spec.staticParam("out.gain_db", defOut);
+    settings.src_gamma = spec.staticParam("src.gamma", defGamma);
     voice.setSettings(settings);
+
+    auto clampP = [](const ParamSpec* s, double v) { return s ? clampParam(*s, v) : v; };
+
+    if (labial) {
+        const double off0 = clampP(oSpec, oA.valueAt(0.0));
+        const double b0 = clampP(bSpec, bA.valueAt(0.0));
+        voice.primeLabial(model::kAlphaRest + off0, b0);
+    }
 
     const double dt = 1.0 / static_cast<double>(sr);
     constexpr int kBlock = 32;
@@ -73,18 +110,24 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
         const int ns = std::min(kBlock, n - i);
         const double t0 = static_cast<double>(i) * dt;
         const double t1 = static_cast<double>(i + ns) * dt;
-        auto clampP = [](const ParamSpec* s, double v) {
-            return s ? clampParam(*s, v) : v;
-        };
-        const float f0 = static_cast<float>(clampP(freqSpec, freqA.valueAt(t0)));
-        const float f1 = static_cast<float>(clampP(freqSpec, freqA.valueAt(t1)));
-        const float g0 = static_cast<float>(clampP(gainSpec, gainA.valueAt(t0)));
-        const float g1 = static_cast<float>(clampP(gainSpec, gainA.valueAt(t1)));
-        const float o0 = static_cast<float>(clampP(outSpec, outA.valueAt(t0)));
-        const float o1 = static_cast<float>(clampP(outSpec, outA.valueAt(t1)));
-        voice.setTestRamp(f0, f1, g0, g1);
-        voice.setOutGainRamp(o0, o1);
         ControlFrame from, to;
+        if (labial) {
+            from.resp_pressure = static_cast<float>(clampP(pSpec, pA.valueAt(t0)));
+            to.resp_pressure = static_cast<float>(clampP(pSpec, pA.valueAt(t1)));
+            from.src_L_beta = static_cast<float>(clampP(bSpec, bA.valueAt(t0)));
+            to.src_L_beta = static_cast<float>(clampP(bSpec, bA.valueAt(t1)));
+            from.src_L_alpha_offset = static_cast<float>(clampP(oSpec, oA.valueAt(t0)));
+            to.src_L_alpha_offset = static_cast<float>(clampP(oSpec, oA.valueAt(t1)));
+        } else {
+            const float f0 = static_cast<float>(clampP(freqSpec, freqA.valueAt(t0)));
+            const float f1 = static_cast<float>(clampP(freqSpec, freqA.valueAt(t1)));
+            const float g0 = static_cast<float>(clampP(gainSpec, gainA.valueAt(t0)));
+            const float g1 = static_cast<float>(clampP(gainSpec, gainA.valueAt(t1)));
+            voice.setTestRamp(f0, f1, g0, g1);
+        }
+        const float og0 = static_cast<float>(clampP(outSpec, outA.valueAt(t0)));
+        const float og1 = static_cast<float>(clampP(outSpec, outA.valueAt(t1)));
+        voice.setOutGainRamp(og0, og1);
         voice.process(from, to, buf.data() + i, ns);
         i += ns;
     }

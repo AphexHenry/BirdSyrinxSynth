@@ -26,3 +26,31 @@ TEST_CASE("BirdVoice::process allocates nothing after prepare") {
     voice.process(from, to, out.data(), 128);
     REQUIRE(cuicui::test::alloc_count() == 0);
 }
+
+TEST_CASE("BirdVoice labial process allocates nothing after prepare") {
+    cuicui::ProcessSpec spec;
+    spec.hostSampleRate = 48000.0;
+    spec.maxBlockSize = 128;
+    spec.oversampling = 4;
+    cuicui::BirdVoice voice;
+    voice.prepare(spec);
+    voice.reset(1);
+    voice.setSource(cuicui::VoiceSource::Labial);
+    voice.primeLabial(-0.1, 0.3);
+    cuicui::VoiceSettings s;
+    s.src_gamma = 24000.0;
+    voice.setSettings(s);
+    voice.setOutGainRamp(0.0f, 0.0f);
+
+    std::vector<float> out(128, 0.0f);
+    cuicui::ControlFrame from, to;
+    from.resp_pressure = 0.4f;
+    to.resp_pressure = 0.5f;
+    from.src_L_beta = 0.3f;
+    to.src_L_beta = 0.35f;
+    voice.process(from, to, out.data(), 128);
+
+    cuicui::test::reset_alloc_count();
+    voice.process(from, to, out.data(), 128);
+    REQUIRE(cuicui::test::alloc_count() == 0);
+}

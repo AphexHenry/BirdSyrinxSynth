@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-09-16 — by: WP-A2 agent
+**Last updated:** 2026-09-16 — by: WP-B1 agent
 
 ## Status legend
 
@@ -22,8 +22,8 @@
 |---|---|---|---|---|---|---|---|
 | 1 | A1 | Repository, build system, render CLI, listening kit | – | done | 2026-09-16 | wp-A1 | `work_packages/WP-A1_repo_build_render_listening.md` |
 | 2 | A2 | Parameter registry, control signals, oversampling, Python bindings | A1 | done | 2026-09-16 | wp-A2 | `work_packages/WP-A2_params_oversampling_bindings.md` |
-| 3 | D1 | Zebra finch dataset ingestion & catalogue | A1 | todo | | | `work_packages/WP-D1_dataset_ingestion.md` |
-| 4 | B1 | Labial oscillator (normal form) | A2 | todo | | | `work_packages/WP-B1_labial_oscillator.md` |
+| 3 | D1 | Zebra finch dataset ingestion & catalogue | A1 | optional | 2026-09-16 | | `work_packages/WP-D1_dataset_ingestion.md` |
+| 4 | B1 | Labial oscillator (normal form) | A2 | done | 2026-09-16 | wp-B1 | `work_packages/WP-B1_labial_oscillator.md` |
 | 5 | B2 | Trachea waveguide | B1 | todo | | | `work_packages/WP-B2_trachea.md` |
 | 6 | B3 | Upper vocal tract: glottis–OEC–beak + radiation | B2 | todo | | | `work_packages/WP-B3_upper_vocal_tract.md` |
 | 7 | D2 | Feature extraction (shared real/synthetic) | D1, B3 | todo | | | `work_packages/WP-D2_features.md` |
@@ -50,7 +50,7 @@
 
 ## Current capabilities
 
-The repo builds (CMake/Ninja), runs C++ and Python tests, and renders a JSON spec to WAV via `bird_render` or `cuicui_core.render_spec` (same engine). Parameters live in one registry (`bird_render --dump-params`). Audio can be oversampled (auto ≥ 176.4 kHz) and decimated with half-band filters. Sounds are still test sine / naive saw / noise — no bird model yet.
+The repo builds, tests, and renders. A **labial oscillator** (one syrinx side) can replace the test tone: pressure turns sound on, tension sets pitch. Raw source only — no trachea, beak, breath dynamics, or second side. Sounds are still electronic. D1 (real recordings) is parked until after Phase B.
 
 ## Baselines
 
@@ -69,7 +69,7 @@ The repo builds (CMake/Ninja), runs C++ and Python tests, and renders a JSON spe
 
 ## Open questions for the human
 
-- Where are the zebra finch recordings and annotation files, and in which annotation format? (needed by WP-D1; please copy them to `data/raw/zebra_finch/`)
+- D1 is parked (`optional`) until after Phase B. Recordings live at `/Users/baptistebohelay/Dev/research/birds synth/data/annotations/` (`22938.wav` + `22938.json`; custom tseg JSON schema 1.2). When D1 starts: bird identity, label meanings (`peep`, `swipe`, `peep_grillon`, …), and whether to copy into `data/raw/zebra_finch/`.
 - JUCE licence choice before any public release (see `decisions.md` D-003).
 
 ## Session log (append one line per session)
@@ -84,3 +84,9 @@ The repo builds (CMake/Ninja), runs C++ and Python tests, and renders a JSON spe
 | 2026-09-16 | A2 | Cursor Grok 4.6 | started WP-A2 (registry, oversampling, Python bindings) |
 | 2026-09-16 | A2 | Cursor Grok 4.6 | WP-A2 awaiting approval (listening page built) |
 | 2026-09-16 | A2 | Cursor Grok 4.6 | approved, committed and tagged wp-A2 |
+| 2026-09-16 | D1 | Cursor Grok 4.6 | started WP-D1; blocked — `data/raw/zebra_finch/` missing |
+| 2026-09-16 | D1 | Cursor Grok 4.6 | human deferred D1 (do B-phase first); recordings path noted; D1 → optional |
+| 2026-09-16 | B1 | Cursor Grok 4.6 | started WP-B1 (labial oscillator, parameter guessing, no real audio) |
+| 2026-09-16 | B1 | Cursor Grok 4.6 | WP-B1 awaiting approval (listening page opened) |
+| 2026-09-16 | B1 | Cursor Grok 4.6 | feedback: t=0 click on silent starts; DC blocker primed; page rebuilt |
+| 2026-09-16 | B1 | Cursor Grok 4.6 | approved, committed and tagged wp-B1 |

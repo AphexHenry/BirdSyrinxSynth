@@ -155,3 +155,11 @@ Feature extraction and proper f0 tracking (D2). Any change to the raw files. Den
 - TextGrid files can be UTF-16 encoded.
 - Labels may be case-sensitive; do not merge "A" and "a" without asking.
 - Very long recordings: stream-read with `soundfile` blocks instead of loading everything.
+
+## Notes from WP-B1 (2026-09-16)
+
+Human deferred D1 until after Phase B (intuitive parameter guessing, no real audio). When this WP starts:
+
+- Recordings: `/Users/baptistebohelay/Dev/research/birds synth/data/annotations/` (`22938.wav` + `22938.json`).
+- Annotation format actually present: **custom tseg JSON** (schema 1.2), not TextGrid/Raven/evsonganaly. Implement that adapter. Segmenter code: `/Users/baptistebohelay/Dev/research/birds synth/src/tseg`.
+- Status was set to `optional` so protocol does not auto-select D1 before B. Human turns it back to `todo` when they want it.

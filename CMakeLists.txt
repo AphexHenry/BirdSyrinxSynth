@@ -66,6 +66,7 @@ add_executable(cuicui_core_tests
     core/tests/test_oversampling.cpp
     core/tests/test_bird_voice.cpp
     core/tests/test_alloc.cpp
+    core/tests/test_labial_oscillator.cpp
 )
 target_link_libraries(cuicui_core_tests PRIVATE cuicui_core Catch2::Catch2WithMain)
 target_compile_definitions(cuicui_core_tests PRIVATE

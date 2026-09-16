@@ -1,9 +1,11 @@
 #pragma once
 
 #include "cuicui/dsp/control_ramp.hpp"
+#include "cuicui/dsp/dc_blocker.hpp"
 #include "cuicui/dsp/oversampling.hpp"
 #include "cuicui/dsp/rng.hpp"
 #include "cuicui/dsp/smoother.hpp"
+#include "cuicui/model/labial_oscillator.hpp"
 #include "cuicui/model/test_saw.hpp"
 #include "cuicui/params.hpp"
 
@@ -14,6 +16,8 @@
 #include <vector>
 
 namespace cuicui {
+
+enum class VoiceSource { Test, Labial };
 
 struct ControlFrame {
     float resp_pressure = 0.0f;
@@ -41,16 +45,18 @@ struct VoiceTelemetry {
     std::uint32_t nonFiniteResets = 0;
 };
 
-/// POD snapshot (A2: test oscillator + RNG; delay lines stay in the voice).
+/// POD snapshot (A2 test oscillator + B1 labial state; delay lines later).
 struct VoiceState {
     double sine_phase = 0.0;
     double saw_phase = 0.0;
+    double labial_x = 0.0;
+    double labial_y = 0.0;
     float out_gain_y = 0.0f;
     std::uint32_t rng0 = 1, rng1 = 0, rng2 = 0, rng3 = 0;
+    std::uint32_t nonFiniteResets = 0;
 };
 
-/// Skeleton voice: test oscillator at the internal rate, then half-band decimation.
-/// Later WPs replace the oscillator with the anatomical chain; prepare/process stay.
+/// Voice: test oscillator (A1/A2) or labial source (B1) at the internal rate, then half-band decimation.
 class BirdVoice {
 public:
     void prepare(const ProcessSpec& spec) {
@@ -66,6 +72,8 @@ public:
         oversampling_.prepare(spec_);
         internal_.assign(static_cast<std::size_t>(spec_.maxBlockSize * os_), 0.0f);
         saw_.prepare(internal_rate_);
+        osc_.prepare(internal_rate_);
+        dc_.prepare(internal_rate_, 20.0);
         out_smoother_.prepare(spec_.hostSampleRate);
         out_smoother_.setTimeConstantMs(smoothing_ms_);
         reset(settings_.seed);
@@ -76,6 +84,8 @@ public:
         rng_.setSeed(seed);
         sine_phase_ = 0.0;
         saw_.reset();
+        osc_.resetToRest(model::kAlphaRest, specOf(ParamId::SrcLBeta).def);
+        dc_.prime(osc_.x());
         oversampling_.reset();
         out_smoother_.snap(static_cast<float>(settings_.out_gain_db));
         std::fill(internal_.begin(), internal_.end(), 0.0f);
@@ -87,6 +97,8 @@ public:
         settings_ = s;
         out_smoother_.setTarget(static_cast<float>(settings_.out_gain_db));
     }
+
+    void setSource(VoiceSource src) noexcept { source_ = src; }
 
     void setTestWaveform(TestWaveform w) noexcept { waveform_ = w; }
 
@@ -102,6 +114,12 @@ public:
         out_to_ = toDb;
     }
 
+    /// Place the oscillator on the silent rest branch at (alpha, beta). Call after reset.
+    void primeLabial(double alpha, double beta) noexcept {
+        osc_.resetToRest(alpha, beta);
+        dc_.prime(osc_.x());
+    }
+
     /// Override registry smoothing for `out.gain_db` (0 = zipper / unsmoothed). Call after prepare.
     void setOutGainSmoothingMs(double ms) noexcept {
         smoothing_ms_ = std::max(0.0, ms);
@@ -109,8 +127,8 @@ public:
     }
 
     void process(const ControlFrame& from, const ControlFrame& to, float* out, int numSamples) noexcept {
-        (void)from;
-        (void)to;
+        from_ = from;
+        to_ = to;
         if (!prepared_ || out == nullptr || numSamples <= 0) {
             return;
         }
@@ -125,12 +143,16 @@ public:
     void saveState(VoiceState& s) const noexcept {
         s.sine_phase = sine_phase_;
         s.saw_phase = 0.0;
+        s.labial_x = osc_.x();
+        s.labial_y = osc_.y();
         s.out_gain_y = out_smoother_.value();
         s.rng0 = s.rng1 = s.rng2 = s.rng3 = 0;
+        s.nonFiniteResets = osc_.nonFiniteResets();
     }
 
     void loadState(const VoiceState& s) noexcept {
         sine_phase_ = s.sine_phase;
+        osc_.reset(s.labial_x, s.labial_y);
         out_smoother_.snap(s.out_gain_y);
     }
 
@@ -139,13 +161,46 @@ public:
     [[nodiscard]] int oversamplingFactor() const noexcept { return os_; }
     [[nodiscard]] double internalRate() const noexcept { return internal_rate_; }
     [[nodiscard]] const dsp::Oversampling& oversampling() const noexcept { return oversampling_; }
+    [[nodiscard]] const model::LabialOscillator& oscillator() const noexcept { return osc_; }
 
 private:
+    static float lerp(float a, float b, float u) noexcept { return a + u * (b - a); }
+
     void processBlock(float* out, int n, int offsetInCall, int callLen) noexcept {
         const int nInt = n * os_;
-        dsp::ControlRamp freqRamp, gainRamp;
         const float u0 = static_cast<float>(offsetInCall) / static_cast<float>(callLen);
         const float u1 = static_cast<float>(offsetInCall + n) / static_cast<float>(callLen);
+
+        if (source_ == VoiceSource::Labial) {
+            processLabial(nInt, u0, u1);
+        } else {
+            processTest(nInt, u0, u1);
+        }
+        oversampling_.decimate(internal_.data(), out, n);
+
+        const float og0 = out_from_ + u0 * (out_to_ - out_from_);
+        const float og1 = out_from_ + u1 * (out_to_ - out_from_);
+        dsp::ControlRamp outRamp;
+        outRamp.set(og0, og1, n);
+        float peak = 0.0f;
+        for (int i = 0; i < n; ++i) {
+            out_smoother_.setTarget(outRamp.next());
+            const float g = std::pow(10.0f, out_smoother_.next() / 20.0f);
+            out[i] *= g;
+            peak = std::max(peak, std::abs(out[i]));
+        }
+        telemetry_.level_db = peak > 1e-12f ? 20.0f * std::log10(peak) : -120.0f;
+        telemetry_.nonFiniteResets = osc_.nonFiniteResets();
+        if (source_ != VoiceSource::Labial) {
+            const float f1 = freq_from_ + u1 * (freq_to_ - freq_from_);
+            telemetry_.f0_estimate_hz = f1;
+            telemetry_.pressure = 0.0f;
+            telemetry_.beta_L = 0.0f;
+        }
+    }
+
+    void processTest(int nInt, float u0, float u1) noexcept {
+        dsp::ControlRamp freqRamp, gainRamp;
         const float f0 = freq_from_ + u0 * (freq_to_ - freq_from_);
         const float f1 = freq_from_ + u1 * (freq_to_ - freq_from_);
         const float g0 = gain_from_ + u0 * (gain_to_ - gain_from_);
@@ -178,33 +233,49 @@ private:
             }
             internal_[static_cast<std::size_t>(i)] = static_cast<float>(amp * static_cast<double>(s));
         }
-        oversampling_.decimate(internal_.data(), out, n);
+    }
 
-        const float og0 = out_from_ + u0 * (out_to_ - out_from_);
-        const float og1 = out_from_ + u1 * (out_to_ - out_from_);
-        dsp::ControlRamp outRamp;
-        outRamp.set(og0, og1, n);
-        float peak = 0.0f;
-        for (int i = 0; i < n; ++i) {
-            out_smoother_.setTarget(outRamp.next());
-            const float g = std::pow(10.0f, out_smoother_.next() / 20.0f);
-            out[i] *= g;
-            peak = std::max(peak, std::abs(out[i]));
+    void processLabial(int nInt, float u0, float u1) noexcept {
+        dsp::ControlRamp pRamp, bRamp, oRamp;
+        pRamp.set(lerp(from_.resp_pressure, to_.resp_pressure, u0),
+                  lerp(from_.resp_pressure, to_.resp_pressure, u1), nInt);
+        bRamp.set(lerp(from_.src_L_beta, to_.src_L_beta, u0), lerp(from_.src_L_beta, to_.src_L_beta, u1),
+                  nInt);
+        oRamp.set(lerp(from_.src_L_alpha_offset, to_.src_L_alpha_offset, u0),
+                  lerp(from_.src_L_alpha_offset, to_.src_L_alpha_offset, u1), nInt);
+
+        const double gamma = settings_.src_gamma > 0.0 ? settings_.src_gamma : 24000.0;
+        float lastP = from_.resp_pressure;
+        float lastB = from_.src_L_beta;
+        float lastA = 0.0f;
+        for (int i = 0; i < nInt; ++i) {
+            lastP = pRamp.next();
+            lastB = bRamp.next();
+            const float off = oRamp.next();
+            const double alpha = model::alphaFromPressure(static_cast<double>(lastP), static_cast<double>(off));
+            lastA = static_cast<float>(alpha);
+            osc_.step(alpha, static_cast<double>(lastB), gamma);
+            const double y = 0.5 * dc_.tick(osc_.x());
+            internal_[static_cast<std::size_t>(i)] = static_cast<float>(y);
         }
-        telemetry_.f0_estimate_hz = f1;
-        telemetry_.level_db = peak > 1e-12f ? 20.0f * std::log10(peak) : -120.0f;
-        telemetry_.pressure = 0.0f;
-        telemetry_.beta_L = 0.0f;
+        telemetry_.pressure = lastP;
+        telemetry_.beta_L = lastB;
+        telemetry_.alpha_L = lastA;
     }
 
     ProcessSpec spec_{};
     VoiceSettings settings_{};
     VoiceTelemetry telemetry_{};
+    ControlFrame from_{};
+    ControlFrame to_{};
     dsp::Oversampling oversampling_;
     dsp::Smoother out_smoother_;
+    dsp::DcBlocker dc_;
     dsp::Rng rng_{1};
     model::TestSaw saw_;
+    model::LabialOscillator osc_;
     std::vector<float> internal_;
+    VoiceSource source_ = VoiceSource::Test;
     TestWaveform waveform_ = TestWaveform::Sine;
     double internal_rate_ = 192000.0;
     double sine_phase_ = 0.0;

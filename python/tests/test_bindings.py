@@ -113,7 +113,7 @@ def test_render_spec_bit_identical_to_cli(tmp_path: Path) -> None:
 
 def test_gil_released_two_threads() -> None:
     cc = _import_core()
-    spec = _spec("sine", 1, duration=5.0)
+    spec = _spec("saw", 4, duration=5.0)
 
     def _work() -> None:
         cc.render_spec(spec)
