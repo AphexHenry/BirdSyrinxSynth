@@ -1,0 +1,24 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 110
+AccessModifierOffset: -4
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: Yes
+BreakBeforeBraces: Attach
+BinPackArguments: false
+BinPackParameters: false
+PointerAlignment: Left
+QualifierAlignment: Left
+SortIncludes: true
+IncludeBlocks: Preserve
+SpaceAfterTemplateKeyword: true
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeParens: ControlStatements
+Standard: c++20
+---
+Language: Json
+ColumnLimit: 110

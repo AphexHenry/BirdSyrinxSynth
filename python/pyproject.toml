@@ -1,0 +1,31 @@
+[project]
+name = "cuicui"
+version = "0.1.0"
+description = "Syrinx analysis, listening kit, and (later) fitting tools"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "scipy",
+    "soundfile",
+    "matplotlib",
+    "jsonschema",
+    "pytest",
+    "ruff",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+"cuicui/listen/spectrogram.py" = ["E402"]

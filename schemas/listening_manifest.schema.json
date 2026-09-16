@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cuicuiinstruments.com/schemas/listening_manifest.schema.json",
+  "title": "cuicui.listening_manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "version", "wp", "title", "items"],
+  "properties": {
+    "format": { "const": "cuicui.listening_manifest" },
+    "version": { "const": 1 },
+    "wp": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/item" }
+    }
+  },
+  "$defs": {
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "title", "listen_for"],
+      "properties": {
+        "file": { "type": "string", "minLength": 1 },
+        "title": { "type": "string" },
+        "listen_for": { "type": "string" },
+        "params": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "metrics": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "group": { "type": ["string", "null"] },
+        "reference": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

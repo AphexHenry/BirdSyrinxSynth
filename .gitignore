@@ -1,0 +1,46 @@
+# Build and tools
+build/
+tools/
+.cache/
+
+# Listening renders (generated; not committed)
+listening/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+python/*.egg-info/
+python/.venv/
+
+# Data (never commit raw recordings or large intermediates)
+data/raw/
+data/interim/
+data/features/
+data/fits/
+
+# OS / editor
+.DS_Store
+*.swp
+*~
+.idea/
+.vscode/
+
+# Audio (allow only under assets/ and core/tests/golden/)
+*.wav
+!assets/**/*.wav
+!core/tests/golden/**/*.wav
+
+# CMake / compile
+compile_commands.json
+CMakeUserPresets.json
+cmake-build-*/
+
+# Coverage / profiling
+*.gcda
+*.gcno
+*.profraw
+*.profdata

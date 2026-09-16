@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cuicuiinstruments.com/schemas/render_spec.schema.json",
+  "title": "cuicui.render_spec",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["format", "version"],
+  "properties": {
+    "format": { "const": "cuicui.render_spec" },
+    "version": { "const": 1 },
+    "sample_rate": { "type": "integer", "minimum": 1 },
+    "duration_s": { "type": "number", "exclusiveMinimum": 0 },
+    "seed": { "type": "integer", "minimum": 0 },
+    "oversampling": {
+      "oneOf": [
+        { "type": "string", "enum": ["auto"] },
+        { "type": "integer", "enum": [1, 2, 4, 8] },
+        { "type": "string" }
+      ]
+    },
+    "params": {
+      "type": "object",
+      "properties": {
+        "test.freq_hz": { "type": "number" },
+        "test.gain_db": { "type": "number" },
+        "test.waveform": { "type": "string", "enum": ["sine", "noise"] }
+      },
+      "additionalProperties": { "type": "number" }
+    },
+    "automation": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      }
+    },
+    "automation_interp": { "type": "string", "enum": ["linear"] },
+    "output": {
+      "type": "object",
+      "properties": {
+        "normalize_peak_dbfs": { "type": ["number", "null"] }
+      }
+    }
+  }
+}

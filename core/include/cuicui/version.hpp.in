@@ -1,0 +1,8 @@
+#pragma once
+
+namespace cuicui {
+
+inline constexpr const char* kVersion = "@PROJECT_VERSION@";
+inline constexpr const char* kGitHash = "@CUICUI_GIT_HASH@";
+
+} // namespace cuicui
