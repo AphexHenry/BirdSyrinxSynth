@@ -4,6 +4,7 @@
 #include "cuicui/model/bird_voice.hpp"
 #include "cuicui/model/labial_oscillator.hpp"
 #include "cuicui/model/trachea.hpp"
+#include "cuicui/model/upper_vocal_tract.hpp"
 #include "cuicui/params.hpp"
 
 #include <nanobind/nanobind.h>
@@ -161,12 +162,48 @@ NB_MODULE(cuicui_core, m) {
         "Delayed-feedback trachea at the internal rate. Releases the GIL.");
 
     m.def(
+        "uvt_process",
+        [](nb::ndarray<nb::numpy, const double, nb::ndim<1>, nb::c_contig> source, double internal_rate,
+           double oec_freq_hz, double oec_damping, double beak_gape, double beak_damping, double size_scale) {
+            const std::size_t n = source.shape(0);
+            auto x = copy_f64_1d(source);
+            auto* flow = new std::vector<double>(n);
+            auto* dflow = new std::vector<double>(n);
+            {
+                nb::gil_scoped_release release;
+                cuicui::model::UpperVocalTract uvt;
+                uvt.prepare(internal_rate);
+                uvt.setParams(oec_freq_hz, oec_damping, beak_gape, beak_damping, size_scale);
+                uvt.reset();
+                for (std::size_t i = 0; i < n; ++i) {
+                    const auto o = uvt.process(x[i]);
+                    (*flow)[i] = o.flow;
+                    (*dflow)[i] = o.dflow;
+                }
+            }
+            nb::capsule of(flow, [](void* p) noexcept { delete static_cast<std::vector<double>*>(p); });
+            nb::capsule od(dflow, [](void* p) noexcept { delete static_cast<std::vector<double>*>(p); });
+            return nb::make_tuple(
+                nb::ndarray<nb::numpy, double, nb::ndim<1>>(flow->data(), {n}, of),
+                nb::ndarray<nb::numpy, double, nb::ndim<1>>(dflow->data(), {n}, od));
+        },
+        nb::arg("source"),
+        nb::arg("internal_rate"),
+        nb::arg("oec_freq_hz") = 3000.0,
+        nb::arg("oec_damping") = 0.1,
+        nb::arg("beak_gape") = 0.5,
+        nb::arg("beak_damping") = 0.3,
+        nb::arg("size_scale") = 1.0,
+        "Upper vocal tract (flow, dflow) at the internal rate. Releases the GIL.");
+
+    m.def(
         "render_labial",
         [](nb::ndarray<nb::numpy, const float, nb::ndim<1>, nb::c_contig> pressure,
            nb::ndarray<nb::numpy, const float, nb::ndim<1>, nb::c_contig> beta, double gamma,
            double sample_rate, int oversampling, double gain_db, double alpha_offset, bool use_trachea,
            double trachea_length_mm, double trachea_reflection, double trachea_loss,
-           double trachea_input_gain) {
+           double trachea_input_gain, bool use_uvt, double oec_freq_hz, double oec_damping, double beak_gape,
+           double beak_damping, double out_radiation) {
             if (pressure.shape(0) != beta.shape(0)) {
                 throw std::invalid_argument("render_labial: pressure and beta must have the same length");
             }
@@ -192,6 +229,7 @@ NB_MODULE(cuicui_core, m) {
                 voice.prepare(spec);
                 voice.setSource(cuicui::VoiceSource::Labial);
                 voice.setTracheaEnabled(use_trachea);
+                voice.setUvtEnabled(use_uvt);
                 cuicui::VoiceSettings settings;
                 settings.src_gamma = gamma;
                 settings.out_gain_db = gain_db;
@@ -199,13 +237,17 @@ NB_MODULE(cuicui_core, m) {
                 settings.trachea_reflection = trachea_reflection;
                 settings.trachea_loss = trachea_loss;
                 settings.trachea_input_gain = trachea_input_gain;
+                settings.oec_damping = oec_damping;
+                settings.beak_damping = beak_damping;
+                settings.out_radiation = out_radiation;
                 voice.setSettings(settings);
                 voice.reset(1);
                 voice.setOutGainSmoothingMs(0.0);
                 voice.setOutGainRamp(static_cast<float>(gain_db), static_cast<float>(gain_db));
                 const double off = alpha_offset;
                 const float b0 = b.empty() ? 0.3f : b[0];
-                voice.primeLabial(cuicui::model::kAlphaRest + off, static_cast<double>(b0));
+                voice.primeLabial(cuicui::model::kAlphaRest + off, static_cast<double>(b0), oec_freq_hz,
+                                  beak_gape);
                 constexpr int kBlock = 32;
                 for (int i = 0; i < n;) {
                     const int ns = std::min(kBlock, n - i);
@@ -216,6 +258,10 @@ NB_MODULE(cuicui_core, m) {
                     to.src_L_beta = b[static_cast<std::size_t>(i + ns - 1)];
                     from.src_L_alpha_offset = static_cast<float>(off);
                     to.src_L_alpha_offset = static_cast<float>(off);
+                    from.oec_freq_hz = static_cast<float>(oec_freq_hz);
+                    to.oec_freq_hz = static_cast<float>(oec_freq_hz);
+                    from.beak_gape = static_cast<float>(beak_gape);
+                    to.beak_gape = static_cast<float>(beak_gape);
                     voice.process(from, to, out->data() + i, ns);
                     i += ns;
                 }
@@ -235,7 +281,13 @@ NB_MODULE(cuicui_core, m) {
         nb::arg("trachea_reflection") = 0.5,
         nb::arg("trachea_loss") = 0.3,
         nb::arg("trachea_input_gain") = 1.0,
-        "Render the labial source through BirdVoice (optional trachea). Releases the GIL.");
+        nb::arg("use_uvt") = true,
+        nb::arg("oec_freq_hz") = 3000.0,
+        nb::arg("oec_damping") = 0.1,
+        nb::arg("beak_gape") = 0.5,
+        nb::arg("beak_damping") = 0.3,
+        nb::arg("out_radiation") = 1.0,
+        "Render the labial source through BirdVoice (optional trachea + UVT). Releases the GIL.");
 
     m.def(
         "decimator_stage_taps",

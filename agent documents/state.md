@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-09-17 — by: WP-B2 agent
+**Last updated:** 2026-09-17 — by: WP-B3 agent
 
 ## Status legend
 
@@ -25,7 +25,7 @@
 | 3 | D1 | Zebra finch dataset ingestion & catalogue | A1 | optional | 2026-09-16 | | `work_packages/WP-D1_dataset_ingestion.md` |
 | 4 | B1 | Labial oscillator (normal form) | A2 | done | 2026-09-16 | wp-B1 | `work_packages/WP-B1_labial_oscillator.md` |
 | 5 | B2 | Trachea waveguide | B1 | done | 2026-09-17 | wp-B2 | `work_packages/WP-B2_trachea.md` |
-| 6 | B3 | Upper vocal tract: glottis–OEC–beak + radiation | B2 | todo | | | `work_packages/WP-B3_upper_vocal_tract.md` |
+| 6 | B3 | Upper vocal tract: glottis–OEC–beak + radiation | B2 | done | 2026-09-17 | wp-B3 | `work_packages/WP-B3_upper_vocal_tract.md` |
 | 7 | D2 | Feature extraction (shared real/synthetic) | D1, B3 | todo | | | `work_packages/WP-D2_features.md` |
 | 8 | B4 | Respiratory dynamics & noise sources | B3 | todo | | | `work_packages/WP-B4_respiration_noise.md` |
 | 9 | B5 | Two sources: left/right, gating, side switching | B4 | todo | | | `work_packages/WP-B5_two_sources.md` |
@@ -50,7 +50,7 @@
 
 ## Current capabilities
 
-The repo builds, tests, and renders. A **labial oscillator** (one syrinx side) plus a **trachea** (tube resonances) can replace the test tone: pressure turns sound on, tension sets pitch, tube length and reflection colour the spectrum. No beak, breath dynamics, or second side yet. Default reflection is still +0.5 (D-012) pending a listening choice. D1 is parked until after Phase B.
+The repo builds, tests, and renders. A labial oscillator plus trachea plus **upper vocal tract** (OEC + beak + radiation) makes the **first complete anatomical bird sound**. Pressure turns sound on, tension sets pitch, tube length colours the spectrum, OEC frequency is a moving formant, gape changes openness. No breath dynamics or second side yet. Default trachea reflection is still +0.5 (D-012). D1 is parked until after Phase B.
 
 ## Baselines
 
@@ -94,3 +94,8 @@ The repo builds, tests, and renders. A **labial oscillator** (one syrinx side) p
 | 2026-09-16 | B2 | Cursor Grok 4.6 | WP-B2 awaiting approval (listening page opened) |
 | 2026-09-16 | B2 | Cursor Grok 4.6 | feedback: trachea too subtle on 02–06; re-rendered stronger examples |
 | 2026-09-17 | B2 | Cursor Grok 4.6 | approved, committed and tagged wp-B2 |
+| 2026-09-17 | B3 | Cursor Grok 4.6 | started WP-B3 (upper vocal tract: OEC, beak, radiation) |
+| 2026-09-17 | B3 | Cursor Grok 4.6 | WP-B3 awaiting approval (M1 listening page opened) |
+| 2026-09-17 | B3 | Cursor Grok 4.6 | feedback: sine-like demos, 07/08 motion wrong; listening rebuilt |
+| 2026-09-17 | B3 | Cursor Grok 4.6 | 08 metallic/FM noted for B4; rest accepted; awaiting approve |
+| 2026-09-17 | B3 | Cursor Grok 4.6 | approved, committed and tagged wp-B3 |

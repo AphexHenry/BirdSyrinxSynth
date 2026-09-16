@@ -98,3 +98,12 @@ Figures: pressure step responses; f₀ track with/without tension noise; spectro
 - Noise on β near the onset boundary can push the oscillator *below* threshold (intermittent silence) — that is expected and musically useful; don't "fix" it by clamping α.
 - Don't use `std::normal_distribution` (implementation-defined → not reproducible across platforms); implement Box–Muller or Ziggurat on top of xoshiro.
 - Re-calibration changes loudness of all earlier golden renders: update expected values and mention it.
+
+## Notes from WP-B3 (2026-09-17)
+
+- Output mix is already calibrated (`kUvtFlowCal`, `kUvtRadCal` in `upper_vocal_tract.hpp`). Keep them unless you re-run the B3 reference note (α=0.2, β=0.2, trachea defaults, f_H=3000, gape=0.5) at 48 kHz.
+- Labial defaults to trachea **and** UVT on. `setUvtEnabled(false)` restores the B2 dry-UVT path (`0.5 * DC(trachea)`).
+- For a low stack near 540 Hz use α≈0.12, β=0.05 — α=0.05 is still silent at that β.
+- Same real clips as B3 07/08 if you want a v2 comparison (`22938.wav` 7.828–7.994 s peep and 23.48–23.98 s alarm).
+- **Human on B3 item 08 (alarm):** the real note is more **metallic**, like **FM with fast modulation**. That is the B4 target for `noise.beta_sigma` / tension jitter (not the UVT). Item 06 in this WP should chase that texture.
+
