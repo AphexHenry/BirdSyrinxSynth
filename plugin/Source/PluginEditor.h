@@ -32,7 +32,7 @@ private:
         juce::GroupComponent box;
         juce::Component body;
     };
-    Group breath_, srcL_, srcR_, trachea_, oec_, noise_, body_, engine_;
+    Group breath_, srcL_, srcR_, trachea_, oec_, noise_, body_, engine_, perform_;
 
     struct Row {
         juce::Slider slider;

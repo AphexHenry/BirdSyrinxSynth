@@ -179,6 +179,59 @@ inline constexpr std::array<int, 5> kOversamplingChoiceValues{{0, 1, 2, 4, 8}};
     }
 }
 
+/// perf.mode: 0 = perform, 1 = physiology.
+enum class PerfMode { Perform = 0, Physiology = 1 };
+
+inline constexpr std::array<const char*, 2> kPerfModeNames{{"perform", "physiology"}};
+
+[[nodiscard]] inline int perfModeIndexFromValue(double v) noexcept {
+    return (v >= 0.5) ? 1 : 0;
+}
+
+[[nodiscard]] inline bool parsePerfModeToken(std::string_view s, int& out) noexcept {
+    if (s == "perform" || s == "0") {
+        out = 0;
+        return true;
+    }
+    if (s == "physiology" || s == "1") {
+        out = 1;
+        return true;
+    }
+    return false;
+}
+
+/// perf.scale: 0 chromatic … 5 whole_tone. See 01_research.md §7.5.
+enum class PerfScale {
+    Chromatic = 0,
+    Major = 1,
+    Minor = 2,
+    PentatonicMajor = 3,
+    PentatonicMinor = 4,
+    WholeTone = 5
+};
+
+inline constexpr std::array<const char*, 6> kPerfScaleNames{
+    {"chromatic", "major", "minor", "pentatonic_major", "pentatonic_minor", "whole_tone"}};
+
+[[nodiscard]] inline int perfScaleIndexFromValue(double v) noexcept {
+    const int i = static_cast<int>(std::lround(v));
+    return std::clamp(i, 0, 5);
+}
+
+[[nodiscard]] inline bool parsePerfScaleToken(std::string_view s, int& out) noexcept {
+    for (int i = 0; i < static_cast<int>(kPerfScaleNames.size()); ++i) {
+        if (s == kPerfScaleNames[static_cast<std::size_t>(i)]) {
+            out = i;
+            return true;
+        }
+    }
+    if (s == "0" || s == "1" || s == "2" || s == "3" || s == "4" || s == "5") {
+        out = s[0] - '0';
+        return true;
+    }
+    return false;
+}
+
 /// engine.oversampling: 0 = auto, else 1, 2, 4, 8.
 [[nodiscard]] inline bool parseOversamplingToken(std::string_view s, int& out) noexcept {
     if (s == "auto" || s == "0") {

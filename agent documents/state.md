@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-09-17 — by: WP-C2 agent
+**Last updated:** 2026-09-17 — by: WP-C3 agent
 
 ## Status legend
 
@@ -32,7 +32,7 @@
 | 10 | B6 | Voice assembly, body size, state save/load, benchmarks | B5 | done | 2026-09-17 | wp-B6 | `work_packages/WP-B6_voice_assembly.md` |
 | 11 | C1 | Plugin shell + offline plugin renderer | B6 | done | 2026-09-17 | wp-C1 | `work_packages/WP-C1_plugin_shell.md` |
 | 12 | C2 | Source atlas & inverse pitch map | B6 | done | 2026-09-17 | wp-C2 | `work_packages/WP-C2_atlas_inverse_map.md` |
-| 13 | C3 | Pitch-led direct playing | C1, C2 | todo | | | `work_packages/WP-C3_pitch_led_playing.md` |
+| 13 | C3 | Pitch-led direct playing | C1, C2 | done | 2026-09-17 | wp-C3 | `work_packages/WP-C3_pitch_led_playing.md` |
 | 14 | C4 | Archetype library + gesture score format & player | C3 | todo | | | `work_packages/WP-C4_archetypes_gesture_score.md` |
 | 15 | C5 | Generative performance engine | C4 | todo | | | `work_packages/WP-C5_generative_engine.md` |
 | 16 | C6 | Perform UI, Physiology page, presets v1 | C5 | todo | | | `work_packages/WP-C6_perform_ui_presets.md` |
@@ -50,7 +50,7 @@
 
 ## Current capabilities
 
-**Playable plugin (crude pitch) + inverse map (not wired yet).** Syrinx loads as VST3, AU, CLAP and Standalone. Click the C4–C5 piano or use a MIDI keyboard — that path is still C1’s empirical map (bird-range, C4 ≈ 2.5 kHz). A compiled inverse map now turns a concert pitch + Tone into (α, β) with D6–C8 at size 1 in tune (median 0.08 cents); C3 will hook it to MIDI. `plugin_render` renders MIDI offline. D1 is still parked.
+**Playable instrument (M3).** Syrinx loads as VST3, AU, CLAP and Standalone. In Perform mode, MIDI is concert pitch through the inverse map: D6–C8 at size 1 is in tune (median 0.06 cents). Breath, Tone, Motion, Snap, Glide and Size drive the bird; physiology is solved underneath. Physiology mode still uses C1’s empirical map. D1 is still parked.
 
 ## Baselines
 
@@ -58,7 +58,7 @@
 |---|---|---|---|
 | CPU per voice @48 kHz (Release, Apple Silicon) | 2.72 % of one core (RT 0.027); 16 voices RT 0.43 — **above** 0.5 % / 0.1 targets | B6 | 2026-09-17 |
 | Plugin CPU @48 kHz / 256 (Release, Apple Silicon) | 2.70 % of one core (~1.0× B6 voice) | C1 | 2026-09-17 |
-| Tuning error, tone 0.6, size 1 (median / max cents) | 0.08 / 0.25 | C2 | 2026-09-17 |
+| Tuning error, tone 0.6, size 1 (median / max cents) | 0.06 / 0.25 (plugin MIDI, D6–C8) | C3 | 2026-09-17 |
 | Fitting benchmark (synthetic) median MRSTFT loss | – | E1 | |
 | Real zebra finch resynthesis median MRSTFT loss | – | E3/E4 | |
 
@@ -73,18 +73,19 @@
 - One voice uses ~2.7 % of a core at 48 kHz OS 4 (planning target 0.5 %). See B6 report §9.
 - Auto OS at σ=0.25 is ~4 cents sharp vs OS 8; request OS 8 for tiny-bird sessions (D-015).
 - `render_controls` vs CLI differs by 1 ULP (float32 prime vs JSON double).
-- C1 MIDI pitch is an empirical $f_0(\beta)$ invert at playing α: intervals work on C4–C5, but C4 is ~2.5 kHz and velocity still shifts pitch. Concert tuning is C3 (InverseMap is ready).
+- Physiology mode still uses C1’s empirical $f_0(\beta)$ table (C4 ≈ 2.5 kHz, velocity shifts pitch). Perform mode is concert pitch.
 - Newly copied AU needs `killall AudioComponentRegistrar` before auval sees it (`scripts/validate_plugin.sh` does this).
 - C2 playable floor at σ=1 is D6 (~1162 Hz), not C6: the SNIC/onset edge cannot invert to 5 cents on a 0.005 β-grid.
 - C2 continuous tone morph (listening 04) at 2 kHz moves ~15–26 cents near whistle; held notes stay ≤ 0.3 cents.
+- C3 in-app keyboard is D6–C8. Piano C4–C5 with range_fold sounds as C7 (several keys collapse onto the same bird notes).
+- Jumps on D6 (the SNIC/onset floor) sound printer-like. Listening 07 now uses A6–A7–C8. Syllable-shaped breath around switches is C4/C5.
 
 ## Open questions for the human
 
 - D1 is parked (`optional`) until after Phase B. Recordings live at `/Users/baptistebohelay/Dev/research/birds synth/data/annotations/` (`22938.wav` + `22938.json`; custom tseg JSON schema 1.2). When D1 starts: bird identity, label meanings (`peep`, `swipe`, `peep_grillon`, …), and whether to copy into `data/raw/zebra_finch/`.
 - JUCE licence choice before any public release (see `decisions.md` D-003).
-- B6 CPU: accept ~3 % per voice, or spend a WP on optimisation (skip gated-off RK4, UVT dirty-flag)? Recommendation: accept for C1, revisit if the plugin feels heavy.
-- M2 listening: what matters most before playability (C3) starts?
-- C1 DAW checklist: Standalone + MIDI keyboard; AU (Logic) or VST3 (Ableton/Reaper/Bitwig); automate one knob; save/reopen the project. Any crash, silence or click?
+- B6 CPU: accept ~3 % per voice, or spend a WP on optimisation (skip gated-off RK4, UVT dirty-flag)? Recommendation: accept for now, revisit if the plugin feels heavy.
+- M3 feel: Motion default 0.3, onset, tuning on a real keyboard. Snap useful? Keyboard range D6–C8 OK?
 
 ## Session log (append one line per session)
 
@@ -132,3 +133,7 @@
 | 2026-09-17 | C2 | Cursor Grok 4.6 | started WP-C2 (source atlas & inverse pitch map) |
 | 2026-09-17 | C2 | Cursor Grok 4.6 | WP-C2 awaiting approval (listening page opened; D6–C8 in tune) |
 | 2026-09-17 | C2 | Cursor Grok 4.6 | approved, committed and tagged wp-C2 |
+| 2026-09-17 | C3 | Cursor Grok 4.6 | started WP-C3 (pitch-led direct playing) |
+| 2026-09-17 | C3 | Cursor Grok 4.6 | WP-C3 awaiting approval (M3 listening page opened; D6–C8 in tune) |
+| 2026-09-17 | C3 | Cursor Grok 4.6 | feedback: 07 printer-like; retuned jumps off D6 floor; still awaiting approve |
+| 2026-09-17 | C3 | Cursor Grok 4.6 | approved, committed and tagged wp-C3 |

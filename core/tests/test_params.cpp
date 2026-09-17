@@ -51,4 +51,13 @@ TEST_CASE("version hint from sinceWP and oversampling choice map") {
     REQUIRE(cuicui::oversamplingValueFromChoiceIndex(3) == 4);
     REQUIRE(cuicui::findParam("out.master_db") != nullptr);
     REQUIRE(cuicui::specOf(cuicui::ParamId::OutMasterDb).def == Catch::Approx(-6.0));
+    REQUIRE(cuicui::findParam("perf.breath") != nullptr);
+    REQUIRE(cuicui::specOf(cuicui::ParamId::PerfBreath).def == Catch::Approx(0.7));
+    REQUIRE(cuicui::findParam("perf.mode") != nullptr);
+    int mode = -1;
+    REQUIRE(cuicui::parsePerfModeToken("perform", mode));
+    REQUIRE(mode == 0);
+    int sc = -1;
+    REQUIRE(cuicui::parsePerfScaleToken("pentatonic_minor", sc));
+    REQUIRE(sc == 4);
 }

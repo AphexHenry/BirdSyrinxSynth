@@ -80,6 +80,7 @@ target_link_libraries(plugin_render
 add_executable(syrinx_plugin_tests
     tests/main.cpp
     tests/test_processor.cpp
+    tests/test_perform_mode.cpp
     ${SYRINX_PLUGIN_SOURCES}
 )
 target_include_directories(syrinx_plugin_tests PRIVATE

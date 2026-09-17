@@ -33,5 +33,9 @@
 - [C1] Processor tests `_Exit` after Catch2 because `alloc_counter.hpp` global `new`/`delete` aborts inside `DeletedAtShutdown::deleteAll()`. A JUCE-safe alloc probe would let the test binary shut down normally.
 - [C2] Recover C6 (one semitone below the D6 floor at σ=1) with a denser β-grid near SNIC/onset — current 0.005 step cannot invert that edge to 5 cents.
 - [C2] Continuous Tone morph at fixed ν pulls ~15–26 cents (listening 04) while held notes stay ≤ 0.3 cents; C3 may want a slow f₀ lock or denser inverse along α.
+- [C3] In-app keyboard is D6–C8 (concert pitch in the σ=1 playable band). A transposing “bird octave” overlay could help pianists who expect C4.
+- [C3] MIDI 60–72 with range_fold maps several piano octaves onto the same bird notes; glide tests must use in-range pitches (D6–C8) or the interval collapses.
+- [C3] Jumps at the D6 playable floor sound printer-like (SNIC/onset noise + physical side-open). Keep demos in the middle of the band until C4/C5 add syllable-shaped breath around switches.
+
 
 

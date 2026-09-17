@@ -109,3 +109,13 @@ Ask the human which archetypes sound least convincing (to prioritise tuning in C
 
 - Pitch curves for sweeps must be defined relative to a sensible anchor (`anchor_at`) so that musicians' notes land where expected.
 - Don't allocate `std::vector` per gesture in real time: fixed-size arrays.
+
+## Notes from WP-C3
+
+- `GestureSource` / `NullGestureSource` / `GestureSample` live in `core/include/cuicui/control/gesture_source.hpp`. Hint fields (`oecRatio`, `gape`, `secondVoiceCents`) use NaN = unset (`hintSet()`).
+- `VoiceController::tick` expects `out` to be a **fresh host ControlFrame** each call (oec/gape/noise bases). Do not feed back the previous output or tracking compounds.
+- Snap weights |dP/dt| of the **unsnapped** pitch (gesture/direct), then pulls toward `quantizeCents`.
+- Perform vs physiology: `perf.mode` 0 = controller, 1 = C1 empirical MIDI table. Default is perform.
+- Playable concert pitch at σ=1 is D6–C8 (MIDI 86–108). `setGestureSource` is how C4/C5 plug in; Leash is still 0 until C5 adds `perf.leash`.
+- Side-switch jumps at the D6 floor are noisy. Archetypes should include amplitude/breath envelopes around jumps so they read as syllables, not mechanical gates.
+

@@ -27,6 +27,19 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout() {
                 pid, name, 0, 2147483647, 1));
             continue;
         }
+        if (std::string_view(spec.id) == "perf.mode") {
+            params.push_back(std::make_unique<juce::AudioParameterChoice>(
+                pid, name, juce::StringArray{"perform", "physiology"}, 0));
+            continue;
+        }
+        if (std::string_view(spec.id) == "perf.scale") {
+            params.push_back(std::make_unique<juce::AudioParameterChoice>(
+                pid, name,
+                juce::StringArray{"chromatic", "major", "minor", "pentatonic_major", "pentatonic_minor",
+                                  "whole_tone"},
+                0));
+            continue;
+        }
 
         const cuicui::ParamSpec captured = spec;
         // JUCE: convertFrom0To1 first, convertTo0To1 second.

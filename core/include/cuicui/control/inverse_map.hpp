@@ -96,6 +96,14 @@ public:
         return a + t * (b - a);
     }
 
+    /// Iso-frequency α band at ν. False if that ν is not invertible.
+    [[nodiscard]] bool alphaBand(double nu, double& lo, double& hi) const noexcept {
+        return sampleLoHi(nu, lo, hi);
+    }
+
+    /// β(α, ν) bilinear lookup. Used by the pitch-led controller's respiratory mirror.
+    [[nodiscard]] double betaOf(double alpha, double nu) const noexcept { return lookupBeta(alpha, nu); }
+
 private:
     [[nodiscard]] static double nuToIndex(double nu) noexcept {
         using generated::kAtlasNNu;

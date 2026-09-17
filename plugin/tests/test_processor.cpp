@@ -181,10 +181,11 @@ TEST_CASE("note-on produces sound, note-off dies, latency matches BirdVoice") {
     proc.releaseResources();
 }
 
-TEST_CASE("crude MIDI: C and D differ, octave is near 2x") {
+TEST_CASE("physiology MIDI: C and D differ, octave is near 2x") {
     auto hold = [](int note) {
         SyrinxAudioProcessor proc;
         proc.setNonRealtime(true);
+        proc.setParamPlain("perf.mode", 1.0f); // physiology: C1 empirical map
         proc.setParamPlain("out.master_db", 0.0f);
         proc.setParamPlain("out.gain_db", -6.0f);
         proc.setParamPlain("noise.aspiration", 0.0f);
@@ -217,7 +218,8 @@ TEST_CASE("state round trip of 10 random parameters") {
     std::vector<float> values;
     for (int n = 0; n < 10; ++n) {
         const auto& spec = cuicui::kParamTable[static_cast<std::size_t>(pick(rng))];
-        if (std::string_view(spec.id) == "engine.oversampling") {
+        if (std::string_view(spec.id) == "engine.oversampling" || std::string_view(spec.id) == "perf.mode" ||
+            std::string_view(spec.id) == "perf.scale") {
             continue;
         }
         std::uniform_real_distribution<float> dist(static_cast<float>(spec.min), static_cast<float>(spec.max));
@@ -334,6 +336,7 @@ TEST_CASE("processor matches BirdVoice render_offline within -60 dB (no MIDI)") 
     proc.setParamPlain("out.gain_db", -12.0f);
     proc.setParamPlain("out.master_db", 0.0f);
     proc.setParamPlain("body.size", 1.0f);
+    proc.setParamPlain("perf.mode", 1.0f); // host params drive the voice (C1 path)
     const int n = static_cast<int>(bird.size());
     auto plug = renderProcessor(proc, 48000.0, 256, n, {});
     const double db = maxAbsDiffDb(bird, plug);

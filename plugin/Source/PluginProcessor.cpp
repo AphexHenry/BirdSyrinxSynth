@@ -8,9 +8,7 @@
 
 namespace {
 
-/// Empirical f0(β) of the labial oscillator at MIDI vel-100 α
-/// (α = α_rest + p·(α_max−α_rest) ≈ 0.331). Hopf β=(2πf/γ)² sits near 0.02
-/// on piano Hz and makes C≈D. C3 (atlas) replaces this.
+/// Empirical f0(β) of the labial oscillator at MIDI vel-100 α. Physiology mode only.
 constexpr float kF0Hz[] = {
     1337.5f, 1817.5f, 2150.1f, 2405.1f, 2617.6f, 2800.1f, 2960.1f, 3105.1f,
     3237.6f, 3360.1f, 3472.6f, 3580.1f, 3682.6f, 3780.1f, 3875.1f, 3965.1f,
@@ -23,7 +21,7 @@ constexpr float kBetaAtF0[] = {
     0.80f,  0.85f,  0.90f,  0.95f, 1.00f, 1.05f, 1.10f, 1.15f, 1.20f,
 };
 constexpr int kF0Knots = static_cast<int>(sizeof(kF0Hz) / sizeof(kF0Hz[0]));
-constexpr float kMidiC4Hz = 0.5f * 4947.6f; // C5 hits the model ceiling (~2×)
+constexpr float kMidiC4Hz = 0.5f * 4947.6f;
 
 float betaFromTargetHz(float fTarget) noexcept {
     const float f = std::clamp(fTarget, kF0Hz[0], kF0Hz[kF0Knots - 1]);
@@ -63,11 +61,21 @@ void SyrinxAudioProcessor::cacheParamPointers() {
     }
     seedParam_ = dynamic_cast<juce::AudioParameterInt*>(apvts.getParameter("engine.seed"));
     osParam_ = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("engine.oversampling"));
+    modeParam_ = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("perf.mode"));
+    scaleParam_ = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("perf.scale"));
 }
 
 float SyrinxAudioProcessor::raw(cuicui::ParamId id) const noexcept {
     auto* p = raw_[static_cast<std::size_t>(id)];
     return p != nullptr ? p->load(std::memory_order_relaxed) : static_cast<float>(cuicui::specOf(id).def);
+}
+
+int SyrinxAudioProcessor::choiceIndex(juce::AudioParameterChoice* p) const noexcept {
+    return p != nullptr ? p->getIndex() : 0;
+}
+
+bool SyrinxAudioProcessor::performMode() const noexcept {
+    return choiceIndex(modeParam_) == 0;
 }
 
 int SyrinxAudioProcessor::readOversampling() const noexcept {
@@ -94,19 +102,29 @@ void SyrinxAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 
     voice_.prepare(spec);
     voice_.setSource(cuicui::VoiceSource::Labial);
+    const double ctrlRate = sampleRate / static_cast<double>(kSubBlock);
+    controller_.prepare(ctrlRate, map_);
     mono_.assign(static_cast<std::size_t>(maxBlock), 0.0f);
     masterSm_.prepare(sampleRate);
     masterSm_.setTimeConstantMs(cuicui::specOf(cuicui::ParamId::OutMasterDb).smoothingMs);
     limiter_.reset();
     nHeld_ = 0;
-    bendSt_ = 0.0f;
+    bendNorm_ = 0.0f;
     betaDriven_ = false;
-    midiPressure_ = 0.0f;
+    midiPressurePhys_ = 0.0f;
+    aftertouch_ = 0.0f;
+    polyAt_ = 0.0f;
+    cc1_ = 0.0f;
+    cc74_ = 0.5f;
+    sustain_ = false;
+    wasGated_ = false;
     prepared_ = true;
 
     primeVoice();
     lastFrame_ = readControlFrame();
-    applyNotePhysics(lastFrame_);
+    if (!performMode()) {
+        applyPhysiologyNote(lastFrame_);
+    }
     masterSm_.snap(raw(cuicui::ParamId::OutMasterDb));
     setLatencySamples(voice_.latencySamples());
 }
@@ -178,65 +196,138 @@ cuicui::VoiceSettings SyrinxAudioProcessor::readSettings() const noexcept {
     return s;
 }
 
-void SyrinxAudioProcessor::handleMidi(const juce::MidiMessage& msg) noexcept {
-    if (msg.isNoteOn()) {
-        const int note = msg.getNoteNumber();
-        for (int i = 0; i < nHeld_; ++i) {
-            if (heldNotes_[i] == note) {
-                for (int j = i; j < nHeld_ - 1; ++j) {
-                    heldNotes_[j] = heldNotes_[j + 1];
-                }
-                --nHeld_;
-                break;
+void SyrinxAudioProcessor::pushHeld(int note, int vel) noexcept {
+    for (int i = 0; i < nHeld_; ++i) {
+        if (held_[i].note == note) {
+            for (int j = i; j < nHeld_ - 1; ++j) {
+                held_[j] = held_[j + 1];
             }
+            --nHeld_;
+            break;
         }
-        const bool legato = nHeld_ > 0;
-        if (nHeld_ < kMaxHeldNotes) {
-            heldNotes_[nHeld_++] = note;
-        } else {
-            heldNotes_[kMaxHeldNotes - 1] = note;
-        }
-        const float vel = static_cast<float>(msg.getVelocity()) / 127.0f;
-        if (!legato) {
-            midiPressure_ = 0.35f + 0.55f * vel;
-        }
-        betaDriven_ = true;
-    } else if (msg.isNoteOff()) {
-        const int note = msg.getNoteNumber();
-        for (int i = 0; i < nHeld_; ++i) {
-            if (heldNotes_[i] == note) {
-                for (int j = i; j < nHeld_ - 1; ++j) {
-                    heldNotes_[j] = heldNotes_[j + 1];
-                }
-                --nHeld_;
-                break;
+    }
+    if (nHeld_ < kMaxHeldNotes) {
+        held_[nHeld_++] = HeldNote{note, vel};
+    } else {
+        held_[kMaxHeldNotes - 1] = HeldNote{note, vel};
+    }
+    lastNote_ = note;
+    lastVel_ = vel;
+}
+
+void SyrinxAudioProcessor::popHeld(int note) noexcept {
+    for (int i = 0; i < nHeld_; ++i) {
+        if (held_[i].note == note) {
+            for (int j = i; j < nHeld_ - 1; ++j) {
+                held_[j] = held_[j + 1];
             }
+            --nHeld_;
+            break;
         }
-        if (nHeld_ == 0) {
-            midiPressure_ = 0.0f;
-            // β holds (betaDriven_ stays true until a new param-only path; keep last midiBeta_).
-        }
-    } else if (msg.isPitchWheel()) {
-        const int pw = msg.getPitchWheelValue();
-        bendSt_ = 2.0f * (static_cast<float>(pw - 8192) / 8192.0f);
-    } else if (msg.isAllNotesOff() || msg.isAllSoundOff()) {
-        nHeld_ = 0;
-        midiPressure_ = 0.0f;
-        bendSt_ = 0.0f;
+    }
+    if (nHeld_ > 0) {
+        lastNote_ = held_[nHeld_ - 1].note;
+        lastVel_ = held_[nHeld_ - 1].vel;
     }
 }
 
-void SyrinxAudioProcessor::applyNotePhysics(cuicui::ControlFrame& frame) const noexcept {
+void SyrinxAudioProcessor::handleMidi(const juce::MidiMessage& msg) noexcept {
+    if (msg.isNoteOn()) {
+        const int vel = msg.getVelocity();
+        if (vel <= 0) {
+            popHeld(msg.getNoteNumber());
+            if (nHeld_ == 0 && !sustain_) {
+                midiPressurePhys_ = 0.0f;
+            }
+            return;
+        }
+        pushHeld(msg.getNoteNumber(), vel);
+        if (nHeld_ == 1) {
+            midiPressurePhys_ = 0.35f + 0.55f * (static_cast<float>(vel) / 127.0f);
+        }
+        betaDriven_ = true;
+    } else if (msg.isNoteOff()) {
+        popHeld(msg.getNoteNumber());
+        if (nHeld_ == 0 && !sustain_) {
+            midiPressurePhys_ = 0.0f;
+        }
+    } else if (msg.isPitchWheel()) {
+        const int pw = msg.getPitchWheelValue();
+        bendNorm_ = static_cast<float>(pw - 8192) / 8192.0f;
+    } else if (msg.isChannelPressure()) {
+        aftertouch_ = static_cast<float>(msg.getChannelPressureValue()) / 127.0f;
+    } else if (msg.isAftertouch()) {
+        polyAt_ = static_cast<float>(msg.getAfterTouchValue()) / 127.0f;
+    } else if (msg.isController()) {
+        const int cc = msg.getControllerNumber();
+        const float v = static_cast<float>(msg.getControllerValue()) / 127.0f;
+        if (cc == 1) {
+            cc1_ = v;
+        } else if (cc == 74) {
+            cc74_ = v;
+        } else if (cc == 64) {
+            sustain_ = msg.getControllerValue() >= 64;
+            if (!sustain_ && nHeld_ == 0) {
+                midiPressurePhys_ = 0.0f;
+            }
+        }
+    } else if (msg.isAllNotesOff() || msg.isAllSoundOff()) {
+        nHeld_ = 0;
+        midiPressurePhys_ = 0.0f;
+        bendNorm_ = 0.0f;
+        sustain_ = false;
+        aftertouch_ = 0.0f;
+        polyAt_ = 0.0f;
+    }
+}
+
+void SyrinxAudioProcessor::applyPhysiologyNote(cuicui::ControlFrame& frame) noexcept {
+    const float bendSt = 2.0f * bendNorm_;
     if (nHeld_ > 0) {
-        const int note = heldNotes_[nHeld_ - 1];
-        const float beta = crudeBetaFromMidi(static_cast<float>(note), bendSt_);
-        frame.resp_pressure = midiPressure_;
+        const int note = held_[nHeld_ - 1].note;
+        const float beta = crudeBetaFromMidi(static_cast<float>(note), bendSt);
+        frame.resp_pressure = midiPressurePhys_;
         frame.src_L_beta = static_cast<float>(
             cuicui::clampParam(cuicui::specOf(cuicui::ParamId::SrcLBeta), static_cast<double>(beta)));
+        midiBeta_ = frame.src_L_beta;
     } else if (betaDriven_) {
-        frame.resp_pressure = midiPressure_;
+        frame.resp_pressure = midiPressurePhys_;
         frame.src_L_beta = midiBeta_;
     }
+}
+
+void SyrinxAudioProcessor::applyPerformTick(cuicui::ControlFrame& frame, bool noteOnEvent,
+                                            bool noteOffEvent) noexcept {
+    const bool gated = nHeld_ > 0 || sustain_;
+    cuicui::control::PerformInputs in;
+    in.gate = gated;
+    in.noteCents = static_cast<double>(lastNote_) * 100.0;
+    const double bendSt = static_cast<double>(raw(cuicui::ParamId::PerfBendRangeSt));
+    in.bendCents = static_cast<double>(bendNorm_) * bendSt * 100.0;
+    in.velocity01 = static_cast<double>(lastVel_) / 127.0;
+    in.pressure01 = static_cast<double>(std::max(aftertouch_, polyAt_));
+    in.breath = static_cast<double>(raw(cuicui::ParamId::PerfBreath));
+    const double toneHost = static_cast<double>(raw(cuicui::ParamId::PerfTone));
+    in.tone = std::clamp(toneHost + (static_cast<double>(cc74_) - 0.5), 0.0, 1.0);
+    in.physics = static_cast<double>(raw(cuicui::ParamId::PerfPhysics));
+    const double motionHost = static_cast<double>(raw(cuicui::ParamId::PerfMotion));
+    in.motion = std::clamp(motionHost + static_cast<double>(cc1_), 0.0, 1.0);
+    in.range = static_cast<double>(raw(cuicui::ParamId::PerfRange));
+    in.speed = static_cast<double>(raw(cuicui::ParamId::PerfSpeed));
+    in.snap = static_cast<double>(raw(cuicui::ParamId::PerfSnap));
+    in.glideMs = static_cast<double>(raw(cuicui::ParamId::PerfGlideMs));
+    in.size = static_cast<double>(raw(cuicui::ParamId::BodySize));
+    in.scale = choiceIndex(scaleParam_);
+    in.root = static_cast<int>(std::lround(raw(cuicui::ParamId::PerfRoot)));
+    in.oecTracking = static_cast<double>(raw(cuicui::ParamId::PerfOecTracking));
+    in.gapeTracking = static_cast<double>(raw(cuicui::ParamId::PerfGapeTracking));
+    in.sideSwitchCents = static_cast<double>(raw(cuicui::ParamId::PerfSideSwitchCents));
+    in.rangeFold = raw(cuicui::ParamId::PerfRangeFold) >= 0.5f;
+    in.leash = 0.0;
+    in.seed = readSeed();
+    in.noteOnEvent = noteOnEvent;
+    in.noteOffEvent = noteOffEvent;
+    controller_.tick(in, readSettings(), frame);
 }
 
 void SyrinxAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi) {
@@ -286,12 +377,23 @@ void SyrinxAudioProcessor::processSubblocks(float* dest, int n, const juce::Midi
         ++it;
     }
     while (pos < n) {
+        bool noteOnEvent = false;
+        bool noteOffEvent = false;
         while (it != midiEnd && (*it).samplePosition <= t0 + pos) {
-            handleMidi((*it).getMessage());
-            if (nHeld_ > 0) {
+            const auto msg = (*it).getMessage();
+            const int nBefore = nHeld_;
+            handleMidi(msg);
+            if (msg.isNoteOn() && msg.getVelocity() > 0) {
+                noteOnEvent = true;
+            }
+            if (nBefore > 0 && nHeld_ == 0 && !sustain_) {
+                noteOffEvent = true;
+            }
+            if (!performMode() && nHeld_ > 0) {
+                const float bendSt = 2.0f * bendNorm_;
                 midiBeta_ = static_cast<float>(cuicui::clampParam(
                     cuicui::specOf(cuicui::ParamId::SrcLBeta),
-                    static_cast<double>(crudeBetaFromMidi(static_cast<float>(heldNotes_[nHeld_ - 1]), bendSt_))));
+                    static_cast<double>(crudeBetaFromMidi(static_cast<float>(held_[nHeld_ - 1].note), bendSt))));
             }
             ++it;
         }
@@ -308,10 +410,15 @@ void SyrinxAudioProcessor::processSubblocks(float* dest, int n, const juce::Midi
         }
 
         cuicui::ControlFrame to = readControlFrame();
-        applyNotePhysics(to);
-        if (nHeld_ > 0) {
+        if (performMode()) {
+            applyPerformTick(to, noteOnEvent, noteOffEvent);
+        } else {
+            applyPhysiologyNote(to);
+        }
+        if (nHeld_ > 0 && !performMode()) {
             midiBeta_ = to.src_L_beta;
         }
+        wasGated_ = nHeld_ > 0 || sustain_;
 
         const int count = end - pos;
         const float gdb = raw(cuicui::ParamId::OutGainDb);
@@ -339,6 +446,10 @@ void SyrinxAudioProcessor::publishTelemetry() noexcept {
     telem_p_.store(t.pressure, std::memory_order_relaxed);
     telem_level_.store(t.level_db, std::memory_order_relaxed);
     telem_resets_.store(t.nonFiniteResets, std::memory_order_relaxed);
+    const auto d = controller_.debug();
+    telem_target_.store(static_cast<float>(d.f0Target), std::memory_order_relaxed);
+    telem_side_.store(d.activeSide, std::memory_order_relaxed);
+    telem_folded_.store(d.folded ? 1 : 0, std::memory_order_relaxed);
 }
 
 SyrinxAudioProcessor::TelemetrySnapshot SyrinxAudioProcessor::telemetrySnapshot() const noexcept {
@@ -351,6 +462,9 @@ SyrinxAudioProcessor::TelemetrySnapshot SyrinxAudioProcessor::telemetrySnapshot(
     s.pressure = telem_p_.load(std::memory_order_relaxed);
     s.level_db = telem_level_.load(std::memory_order_relaxed);
     s.nonFiniteResets = telem_resets_.load(std::memory_order_relaxed);
+    s.target_hz = telem_target_.load(std::memory_order_relaxed);
+    s.active_side = telem_side_.load(std::memory_order_relaxed);
+    s.folded = telem_folded_.load(std::memory_order_relaxed) != 0;
     return s;
 }
 
@@ -401,7 +515,6 @@ juce::AudioProcessorEditor* SyrinxAudioProcessor::createEditor() {
     return new SyrinxAudioProcessorEditor(*this);
 }
 
-// JUCE plugin entry point (formats). plugin_render / tests construct the processor directly.
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() {
     return new SyrinxAudioProcessor();
 }

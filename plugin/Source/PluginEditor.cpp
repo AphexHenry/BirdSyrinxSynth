@@ -14,7 +14,8 @@ juce::GroupComponent* groupForId(std::string_view id,
                                  juce::GroupComponent& oec,
                                  juce::GroupComponent& noise,
                                  juce::GroupComponent& body,
-                                 juce::GroupComponent& engine) {
+                                 juce::GroupComponent& engine,
+                                 juce::GroupComponent& perform) {
     if (id.rfind("resp.", 0) == 0) {
         return &breath;
     }
@@ -33,7 +34,10 @@ juce::GroupComponent* groupForId(std::string_view id,
     if (id.rfind("noise.", 0) == 0) {
         return &noise;
     }
-    if (id.rfind("engine.", 0) == 0 || id.rfind("test.", 0) == 0 || id.rfind("perf.", 0) == 0) {
+    if (id.rfind("perf.", 0) == 0) {
+        return &perform;
+    }
+    if (id.rfind("engine.", 0) == 0 || id.rfind("test.", 0) == 0) {
         return &engine;
     }
     return &body;
@@ -50,15 +54,15 @@ SyrinxAudioProcessorEditor::SyrinxAudioProcessorEditor(SyrinxAudioProcessor& p)
       proc_(p),
       keyboard_(p.keyboardState, juce::MidiKeyboardComponent::horizontalKeyboard) {
     setResizable(true, true);
-    setResizeLimits(720, 600, 1600, 1400);
-    setSize(980, 820);
+    setResizeLimits(720, 600, 1600, 1600);
+    setSize(980, 900);
 
     telem_.setJustificationType(juce::Justification::centredLeft);
     telem_.setFont(juce::FontOptions(13.0f, juce::Font::plain));
     addAndMakeVisible(telem_);
 
-    keyboard_.setAvailableRange(60, 72); // C4–C5: one model octave
-    keyboard_.setLowestVisibleKey(60);
+    keyboard_.setAvailableRange(86, 108); // D6–C8 playable band at size 1
+    keyboard_.setLowestVisibleKey(86);
     keyboard_.setOctaveForMiddleC(4);
     keyboard_.setVelocity(0.7f, true);
     keyboard_.setWantsKeyboardFocus(true);
@@ -72,9 +76,10 @@ SyrinxAudioProcessorEditor::SyrinxAudioProcessorEditor(SyrinxAudioProcessor& p)
     noise_.box.setText("Noise");
     body_.box.setText("Body & Output");
     engine_.box.setText("Engine");
+    perform_.box.setText("Perform");
 
     for (auto* g : {&breath_.box, &srcL_.box, &srcR_.box, &trachea_.box, &oec_.box, &noise_.box, &body_.box,
-                    &engine_.box}) {
+                    &engine_.box, &perform_.box}) {
         content_.addAndMakeVisible(*g);
     }
 
@@ -98,16 +103,22 @@ void SyrinxAudioProcessorEditor::addSlider(const cuicui::ParamSpec& spec, juce::
     row->label.setJustificationType(juce::Justification::centredLeft);
 
     auto* box = groupForId(spec.id, breath_.box, srcL_.box, srcR_.box, trachea_.box, oec_.box, noise_.box,
-                           body_.box, engine_.box);
+                           body_.box, engine_.box, perform_.box);
     box->addAndMakeVisible(row->label);
 
     const std::string_view id{spec.id};
-    if (id == "engine.oversampling" || id == "test.waveform") {
+    if (id == "engine.oversampling" || id == "test.waveform" || id == "perf.mode" || id == "perf.scale") {
         row->isCombo = true;
         if (id == "engine.oversampling") {
             row->combo.addItemList(juce::StringArray{"auto", "1", "2", "4", "8"}, 1);
-        } else {
+        } else if (id == "test.waveform") {
             row->combo.addItemList(juce::StringArray{"sine", "saw", "noise"}, 1);
+        } else if (id == "perf.mode") {
+            row->combo.addItemList(juce::StringArray{"perform", "physiology"}, 1);
+        } else {
+            row->combo.addItemList(juce::StringArray{"chromatic", "major", "minor", "pentatonic_major",
+                                                    "pentatonic_minor", "whole_tone"},
+                                   1);
         }
         row->cAttach = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
             proc_.apvts, spec.id, row->combo);
@@ -132,9 +143,9 @@ void SyrinxAudioProcessorEditor::resized() {
     telem_.setBounds(r.removeFromTop(56));
     keyboard_.setBounds(r.removeFromBottom(88));
     {
-        constexpr int kWhiteKeysC4ToC5 = 8;
+        constexpr int kWhiteKeysD6ToC8 = 14;
         const float kw =
-            static_cast<float>(std::max(1, keyboard_.getWidth())) / static_cast<float>(kWhiteKeysC4ToC5);
+            static_cast<float>(std::max(1, keyboard_.getWidth())) / static_cast<float>(kWhiteKeysD6ToC8);
         keyboard_.setKeyWidth(kw);
     }
     r.removeFromBottom(6);
@@ -163,12 +174,13 @@ void SyrinxAudioProcessorEditor::resized() {
         return h + 8;
     };
 
-    std::array<juce::GroupComponent*, 8> boxes = {&breath_.box, &srcL_.box, &srcR_.box, &trachea_.box,
-                                                  &oec_.box,    &noise_.box, &body_.box,  &engine_.box};
-    std::array<std::vector<Row*>, 8> grouped{};
+    std::array<juce::GroupComponent*, 9> boxes = {&breath_.box,  &srcL_.box, &srcR_.box,    &trachea_.box,
+                                                 &oec_.box,     &noise_.box, &body_.box,    &engine_.box,
+                                                 &perform_.box};
+    std::array<std::vector<Row*>, 9> grouped{};
     for (auto& row : rows_) {
         auto* parent = row->label.getParentComponent();
-        for (int i = 0; i < 8; ++i) {
+        for (int i = 0; i < 9; ++i) {
             if (parent == boxes[static_cast<std::size_t>(i)]) {
                 grouped[static_cast<std::size_t>(i)].push_back(row.get());
                 break;
@@ -177,7 +189,7 @@ void SyrinxAudioProcessorEditor::resized() {
     }
 
     int yL = 8, yR = 8;
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 9; ++i) {
         const bool left = (i % 2) == 0;
         int& y = left ? yL : yR;
         const int x = left ? 8 : 8 + colW + 8;
@@ -189,11 +201,13 @@ void SyrinxAudioProcessorEditor::resized() {
 void SyrinxAudioProcessorEditor::timerCallback() {
     const auto t = proc_.telemetrySnapshot();
     telem_.setText(juce::String::formatted(
-                       "f0 %.1f Hz   αL %.3f  βL %.3f   αR %.3f  βR %.3f   pressure %.3f   level %.1f dB   "
-                       "non-finite resets %u",
-                       static_cast<double>(t.f0_hz), static_cast<double>(t.alpha_L),
+                       "f0 %.1f Hz (target %.1f%s)   αL %.3f  βL %.3f   αR %.3f  βR %.3f   p %.3f   "
+                       "side %s   level %.1f dB   resets %u",
+                       static_cast<double>(t.f0_hz), static_cast<double>(t.target_hz),
+                       t.folded ? " folded" : "", static_cast<double>(t.alpha_L),
                        static_cast<double>(t.beta_L), static_cast<double>(t.alpha_R),
                        static_cast<double>(t.beta_R), static_cast<double>(t.pressure),
-                       static_cast<double>(t.level_db), static_cast<unsigned>(t.nonFiniteResets)),
+                       t.active_side ? "R" : "L", static_cast<double>(t.level_db),
+                       static_cast<unsigned>(t.nonFiniteResets)),
                    juce::dontSendNotification);
 }
