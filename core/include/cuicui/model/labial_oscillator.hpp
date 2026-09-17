@@ -138,10 +138,29 @@ public:
         deriv(x_ + h * k3x, y_ + h * k3y, alpha, beta, gamma, k4x, k4y);
         x_ += h * (k1x + 2.0 * k2x + 2.0 * k3x + k4x) / 6.0;
         y_ += h * (k1y + 2.0 * k2y + 2.0 * k3y + k4y) / 6.0;
+        sanitize(alpha, beta);
+    }
+
+    void setState(double x, double y) noexcept {
+        x_ = x;
+        y_ = y;
+    }
+
+    void sanitize(double alpha, double beta) noexcept {
         if (!std::isfinite(x_) || !std::isfinite(y_) || std::abs(x_) > 10.0) {
             resetToRest(alpha, beta);
             ++resets_;
         }
+    }
+
+    /// ẋ = y; ẏ as in 01_research.md §4.3. Used by BilateralSource joint RK4.
+    static void deriv(double x, double y, double alpha, double beta, double gamma, double& dx,
+                      double& dy) noexcept {
+        const double g = gamma;
+        const double g2 = g * g;
+        const double x2 = x * x;
+        dx = y;
+        dy = -alpha * g2 - beta * g2 * x - g2 * x2 * x - g * x2 * y + g2 * x2 - g * x * y;
     }
 
     [[nodiscard]] double x() const noexcept { return x_; }
@@ -150,16 +169,6 @@ public:
     [[nodiscard]] double stepSize() const noexcept { return h_; }
 
 private:
-    static void deriv(double x, double y, double alpha, double beta, double gamma, double& dx,
-                      double& dy) noexcept {
-        // ẋ = y
-        // ẏ = −αγ² − βγ² x − γ² x³ − γ x² y + γ² x² − γ x y   (01_research.md §4.3)
-        const double g = gamma;
-        const double g2 = g * g;
-        const double x2 = x * x;
-        dx = y;
-        dy = -alpha * g2 - beta * g2 * x - g2 * x2 * x - g * x2 * y + g2 * x2 - g * x * y;
-    }
 
     double h_ = 1.0 / 192000.0;
     double x_ = 0.0;

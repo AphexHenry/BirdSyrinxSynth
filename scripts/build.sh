@@ -28,6 +28,17 @@ cmake_extra=()
 if [[ -x "${py}" ]]; then
     cmake_extra+=(-DPython_EXECUTABLE="${py}")
     nb_dir="$("${py}" -c "import nanobind; print(nanobind.cmake_dir())" 2>/dev/null || true)"
+    # Object paths that contain ".venv" are blocked in some agent sandboxes.
+    # Copy nanobind out of the venv so ninja can write its .o files.
+    if [[ -n "${nb_dir}" && "${nb_dir}" == *".venv"* ]]; then
+        safe="${ROOT}/build/deps/nanobind"
+        if [[ ! -f "${safe}/cmake/nanobind-config.cmake" ]]; then
+            mkdir -p "${ROOT}/build/deps"
+            rm -rf "${safe}"
+            cp -R "$(dirname "${nb_dir}")" "${safe}"
+        fi
+        nb_dir="${safe}/cmake"
+    fi
     if [[ -n "${nb_dir}" ]]; then
         cmake_extra+=(-Dnanobind_DIR="${nb_dir}")
     fi

@@ -1,0 +1,29 @@
+{
+  "format": "cuicui.render_spec",
+  "version": 1,
+  "sample_rate": 48000,
+  "duration_s": 0.2,
+  "seed": 7,
+  "oversampling": 4,
+  "params": {
+    "resp.pressure": 0.54545,
+    "src.L.beta": 0.2,
+    "src.L.alpha_offset": 0.0,
+    "src.gamma": 24000.0,
+    "resp.attack_ms": 8.0,
+    "resp.release_ms": 15.0,
+    "noise.beta_sigma": 0.005,
+    "noise.beta_bandwidth_hz": 300.0,
+    "noise.aspiration": 0.02,
+    "trachea.length_mm": 33.0,
+    "trachea.reflection": 0.5,
+    "trachea.loss": 0.3,
+    "trachea.input_gain": 1.0,
+    "oec.freq_hz": 3000.0,
+    "oec.damping": 0.1,
+    "beak.gape": 0.5,
+    "beak.damping": 0.3,
+    "out.radiation": 1.0,
+    "out.gain_db": 0.0
+  }
+}

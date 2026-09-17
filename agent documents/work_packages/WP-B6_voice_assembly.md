@@ -111,3 +111,9 @@ Final message: this is **milestone M2**. Ask the human for overall impressions o
 
 - `VoiceState` must include decimator histories and smoother states, or reloads will click/differ.
 - Size changes γ: the oscillator's RK4 accuracy depends on γ/f_int — check convergence at σ = 0.25 (γ = 96 000): if the pitch error exceeds 1 cent at OS 4, force a higher internal rate for small sizes and document (latency must stay constant for the host: choose the OS policy so latency does not change with σ, e.g. fixed OS per session).
+
+## Notes from WP-B5 (2026-09-17)
+
+- `VoiceState` still stores only the **left** labial `(x, y)`. The right oscillator, both DC blockers, tension RNGs, gates and the coupling smoother are not saved. B6 state save/load must extend this or two-voice reloads will click / differ.
+- Side-switch demos at α = 0.2 cannot reach 1.5 kHz (β hits the silent floor). Use α ≈ 0.16, or per-side α offsets, when mapping a wide pitch jump on one air-sac pressure.
+- Weak coupling lock range is tiny on this oscillator: at (α, β_L) = (0.2, 0.30), largest locking Δ was 0 / 0 / 0.01 for ε = 0.01 / 0.03 / 0.1 (0.005 grid, period-jitter test). Do not expect 8 Hz beating to lock unless Δβ is very small.

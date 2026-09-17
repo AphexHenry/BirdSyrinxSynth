@@ -70,6 +70,8 @@ add_executable(cuicui_core_tests
     core/tests/test_trachea.cpp
     core/tests/test_upper_vocal_tract.cpp
     core/tests/test_respiration_noise.cpp
+    core/tests/test_bilateral_source.cpp
+    core/tests/test_side_switcher.cpp
 )
 target_link_libraries(cuicui_core_tests PRIVATE cuicui_core Catch2::Catch2WithMain)
 target_compile_definitions(cuicui_core_tests PRIVATE

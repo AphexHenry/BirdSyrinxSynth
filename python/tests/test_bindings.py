@@ -111,6 +111,23 @@ def test_render_spec_bit_identical_to_cli(tmp_path: Path) -> None:
         )
 
 
+def test_side_switcher_equal_power() -> None:
+    cc = _import_core()
+    sw = cc.SideSwitcher()
+    sw.prepare(1000.0)
+    sw.set_crossfade_ms(4.0)
+    sw.set_active(1)
+    last_power = None
+    for _ in range(4):
+        _bl, _br, g_l, g_r = sw.next(0.2, 0.8)
+        power = g_l * g_l + g_r * g_r
+        assert abs(power - 1.0) < 1e-9
+        last_power = (g_l, g_r)
+    assert last_power is not None
+    assert abs(last_power[0] - 0.0) < 1e-12
+    assert abs(last_power[1] - 1.0) < 1e-12
+
+
 def test_gil_released_two_threads() -> None:
     cc = _import_core()
     spec = _spec("saw", 4, duration=5.0)

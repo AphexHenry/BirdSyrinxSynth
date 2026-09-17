@@ -40,7 +40,8 @@ inline bool spec_has_any(const RenderSpec& spec, std::initializer_list<std::stri
 
 inline bool spec_uses_labial(const RenderSpec& spec) {
     return spec_has_any(spec, {"resp.pressure", "src.L.beta", "src.L.alpha_offset", "src.gamma",
-                               "resp.attack_ms", "noise.beta_sigma", "noise.aspiration"});
+                               "src.R.beta", "src.R.alpha_offset", "src.L.gate", "src.R.gate",
+                               "src.coupling", "resp.attack_ms", "noise.beta_sigma", "noise.aspiration"});
 }
 
 inline bool spec_uses_trachea(const RenderSpec& spec) {
@@ -82,6 +83,11 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     const auto* sigS = findParam("noise.beta_sigma");
     const auto* bwS = findParam("noise.beta_bandwidth_hz");
     const auto* aspS = findParam("noise.aspiration");
+    const auto* bRS = findParam("src.R.beta");
+    const auto* oRS = findParam("src.R.alpha_offset");
+    const auto* gLS = findParam("src.L.gate");
+    const auto* gRS = findParam("src.R.gate");
+    const auto* cplS = findParam("src.coupling");
     const double defFreq = freqSpec ? freqSpec->def : 440.0;
     const double defGain = gainSpec ? gainSpec->def : -12.0;
     const double defOut = outSpec ? outSpec->def : 0.0;
@@ -103,6 +109,11 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     const double defSig = sigS ? sigS->def : 0.005;
     const double defBw = bwS ? bwS->def : 300.0;
     const double defAsp = aspS ? aspS->def : 0.02;
+    const double defBR = bRS ? bRS->def : 0.3;
+    const double defOffR = oRS ? oRS->def : 0.0;
+    const double defGL = gLS ? gLS->def : 1.0;
+    const double defGR = gRS ? gRS->def : 0.0;
+    const double defCpl = cplS ? cplS->def : 0.0;
 
     const auto freqA = spec.automationFor("test.freq_hz", defFreq);
     const auto gainA = spec.automationFor("test.gain_db", defGain);
@@ -124,6 +135,11 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     const auto sigA = spec.automationFor("noise.beta_sigma", defSig);
     const auto bwA = spec.automationFor("noise.beta_bandwidth_hz", defBw);
     const auto aspA = spec.automationFor("noise.aspiration", defAsp);
+    const auto bRA = spec.automationFor("src.R.beta", defBR);
+    const auto oRA = spec.automationFor("src.R.alpha_offset", defOffR);
+    const auto gLA = spec.automationFor("src.L.gate", defGL);
+    const auto gRA = spec.automationFor("src.R.gate", defGR);
+    const auto cplA = spec.automationFor("src.coupling", defCpl);
 
     ProcessSpec ps;
     ps.hostSampleRate = static_cast<double>(sr);
@@ -168,6 +184,7 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     settings.resp_release_ms = clampP(relS, relA.valueAt(0.0));
     settings.noise_beta_bandwidth_hz = clampP(bwS, bwA.valueAt(0.0));
     settings.noise_aspiration = clampP(aspS, aspA.valueAt(0.0));
+    settings.src_coupling = clampP(cplS, cplA.valueAt(0.0));
     voice.setSettings(settings);
     voice.reset(spec.seed);
 
@@ -175,7 +192,8 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
         const double off0 = clampP(oSpec, oA.valueAt(0.0));
         const double b0 = clampP(bSpec, bA.valueAt(0.0));
         voice.primeLabial(model::kAlphaRest + off0, b0, clampP(oecF, oecFA.valueAt(0.0)),
-                          clampP(gapeS, gapeA.valueAt(0.0)));
+                          clampP(gapeS, gapeA.valueAt(0.0)), clampP(oRS, oRA.valueAt(0.0)),
+                          clampP(bRS, bRA.valueAt(0.0)));
     }
 
     const double dt = 1.0 / static_cast<double>(sr);
@@ -198,6 +216,14 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
             to.beak_gape = static_cast<float>(clampP(gapeS, gapeA.valueAt(t1)));
             from.noise_beta_sigma = static_cast<float>(clampP(sigS, sigA.valueAt(t0)));
             to.noise_beta_sigma = static_cast<float>(clampP(sigS, sigA.valueAt(t1)));
+            from.src_R_beta = static_cast<float>(clampP(bRS, bRA.valueAt(t0)));
+            to.src_R_beta = static_cast<float>(clampP(bRS, bRA.valueAt(t1)));
+            from.src_R_alpha_offset = static_cast<float>(clampP(oRS, oRA.valueAt(t0)));
+            to.src_R_alpha_offset = static_cast<float>(clampP(oRS, oRA.valueAt(t1)));
+            from.src_L_gate = static_cast<float>(clampP(gLS, gLA.valueAt(t0)));
+            to.src_L_gate = static_cast<float>(clampP(gLS, gLA.valueAt(t1)));
+            from.src_R_gate = static_cast<float>(clampP(gRS, gRA.valueAt(t0)));
+            to.src_R_gate = static_cast<float>(clampP(gRS, gRA.valueAt(t1)));
         } else {
             const float f0 = static_cast<float>(clampP(freqSpec, freqA.valueAt(t0)));
             const float f1 = static_cast<float>(clampP(freqSpec, freqA.valueAt(t1)));
@@ -220,6 +246,7 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
         settings.resp_release_ms = clampP(relS, relA.valueAt(t1));
         settings.noise_beta_bandwidth_hz = clampP(bwS, bwA.valueAt(t1));
         settings.noise_aspiration = clampP(aspS, aspA.valueAt(t1));
+        settings.src_coupling = clampP(cplS, cplA.valueAt(t1));
         voice.setSettings(settings);
         voice.process(from, to, buf.data() + i, ns);
         i += ns;

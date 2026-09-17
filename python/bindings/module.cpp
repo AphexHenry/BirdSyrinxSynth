@@ -1,6 +1,8 @@
+#include "cuicui/control/side_switcher.hpp"
 #include "cuicui/dsp/oversampling.hpp"
 #include "cuicui/io/offline_render.hpp"
 #include "cuicui/io/render_spec.hpp"
+#include "cuicui/model/bilateral_source.hpp"
 #include "cuicui/model/bird_voice.hpp"
 #include "cuicui/model/labial_oscillator.hpp"
 #include "cuicui/model/trachea.hpp"
@@ -304,6 +306,80 @@ NB_MODULE(cuicui_core, m) {
         nb::arg("resp_release_ms") = 15.0,
         nb::arg("noise_beta_bandwidth_hz") = 300.0,
         "Render the labial source through BirdVoice (optional trachea + UVT). Releases the GIL.");
+
+    m.def(
+        "bilateral_source_only",
+        [](double alpha_l, double beta_l, double alpha_r, double beta_r, double gamma, double internal_rate,
+           double coupling, int n, double xL0, double yL0, double xR0, double yR0) {
+            if (n < 0) {
+                throw std::invalid_argument("bilateral_source_only: n must be >= 0");
+            }
+            auto* xL = new std::vector<double>(static_cast<std::size_t>(n));
+            auto* xR = new std::vector<double>(static_cast<std::size_t>(n));
+            auto* mix = new std::vector<double>(static_cast<std::size_t>(n));
+            {
+                nb::gil_scoped_release release;
+                cuicui::model::BilateralSource src;
+                src.prepare(internal_rate);
+                src.left().reset(xL0, yL0);
+                src.right().reset(xR0, yR0);
+                src.resetNoise(1);
+                cuicui::model::BilateralFrame fr;
+                fr.alphaBase = 0.0;
+                fr.alphaOffL = alpha_l;
+                fr.alphaOffR = alpha_r;
+                fr.betaL = beta_l;
+                fr.betaR = beta_r;
+                fr.gateL = 1.0;
+                fr.gateR = 1.0;
+                fr.gamma = gamma;
+                fr.coupling = coupling;
+                fr.sigmaBeta = 0.0;
+                // process() uses α = alphaBase + offset − (1−g)*0.6. With gates 1:
+                // α_s = offset, so pass the desired α as the offset.
+                for (int i = 0; i < n; ++i) {
+                    const auto o = src.process(fr);
+                    (*xL)[static_cast<std::size_t>(i)] = src.left().x();
+                    (*xR)[static_cast<std::size_t>(i)] = src.right().x();
+                    (*mix)[static_cast<std::size_t>(i)] = o.mixTilde;
+                }
+            }
+            nb::capsule cL(xL, [](void* p) noexcept { delete static_cast<std::vector<double>*>(p); });
+            nb::capsule cR(xR, [](void* p) noexcept { delete static_cast<std::vector<double>*>(p); });
+            nb::capsule cM(mix, [](void* p) noexcept { delete static_cast<std::vector<double>*>(p); });
+            const auto nn = static_cast<std::size_t>(n);
+            return nb::make_tuple(nb::ndarray<nb::numpy, double, nb::ndim<1>>(xL->data(), {nn}, cL),
+                                  nb::ndarray<nb::numpy, double, nb::ndim<1>>(xR->data(), {nn}, cR),
+                                  nb::ndarray<nb::numpy, double, nb::ndim<1>>(mix->data(), {nn}, cM));
+        },
+        nb::arg("alpha_l"),
+        nb::arg("beta_l"),
+        nb::arg("alpha_r"),
+        nb::arg("beta_r"),
+        nb::arg("gamma") = 24000.0,
+        nb::arg("internal_rate") = 192000.0,
+        nb::arg("coupling") = 0.0,
+        nb::arg("n") = 19200,
+        nb::arg("xL0") = 0.0,
+        nb::arg("yL0") = 0.0,
+        nb::arg("xR0") = 0.0,
+        nb::arg("yR0") = 0.0,
+        "Two coupled labial oscillators (DC-blocked mix). Releases the GIL.");
+
+    nb::class_<cuicui::control::SideSwitcher>(m, "SideSwitcher")
+        .def(nb::init<>())
+        .def("prepare", &cuicui::control::SideSwitcher::prepare, nb::arg("control_rate"))
+        .def("set_crossfade_ms", &cuicui::control::SideSwitcher::setCrossfadeMs, nb::arg("ms"))
+        .def("set_active", &cuicui::control::SideSwitcher::setActive, nb::arg("side"))
+        .def(
+            "next",
+            [](cuicui::control::SideSwitcher& sw, double beta_l, double beta_r) {
+                const auto t = sw.next(beta_l, beta_r);
+                return nb::make_tuple(t.betaL, t.betaR, t.gateL, t.gateR);
+            },
+            nb::arg("beta_l"),
+            nb::arg("beta_r"),
+            "Returns (beta_l, beta_r, gate_l, gate_r).");
 
     m.def(
         "decimator_stage_taps",

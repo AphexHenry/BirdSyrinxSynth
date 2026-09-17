@@ -5,6 +5,7 @@
 #include "cuicui/dsp/oversampling.hpp"
 #include "cuicui/dsp/rng.hpp"
 #include "cuicui/dsp/smoother.hpp"
+#include "cuicui/model/bilateral_source.hpp"
 #include "cuicui/model/labial_oscillator.hpp"
 #include "cuicui/model/noise_sources.hpp"
 #include "cuicui/model/respiratory_drive.hpp"
@@ -76,17 +77,16 @@ public:
         oversampling_.prepare(spec_);
         internal_.assign(static_cast<std::size_t>(spec_.maxBlockSize * os_), 0.0f);
         saw_.prepare(internal_rate_);
-        osc_.prepare(internal_rate_);
+        labia_.prepare(internal_rate_);
         trachea_.prepare(internal_rate_, model::kTracheaMaxLengthMm);
         uvt_.prepare(internal_rate_);
         dc_.prepare(internal_rate_, 20.0);
-        source_dc_.prepare(internal_rate_, 20.0);
         resp_.prepare(internal_rate_);
-        tension_l_.prepare(internal_rate_);
-        tension_r_.prepare(internal_rate_);
         aspiration_.prepare(internal_rate_);
         asp_sm_.prepare(internal_rate_);
         asp_sm_.setTimeConstantMs(specOf(ParamId::NoiseAspiration).smoothingMs);
+        coupling_sm_.prepare(internal_rate_);
+        coupling_sm_.setTimeConstantMs(specOf(ParamId::SrcCoupling).smoothingMs);
         out_smoother_.prepare(spec_.hostSampleRate);
         out_smoother_.setTimeConstantMs(smoothing_ms_);
         len_sm_.prepare(internal_rate_);
@@ -111,14 +111,15 @@ public:
         rng_.setSeed(seed);
         sine_phase_ = 0.0;
         saw_.reset();
-        osc_.resetToRest(model::kAlphaRest, specOf(ParamId::SrcLBeta).def);
+        labia_.setBandwidthHz(settings_.noise_beta_bandwidth_hz);
+        labia_.resetNoise(seed);
+        labia_.resetToRest(model::kAlphaRest, specOf(ParamId::SrcLBeta).def,
+                            model::kAlphaRest - model::kDeltaAlphaClose, specOf(ParamId::SrcRBeta).def);
         seedNoiseStreams(seed);
         resp_.setTimeConstantsMs(settings_.resp_attack_ms, settings_.resp_release_ms);
         resp_.reset(0.0);
-        tension_l_.setBandwidthHz(settings_.noise_beta_bandwidth_hz);
-        tension_r_.setBandwidthHz(settings_.noise_beta_bandwidth_hz);
         asp_sm_.snap(static_cast<float>(settings_.noise_aspiration));
-        source_dc_.prime(osc_.x());
+        coupling_sm_.snap(static_cast<float>(settings_.src_coupling));
         snapTrachea();
         snapUvt();
         primeDcFromSource(0.0);
@@ -140,9 +141,9 @@ public:
         beak_damp_sm_.setTarget(static_cast<float>(settings_.beak_damping));
         rad_sm_.setTarget(static_cast<float>(settings_.out_radiation));
         resp_.setTimeConstantsMs(settings_.resp_attack_ms, settings_.resp_release_ms);
-        tension_l_.setBandwidthHz(settings_.noise_beta_bandwidth_hz);
-        tension_r_.setBandwidthHz(settings_.noise_beta_bandwidth_hz);
+        labia_.setBandwidthHz(settings_.noise_beta_bandwidth_hz);
         asp_sm_.setTarget(static_cast<float>(settings_.noise_aspiration));
+        coupling_sm_.setTarget(static_cast<float>(settings_.src_coupling));
     }
 
     void setSource(VoiceSource src) noexcept {
@@ -168,12 +169,16 @@ public:
         out_to_ = toDb;
     }
 
-    /// Place the oscillator on the silent rest branch at (alpha, beta). Call after reset.
-    void primeLabial(double alpha, double beta, double oecHz = 3000.0, double gape = 0.5) noexcept {
+    /// Place the oscillators on the silent rest branch. Call after reset.
+    /// Right side is primed closed (α − Δα_close) unless the caller passes a different offset.
+    void primeLabial(double alpha, double beta, double oecHz = 3000.0, double gape = 0.5,
+                     double alphaOffR = 0.0, double betaR = 0.3) noexcept {
         from_.oec_freq_hz = static_cast<float>(oecHz);
         from_.beak_gape = static_cast<float>(gape);
-        osc_.resetToRest(alpha, beta);
-        source_dc_.prime(osc_.x());
+        from_.src_R_alpha_offset = static_cast<float>(alphaOffR);
+        from_.src_R_beta = static_cast<float>(betaR);
+        const double aR = alpha + alphaOffR - model::kDeltaAlphaClose;
+        labia_.resetToRest(alpha, beta, aR, betaR);
         resp_.reset(0.0);
         snapTrachea();
         snapUvt();
@@ -203,16 +208,16 @@ public:
     void saveState(VoiceState& s) const noexcept {
         s.sine_phase = sine_phase_;
         s.saw_phase = 0.0;
-        s.labial_x = osc_.x();
-        s.labial_y = osc_.y();
+        s.labial_x = labia_.left().x();
+        s.labial_y = labia_.left().y();
         s.out_gain_y = out_smoother_.value();
         s.rng0 = s.rng1 = s.rng2 = s.rng3 = 0;
-        s.nonFiniteResets = osc_.nonFiniteResets();
+        s.nonFiniteResets = labia_.nonFiniteResets();
     }
 
     void loadState(const VoiceState& s) noexcept {
         sine_phase_ = s.sine_phase;
-        osc_.reset(s.labial_x, s.labial_y);
+        labia_.left().reset(s.labial_x, s.labial_y);
         out_smoother_.snap(s.out_gain_y);
     }
 
@@ -221,7 +226,8 @@ public:
     [[nodiscard]] int oversamplingFactor() const noexcept { return os_; }
     [[nodiscard]] double internalRate() const noexcept { return internal_rate_; }
     [[nodiscard]] const dsp::Oversampling& oversampling() const noexcept { return oversampling_; }
-    [[nodiscard]] const model::LabialOscillator& oscillator() const noexcept { return osc_; }
+    [[nodiscard]] const model::LabialOscillator& oscillator() const noexcept { return labia_.left(); }
+    [[nodiscard]] const model::BilateralSource& bilateral() const noexcept { return labia_; }
     [[nodiscard]] const model::Trachea& trachea() const noexcept { return trachea_; }
     [[nodiscard]] const model::UpperVocalTract& uvt() const noexcept { return uvt_; }
     [[nodiscard]] const model::RespiratoryDrive& respiratory() const noexcept { return resp_; }
@@ -232,8 +238,7 @@ private:
     static float lerp(float a, float b, float u) noexcept { return a + u * (b - a); }
 
     void seedNoiseStreams(std::uint64_t seed) noexcept {
-        tension_l_.reset(dsp::deriveStreamSeed(seed, dsp::kStreamTensionL));
-        tension_r_.reset(dsp::deriveStreamSeed(seed, dsp::kStreamTensionR));
+        labia_.resetNoise(seed);
         aspiration_.reset(dsp::deriveStreamSeed(seed, dsp::kStreamAspiration));
     }
 
@@ -326,7 +331,7 @@ private:
             peak = std::max(peak, std::abs(out[i]));
         }
         telemetry_.level_db = peak > 1e-12f ? 20.0f * std::log10(peak) : -120.0f;
-        telemetry_.nonFiniteResets = osc_.nonFiniteResets();
+        telemetry_.nonFiniteResets = labia_.nonFiniteResets();
         if (source_ != VoiceSource::Labial) {
             const float f1 = freq_from_ + u1 * (freq_to_ - freq_from_);
             telemetry_.f0_estimate_hz = f1;
@@ -383,13 +388,21 @@ private:
     }
 
     void processLabial(int nInt, float u0, float u1) noexcept {
-        dsp::ControlRamp pRamp, bRamp, oRamp, oecRamp, gapeRamp, sigRamp;
+        dsp::ControlRamp pRamp, bLRamp, bRRamp, oLRamp, oRRamp, gLRamp, gRRamp, oecRamp, gapeRamp, sigRamp;
         pRamp.set(lerp(from_.resp_pressure, to_.resp_pressure, u0),
                   lerp(from_.resp_pressure, to_.resp_pressure, u1), nInt);
-        bRamp.set(lerp(from_.src_L_beta, to_.src_L_beta, u0), lerp(from_.src_L_beta, to_.src_L_beta, u1),
-                  nInt);
-        oRamp.set(lerp(from_.src_L_alpha_offset, to_.src_L_alpha_offset, u0),
-                  lerp(from_.src_L_alpha_offset, to_.src_L_alpha_offset, u1), nInt);
+        bLRamp.set(lerp(from_.src_L_beta, to_.src_L_beta, u0), lerp(from_.src_L_beta, to_.src_L_beta, u1),
+                   nInt);
+        bRRamp.set(lerp(from_.src_R_beta, to_.src_R_beta, u0), lerp(from_.src_R_beta, to_.src_R_beta, u1),
+                   nInt);
+        oLRamp.set(lerp(from_.src_L_alpha_offset, to_.src_L_alpha_offset, u0),
+                   lerp(from_.src_L_alpha_offset, to_.src_L_alpha_offset, u1), nInt);
+        oRRamp.set(lerp(from_.src_R_alpha_offset, to_.src_R_alpha_offset, u0),
+                   lerp(from_.src_R_alpha_offset, to_.src_R_alpha_offset, u1), nInt);
+        gLRamp.set(lerp(from_.src_L_gate, to_.src_L_gate, u0), lerp(from_.src_L_gate, to_.src_L_gate, u1),
+                   nInt);
+        gRRamp.set(lerp(from_.src_R_gate, to_.src_R_gate, u0), lerp(from_.src_R_gate, to_.src_R_gate, u1),
+                   nInt);
         oecRamp.set(lerp(from_.oec_freq_hz, to_.oec_freq_hz, u0), lerp(from_.oec_freq_hz, to_.oec_freq_hz, u1),
                     nInt);
         gapeRamp.set(lerp(from_.beak_gape, to_.beak_gape, u0), lerp(from_.beak_gape, to_.beak_gape, u1), nInt);
@@ -399,27 +412,41 @@ private:
         const double gamma = settings_.src_gamma > 0.0 ? settings_.src_gamma : 24000.0;
         const auto& betaSpec = specOf(ParamId::SrcLBeta);
         const auto& sigSpec = specOf(ParamId::NoiseBetaSigma);
+        const auto& gateSpec = specOf(ParamId::SrcLGate);
         float lastP = from_.resp_pressure;
-        float lastB = from_.src_L_beta;
-        float lastA = 0.0f;
+        float lastBL = from_.src_L_beta;
+        float lastBR = from_.src_R_beta;
+        float lastAL = 0.0f;
+        float lastAR = 0.0f;
         for (int i = 0; i < nInt; ++i) {
             lastP = pRamp.next();
-            lastB = bRamp.next();
-            const float off = oRamp.next();
+            lastBL = bLRamp.next();
+            lastBR = bRRamp.next();
+            const float offL = oLRamp.next();
+            const float offR = oRRamp.next();
+            const float gL = gLRamp.next();
+            const float gR = gRRamp.next();
             const float oec = oecRamp.next();
             const float gape = gapeRamp.next();
             const float sigma = static_cast<float>(clampParam(sigSpec, static_cast<double>(sigRamp.next())));
             const auto drive = resp_.process(static_cast<double>(lastP));
-            const double alpha = drive.alphaBase + static_cast<double>(off);
-            lastA = static_cast<float>(alpha);
-            const double eta = tension_l_.process();
-            const double betaCmd = clampParam(betaSpec, static_cast<double>(lastB));
-            const double betaEff = model::clampBetaEff(betaCmd + static_cast<double>(sigma) * eta);
-            osc_.step(alpha, betaEff, gamma);
-            const double xTilde = source_dc_.tick(osc_.x());
+            model::BilateralFrame fr;
+            fr.alphaBase = drive.alphaBase;
+            fr.alphaOffL = static_cast<double>(offL);
+            fr.alphaOffR = static_cast<double>(offR);
+            fr.betaL = clampParam(betaSpec, static_cast<double>(lastBL));
+            fr.betaR = clampParam(specOf(ParamId::SrcRBeta), static_cast<double>(lastBR));
+            fr.gateL = clampParam(gateSpec, static_cast<double>(gL));
+            fr.gateR = clampParam(specOf(ParamId::SrcRGate), static_cast<double>(gR));
+            fr.gamma = gamma;
+            fr.coupling = static_cast<double>(coupling_sm_.next());
+            fr.sigmaBeta = static_cast<double>(sigma);
+            const auto src = labia_.process(fr);
+            lastAL = static_cast<float>(src.alphaL);
+            lastAR = static_cast<float>(src.alphaR);
             const double aAsp = static_cast<double>(asp_sm_.next());
-            const double nAsp = aspiration_.process(drive.G, xTilde, aAsp);
-            const double source = drive.G * xTilde + nAsp;
+            const double nAsp = aspiration_.process(drive.G, src.xBar, aAsp);
+            const double source = drive.G * src.mixTilde + nAsp;
             double y = throughTrachea(source);
             if (use_uvt_) {
                 y = dc_.tick(throughUvt(y, static_cast<double>(oec), static_cast<double>(gape)));
@@ -428,11 +455,14 @@ private:
             }
             internal_[static_cast<std::size_t>(i)] = static_cast<float>(y);
             lastP = static_cast<float>(drive.pressure);
-            lastB = static_cast<float>(betaEff);
+            lastBL = static_cast<float>(src.betaEffL);
+            lastBR = static_cast<float>(src.betaEffR);
         }
         telemetry_.pressure = lastP;
-        telemetry_.beta_L = lastB;
-        telemetry_.alpha_L = lastA;
+        telemetry_.beta_L = lastBL;
+        telemetry_.beta_R = lastBR;
+        telemetry_.alpha_L = lastAL;
+        telemetry_.alpha_R = lastAR;
     }
 
     ProcessSpec spec_{};
@@ -443,15 +473,12 @@ private:
     dsp::Oversampling oversampling_;
     dsp::Smoother out_smoother_;
     dsp::DcBlocker dc_;
-    dsp::DcBlocker source_dc_;
     dsp::Smoother len_sm_, ref_sm_, loss_sm_, gain_sm_;
-    dsp::Smoother oec_damp_sm_, beak_damp_sm_, rad_sm_, asp_sm_;
+    dsp::Smoother oec_damp_sm_, beak_damp_sm_, rad_sm_, asp_sm_, coupling_sm_;
     dsp::Rng rng_{1};
     model::TestSaw saw_;
-    model::LabialOscillator osc_;
+    model::BilateralSource labia_;
     model::RespiratoryDrive resp_;
-    model::TensionNoise tension_l_;
-    model::TensionNoise tension_r_;
     model::AspirationNoise aspiration_;
     model::Trachea trachea_;
     model::UpperVocalTract uvt_;

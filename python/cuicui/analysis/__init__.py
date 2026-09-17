@@ -1,1 +1,1 @@
-"""Bifurcation analysis of the labial oscillator (offline)."""
+"""Offline analysis helpers (bifurcation, tract, UVT, locking)."""
