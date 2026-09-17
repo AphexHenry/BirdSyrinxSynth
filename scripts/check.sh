@@ -21,7 +21,7 @@ if command -v clang-format >/dev/null 2>&1; then
     files=()
     while IFS= read -r f; do
         files+=("$f")
-    done < <(find "${ROOT}/core" "${ROOT}/apps" "${ROOT}/python/bindings" \
+    done < <(find "${ROOT}/core" "${ROOT}/apps" "${ROOT}/plugin" "${ROOT}/python/bindings" \
         \( -name '*.hpp' -o -name '*.hpp.in' -o -name '*.cpp' -o -name '*.h' \) \
         -print | sort)
     if ((${#files[@]} > 0)); then

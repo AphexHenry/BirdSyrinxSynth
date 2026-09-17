@@ -153,3 +153,8 @@ Final message: **milestone M3**. Human checklist: play the Standalone/DAW plugin
 - Never feed the inverse map a ν computed with the wrong γ (size!).
 - Ornament FM must be applied in cents before `solve`, never by modulating β directly (keeps tuning and tract couplings consistent).
 - Legato after note-off during release: decide and document (default: treat as new note if pressure fell below 20 %).
+
+## Notes from WP-C1
+
+C1 MIDI no longer uses Hopf $\beta=(2\pi f/\gamma)^2$ (that sat near 0.02 on piano Hz and made C≈D). It inverts an empirical labial $f_0(\beta)$ table at playing $\alpha$ (vel 100) so C4–C5 is about $2\times$ acoustically, still at bird frequencies (C4 $\approx$ 2.47 kHz, not 261 Hz). Velocity still shifts pitch via $\alpha$. C3 must replace this with the atlas inverse map (and size/γ); do not keep the C1 table.
+

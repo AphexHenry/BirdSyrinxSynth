@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-09-17 — by: WP-B6 agent
+**Last updated:** 2026-09-17 — by: WP-C1 agent
 
 ## Status legend
 
@@ -30,7 +30,7 @@
 | 8 | B4 | Respiratory dynamics & noise sources | B3 | done | 2026-09-17 | wp-B4 | `work_packages/WP-B4_respiration_noise.md` |
 | 9 | B5 | Two sources: left/right, gating, side switching | B4 | done | 2026-09-17 | wp-B5 | `work_packages/WP-B5_two_sources.md` |
 | 10 | B6 | Voice assembly, body size, state save/load, benchmarks | B5 | done | 2026-09-17 | wp-B6 | `work_packages/WP-B6_voice_assembly.md` |
-| 11 | C1 | Plugin shell + offline plugin renderer | B6 | todo | | | `work_packages/WP-C1_plugin_shell.md` |
+| 11 | C1 | Plugin shell + offline plugin renderer | B6 | done | 2026-09-17 | wp-C1 | `work_packages/WP-C1_plugin_shell.md` |
 | 12 | C2 | Source atlas & inverse pitch map | B6 | todo | | | `work_packages/WP-C2_atlas_inverse_map.md` |
 | 13 | C3 | Pitch-led direct playing | C1, C2 | todo | | | `work_packages/WP-C3_pitch_led_playing.md` |
 | 14 | C4 | Archetype library + gesture score format & player | C3 | todo | | | `work_packages/WP-C4_archetypes_gesture_score.md` |
@@ -50,13 +50,14 @@
 
 ## Current capabilities
 
-**Milestone M2 — complete voice.** `BirdVoice` has settings, per-sample control ramps, telemetry, and memcpy-safe save/load. `body.size` scales pitch, trachea and beak together. Python `Voice` / `render_controls` work. Two sides, gates, coupling and the side switcher from B5 are still there. CPU is real-time (~2.7 % of a core per voice at 48 kHz) but above the 0.5 % planning target. Default trachea reflection is still +0.5 (D-012). D1 is parked until after Phase B.
+**Playable plugin (crude pitch).** Syrinx loads as VST3, AU, CLAP and Standalone. Click the C4–C5 piano at the bottom of the window, or use a MIDI keyboard. Notes start/stop through the bird breath; neighbouring keys and an octave now move pitch (~2× from C4 to C5) but this is still bird-range, not concert pitch. All physiology parameters are host-automatable; project save/load works; a safety clipper caps output at 0 dBFS. `plugin_render` renders MIDI offline. Inverse-map tuning is C3. D1 is still parked.
 
 ## Baselines
 
 | Metric | Value | Measured in | Date |
 |---|---|---|---|
 | CPU per voice @48 kHz (Release, Apple Silicon) | 2.72 % of one core (RT 0.027); 16 voices RT 0.43 — **above** 0.5 % / 0.1 targets | B6 | 2026-09-17 |
+| Plugin CPU @48 kHz / 256 (Release, Apple Silicon) | 2.70 % of one core (~1.0× B6 voice) | C1 | 2026-09-17 |
 | Tuning error, tone 0.6, size 1 (median / max cents) | – | C2 | |
 | Fitting benchmark (synthetic) median MRSTFT loss | – | E1 | |
 | Real zebra finch resynthesis median MRSTFT loss | – | E3/E4 | |
@@ -72,6 +73,8 @@
 - One voice uses ~2.7 % of a core at 48 kHz OS 4 (planning target 0.5 %). See B6 report §9.
 - Auto OS at σ=0.25 is ~4 cents sharp vs OS 8; request OS 8 for tiny-bird sessions (D-015).
 - `render_controls` vs CLI differs by 1 ULP (float32 prime vs JSON double).
+- C1 MIDI pitch is an empirical $f_0(\beta)$ invert at playing α: intervals work on C4–C5, but C4 is ~2.5 kHz and velocity still shifts pitch. Concert tuning is C3.
+- Newly copied AU needs `killall AudioComponentRegistrar` before auval sees it (`scripts/validate_plugin.sh` does this).
 
 ## Open questions for the human
 
@@ -79,6 +82,7 @@
 - JUCE licence choice before any public release (see `decisions.md` D-003).
 - B6 CPU: accept ~3 % per voice, or spend a WP on optimisation (skip gated-off RK4, UVT dirty-flag)? Recommendation: accept for C1, revisit if the plugin feels heavy.
 - M2 listening: what matters most before playability (C3) starts?
+- C1 DAW checklist: Standalone + MIDI keyboard; AU (Logic) or VST3 (Ableton/Reaper/Bitwig); automate one knob; save/reopen the project. Any crash, silence or click?
 
 ## Session log (append one line per session)
 
@@ -118,3 +122,8 @@
 | 2026-09-17 | B6 | Cursor Grok 4.6 | WP-B6 awaiting approval (M2 listening page opened; CPU target missed, numbers reported) |
 | 2026-09-17 | B6 | Cursor Grok 4.6 | feedback: 03 false A/B pairing; 04 “side” jargon — listening rebuilt |
 | 2026-09-17 | B6 | Cursor Grok 4.6 | approved, committed and tagged wp-B6 |
+| 2026-09-17 | C1 | Cursor Grok 4.6 | started WP-C1 (plugin shell + plugin_render) |
+| 2026-09-17 | C1 | Cursor Grok 4.6 | WP-C1 awaiting approval (pluginval+auval PASS; listening page opened) |
+| 2026-09-17 | C1 | Cursor Grok 4.6 | feedback: 02 vel 30 noisy; on-screen MIDI keyboard added; still awaiting approve |
+| 2026-09-17 | C1 | Cursor Grok 4.6 | feedback: in-app keyboard C≈D and octave too small; empirical f0(β) invert; still awaiting approve |
+| 2026-09-17 | C1 | Cursor Grok 4.6 | approved, committed and tagged wp-C1 |

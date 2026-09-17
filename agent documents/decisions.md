@@ -78,4 +78,11 @@
 - **Decision:** Keep the existing auto-OS policy (internal rate ≥ 176.4 kHz, independent of `body.size`). Sessions that will use σ ≲ 0.35 should set `engine.oversampling` = 8 explicitly. Do not change OS when the musician moves Size.
 - **Consequences:** Tiny-bird pitch at auto OS 4 is a few cents sharp. Plugin latency does not pump when Size is automated.
 
+### D-016 — JUCE 8.0.15 pin; CLAP via clap-juce-extensions
+- **Status:** accepted · 2026-09-17 · WP-C1
+- **Context:** Architecture/D-001 specify JUCE 8.x. C1 must pin an exact tag and add CLAP. JUCE 8.0.15 (latest 8.x at session time) has no native CLAP. JUCE 9.0.2 exists but would change the stack contract.
+- **Decision:** Pin JUCE `8.0.15` (no native CLAP) and `clap-juce-extensions` at commit `55525c9` (2026-09-12; tag 0.26.0 does not compile against JUCE 8.0.15). CLAP ID `com.cuicuiinstruments.syrinx`.
+- **Consequences:** Plugin formats are VST3, AU, Standalone, and CLAP. A later move to JUCE 9 needs a new decision.
+
+
 

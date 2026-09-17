@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(syrinx VERSION 0.1.0 LANGUAGES CXX)
+project(syrinx VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,6 +8,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(CUICUI_WERROR "Treat warnings as errors for core/ and apps/" OFF)
 option(CUICUI_BUILD_BINDINGS "Build the nanobind module cuicui_core" ON)
+option(CUICUI_BUILD_PLUGIN "Build the JUCE plugin, plugin_render, and processor tests" ON)
+
+if(APPLE AND CUICUI_BUILD_PLUGIN)
+    enable_language(OBJC OBJCXX)
+endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
@@ -93,4 +98,8 @@ catch_discover_tests(cuicui_core_tests)
 
 if(CUICUI_BUILD_BINDINGS)
     add_subdirectory(python)
+endif()
+
+if(CUICUI_BUILD_PLUGIN)
+    add_subdirectory(plugin)
 endif()

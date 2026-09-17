@@ -129,6 +129,56 @@ enum class TestWaveform { Sine = 0, Saw = 1, Noise = 2 };
     return false;
 }
 
+/// Host parameter version hint from `sinceWP` (A=1, B=2, C=3, …). WP-C1.
+[[nodiscard]] inline int versionHintFromSinceWP(std::string_view since) noexcept {
+    if (since.empty()) {
+        return 1;
+    }
+    switch (since.front()) {
+    case 'A':
+        return 1;
+    case 'B':
+        return 2;
+    case 'C':
+        return 3;
+    case 'D':
+        return 4;
+    case 'E':
+        return 5;
+    case 'F':
+        return 6;
+    case 'G':
+        return 7;
+    default:
+        return 1;
+    }
+}
+
+/// engine.oversampling choice indices: 0=auto, 1=1, 2=2, 3=4, 4=8.
+inline constexpr std::array<int, 5> kOversamplingChoiceValues{{0, 1, 2, 4, 8}};
+
+[[nodiscard]] inline int oversamplingValueFromChoiceIndex(int index) noexcept {
+    if (index < 0 || index >= static_cast<int>(kOversamplingChoiceValues.size())) {
+        return 0;
+    }
+    return kOversamplingChoiceValues[static_cast<std::size_t>(index)];
+}
+
+[[nodiscard]] inline int oversamplingChoiceIndexFromValue(int value) noexcept {
+    switch (value) {
+    case 1:
+        return 1;
+    case 2:
+        return 2;
+    case 4:
+        return 3;
+    case 8:
+        return 4;
+    default:
+        return 0;
+    }
+}
+
 /// engine.oversampling: 0 = auto, else 1, 2, 4, 8.
 [[nodiscard]] inline bool parseOversamplingToken(std::string_view s, int& out) noexcept {
     if (s == "auto" || s == "0") {

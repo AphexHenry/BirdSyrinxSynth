@@ -41,3 +41,14 @@ TEST_CASE("test.waveform names") {
     REQUIRE(w == cuicui::TestWaveform::Saw);
     REQUIRE(std::string(cuicui::testWaveformName(w)) == "saw");
 }
+
+TEST_CASE("version hint from sinceWP and oversampling choice map") {
+    REQUIRE(cuicui::versionHintFromSinceWP("A2") == 1);
+    REQUIRE(cuicui::versionHintFromSinceWP("B6") == 2);
+    REQUIRE(cuicui::versionHintFromSinceWP("C1") == 3);
+    REQUIRE(cuicui::oversamplingChoiceIndexFromValue(0) == 0);
+    REQUIRE(cuicui::oversamplingChoiceIndexFromValue(4) == 3);
+    REQUIRE(cuicui::oversamplingValueFromChoiceIndex(3) == 4);
+    REQUIRE(cuicui::findParam("out.master_db") != nullptr);
+    REQUIRE(cuicui::specOf(cuicui::ParamId::OutMasterDb).def == Catch::Approx(-6.0));
+}

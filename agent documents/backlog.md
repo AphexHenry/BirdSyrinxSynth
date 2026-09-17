@@ -28,4 +28,8 @@
 - [B5] One shared α cannot span 1.2–6 kHz (09 topped out at ~4.56 kHz). C3 may need per-side α offsets for wide jumps/sweeps.
 - [B6] One voice is ~2.7 % of a core at 48 kHz OS 4 (planning target 0.5 %). Candidates: skip RK4 on a gated-off side; UVT matrix only when params change; Instruments profile of `processLabial`. Human decides before any optimisation.
 - [B6] For σ ≲ 0.35, request OS 8 (~4 cents at auto OS 4). Do not tie auto OS to Size (D-015).
+- [C1] No `clap-info` on PATH; CLAP builds but is not validated. Install a CLAP validator before G1.
+- [C1] `engine.seed` as `AudioParameterInt` up to 2³¹−1: auval warns the max does not stick (int32 display). Cap the host range (e.g. 0–1e9) in C6/G1.
+- [C1] Processor tests `_Exit` after Catch2 because `alloc_counter.hpp` global `new`/`delete` aborts inside `DeletedAtShutdown::deleteAll()`. A JUCE-safe alloc probe would let the test binary shut down normally.
+
 

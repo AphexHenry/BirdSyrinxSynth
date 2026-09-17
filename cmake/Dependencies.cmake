@@ -23,6 +23,29 @@ set(CATCH_INSTALL_EXTRAS OFF CACHE BOOL "" FORCE)
 
 FetchContent_MakeAvailable(Catch2 nlohmann_json)
 
+# JUCE 8.x + clap-juce-extensions (WP-C1). JUCE 8 has no native CLAP (see decisions.md D-016).
+if(CUICUI_BUILD_PLUGIN)
+    set(JUCE_BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
+    set(JUCE_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(JUCE_ENABLE_MODULE_SOURCE_GROUPS OFF CACHE BOOL "" FORCE)
+
+    FetchContent_Declare(
+        juce
+        GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
+        GIT_TAG 8.0.15
+        GIT_SHALLOW TRUE
+    )
+
+    FetchContent_Declare(
+        clap_juce_extensions
+        GIT_REPOSITORY https://github.com/free-audio/clap-juce-extensions.git
+        GIT_TAG 55525c9858d4b25687be7759a5e0f70eccef218e
+        GIT_SUBMODULES_RECURSE TRUE
+    )
+
+    FetchContent_MakeAvailable(juce clap_juce_extensions)
+endif()
+
 # nanobind — Python module cuicui_core (A2). Prefer a pip/uv install (pypi);
 # fall back to FetchContent if CMake config is not on CMAKE_PREFIX_PATH.
 if(CUICUI_BUILD_BINDINGS)
