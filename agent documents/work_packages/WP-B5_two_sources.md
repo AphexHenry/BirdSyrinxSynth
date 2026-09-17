@@ -103,3 +103,10 @@ Figures: locking plot; spectrograms of 06 vs 07 and 09.
 
 - Coupling inside RK4 must use stage-consistent values of both sides; coupling computed from the previous sample's other-side value is wrong and will fail test #5 with ε > 0 comparisons.
 - Keep the R noise stream reserved in B4; otherwise golden renders change (test #1).
+
+## Notes from WP-B4 (2026-09-17)
+
+- R tension stream is already reserved: `dsp::kStreamTensionL/R/Aspiration` via `deriveStreamSeed(engine.seed, index)`. `BirdVoice` constructs `tension_r_` and seeds it on `reset()`, but does **not** call `tension_r_.process()` yet. Start using it without changing L or aspiration seeds.
+- Source into the trachea is `G * x̃_L + n_asp` with `G = √p` and a 20 Hz DC blocker on labial `x`. Mix both sides the same way: `G * (g_L x̃_L + g_R x̃_R) + n_asp`.
+- Default `noise.beta_sigma` = 0.005 in `ControlFrame` / render specs. `cuicui_core.render_labial` defaults noise **off** (σ=0, aspiration=0) so old helpers stay noiseless.
+- UVT mix was re-scaled for G: `kUvtFlowCal = 34729499`, `kUvtRadCal = 2077.911`. Reference note (p≈0.545, α=0.2, β=0.2, noise off) still peaks at −6.000 dBFS.

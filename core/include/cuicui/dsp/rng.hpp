@@ -1,9 +1,36 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 
 namespace cuicui::dsp {
+
+/// SplitMix64. Advances `state` and returns a 64-bit mix. Used to derive independent
+/// noise-stream seeds from `engine.seed` (01_research.md §6.4).
+[[nodiscard]] inline std::uint64_t splitmix64(std::uint64_t& state) noexcept {
+    state += 0x9e3779b97f4a7c15ULL;
+    std::uint64_t z = state;
+    z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+    z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+    return z ^ (z >> 31);
+}
+
+/// Stream indices reserved so adding R later does not change L or aspiration seeds.
+inline constexpr int kStreamTensionL = 0;
+inline constexpr int kStreamTensionR = 1;
+inline constexpr int kStreamAspiration = 2;
+
+/// Independent 64-bit seed for stream `index` (0 = L, 1 = R, 2 = aspiration).
+[[nodiscard]] inline std::uint64_t deriveStreamSeed(std::uint64_t master, int index) noexcept {
+    std::uint64_t x = master == 0 ? 1ULL : master;
+    std::uint64_t out = 1;
+    const int n = std::max(0, index);
+    for (int i = 0; i <= n; ++i) {
+        out = splitmix64(x);
+    }
+    return out == 0 ? 1ULL : out;
+}
 
 /// xoshiro128+ PRNG (Blackman & Vigna). Seedable, no allocation after construction.
 /// `uniform()` → [0, 1); `gaussian()` → N(0, 1) via polar Box–Muller.
@@ -13,16 +40,9 @@ public:
 
     void setSeed(std::uint64_t seed) noexcept {
         // splitmix64 to fill four 32-bit words; a zero state is illegal for xoshiro.
-        auto splitmix = [](std::uint64_t& x) noexcept {
-            x += 0x9e3779b97f4a7c15ULL;
-            std::uint64_t z = x;
-            z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
-            z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
-            return z ^ (z >> 31);
-        };
-        std::uint64_t x = seed;
-        const std::uint64_t a = splitmix(x);
-        const std::uint64_t b = splitmix(x);
+        std::uint64_t x = seed == 0 ? 1ULL : seed;
+        const std::uint64_t a = splitmix64(x);
+        const std::uint64_t b = splitmix64(x);
         s_[0] = static_cast<std::uint32_t>(a);
         s_[1] = static_cast<std::uint32_t>(a >> 32);
         s_[2] = static_cast<std::uint32_t>(b);

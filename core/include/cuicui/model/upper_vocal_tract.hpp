@@ -15,13 +15,11 @@ inline constexpr double kBeakLengthM = 0.008;
 inline constexpr double kBeakArea0M2 = 1.0e-6;
 inline constexpr double kBeakArea1M2 = 20.0e-6;
 
-/// Output-stage calibration so the reference note peaks near −6 dBFS (WP-B3 §4.4).
-/// Tuned at 48 kHz, α=0.2, β=0.2, trachea defaults, f_H=3000 Hz, gape=0.5.
-/// Output-stage calibration so the reference note peaks near −6 dBFS (WP-B3 §4.4).
-/// Tuned at 48 kHz, α=0.2, β=0.2, trachea defaults, f_H=3000 Hz, gape=0.5, ρ=1.
-/// kUvtFlowCal is chosen so ρ=0 RMS matches ρ=1 RMS.
-inline constexpr double kUvtFlowCal = 25649535.0;
-inline constexpr double kUvtRadCal = 1534.636;
+/// Output-stage calibration so the reference note peaks near −6 dBFS (WP-B4 re-tune).
+/// Tuned at 48 kHz, α=0.2 (p≈0.545), β=0.2, trachea defaults, f_H=3000 Hz, gape=0.5, ρ=1,
+/// G=√p, noise off. kUvtFlowCal is chosen so ρ=0 RMS matches ρ=1 RMS.
+inline constexpr double kUvtFlowCal = 34729499.0;
+inline constexpr double kUvtRadCal = 2077.911;
 
 struct UvtOut {
     double flow = 0.0;

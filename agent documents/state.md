@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-09-17 — by: WP-B3 agent
+**Last updated:** 2026-09-17 — by: WP-B4 agent
 
 ## Status legend
 
@@ -27,7 +27,7 @@
 | 5 | B2 | Trachea waveguide | B1 | done | 2026-09-17 | wp-B2 | `work_packages/WP-B2_trachea.md` |
 | 6 | B3 | Upper vocal tract: glottis–OEC–beak + radiation | B2 | done | 2026-09-17 | wp-B3 | `work_packages/WP-B3_upper_vocal_tract.md` |
 | 7 | D2 | Feature extraction (shared real/synthetic) | D1, B3 | todo | | | `work_packages/WP-D2_features.md` |
-| 8 | B4 | Respiratory dynamics & noise sources | B3 | todo | | | `work_packages/WP-B4_respiration_noise.md` |
+| 8 | B4 | Respiratory dynamics & noise sources | B3 | done | 2026-09-17 | wp-B4 | `work_packages/WP-B4_respiration_noise.md` |
 | 9 | B5 | Two sources: left/right, gating, side switching | B4 | todo | | | `work_packages/WP-B5_two_sources.md` |
 | 10 | B6 | Voice assembly, body size, state save/load, benchmarks | B5 | todo | | | `work_packages/WP-B6_voice_assembly.md` |
 | 11 | C1 | Plugin shell + offline plugin renderer | B6 | todo | | | `work_packages/WP-C1_plugin_shell.md` |
@@ -50,7 +50,7 @@
 
 ## Current capabilities
 
-The repo builds, tests, and renders. A labial oscillator plus trachea plus **upper vocal tract** (OEC + beak + radiation) makes the **first complete anatomical bird sound**. Pressure turns sound on, tension sets pitch, tube length colours the spectrum, OEC frequency is a moving formant, gape changes openness. No breath dynamics or second side yet. Default trachea reflection is still +0.5 (D-012). D1 is parked until after Phase B.
+The repo builds, tests, and renders. A labial oscillator plus trachea plus upper vocal tract now **breathes**: pressure attack/release shapes onsets, loudness follows √pressure, tension noise adds jitter (and buzz near threshold), aspiration adds pulsed breath. Same seed → same render. No second syrinx side yet. Default trachea reflection is still +0.5 (D-012). D1 is parked until after Phase B.
 
 ## Baselines
 
@@ -66,6 +66,7 @@ The repo builds, tests, and renders. A labial oscillator plus trachea plus **upp
 - `clang-format` is not installed; `check.sh` skips the C++ format check (warns). `brew install clang-format` when convenient.
 - `uv` is in `tools/uv` (gitignored), not on the default PATH; use the `scripts/` wrappers.
 - `Oversampling::decimate` requires `nHost ≤ maxBlockSize` (chunk in the caller).
+- B4 item 06 (tension noise vs real alarm) is noisier, not metallic/FM stacked harmonics — see backlog.
 
 ## Open questions for the human
 
@@ -99,3 +100,7 @@ The repo builds, tests, and renders. A labial oscillator plus trachea plus **upp
 | 2026-09-17 | B3 | Cursor Grok 4.6 | feedback: sine-like demos, 07/08 motion wrong; listening rebuilt |
 | 2026-09-17 | B3 | Cursor Grok 4.6 | 08 metallic/FM noted for B4; rest accepted; awaiting approve |
 | 2026-09-17 | B3 | Cursor Grok 4.6 | approved, committed and tagged wp-B3 |
+| 2026-09-17 | B4 | Cursor Grok 4.6 | started WP-B4 (respiration & noise) |
+| 2026-09-17 | B4 | Cursor Grok 4.6 | WP-B4 awaiting approval (listening page opened) |
+| 2026-09-17 | B4 | Cursor Grok 4.6 | feedback: 04–07 listening retuned (pulse, wow, 18 Hz FM, drop M1) |
+| 2026-09-17 | B4 | Cursor Grok 4.6 | approved, committed and tagged wp-B4 |

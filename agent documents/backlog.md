@@ -23,4 +23,5 @@
 - [D1] Custom **tseg** JSON adapter (schema 1.2: SILENCE/NOISE/BIRD_SOUND + `type_label`) — recordings already exist; D1 parked until after Phase B.
 - [B2] ℓ = 0 bypasses the one-pole rather than using the written 22 kHz cutoff — a 22 kHz pole at 192 kHz is ~1 dB down at 12 kHz and would break the analytic-magnitude test.
 - [B3] Real 07/08 comparisons used `22938.wav` peep (7.828–7.994 s) and alarm (23.48–23.98 s). Human: 08 is metallic / fast-FM — chase with B4 tension noise.
+- [B4] Alarm “metallic” texture is ~15–20 Hz AM/FM (ring-mod throb), not broadband tension noise. Listening 06 now demos an 18 Hz LFO; a real gesture/LFO in the engine may belong in C4/C5.
 

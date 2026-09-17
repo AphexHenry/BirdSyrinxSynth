@@ -39,7 +39,8 @@ inline bool spec_has_any(const RenderSpec& spec, std::initializer_list<std::stri
 }
 
 inline bool spec_uses_labial(const RenderSpec& spec) {
-    return spec_has_any(spec, {"resp.pressure", "src.L.beta", "src.L.alpha_offset", "src.gamma"});
+    return spec_has_any(spec, {"resp.pressure", "src.L.beta", "src.L.alpha_offset", "src.gamma",
+                               "resp.attack_ms", "noise.beta_sigma", "noise.aspiration"});
 }
 
 inline bool spec_uses_trachea(const RenderSpec& spec) {
@@ -76,6 +77,11 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     const auto* gapeS = findParam("beak.gape");
     const auto* beakZ = findParam("beak.damping");
     const auto* radS = findParam("out.radiation");
+    const auto* attS = findParam("resp.attack_ms");
+    const auto* relS = findParam("resp.release_ms");
+    const auto* sigS = findParam("noise.beta_sigma");
+    const auto* bwS = findParam("noise.beta_bandwidth_hz");
+    const auto* aspS = findParam("noise.aspiration");
     const double defFreq = freqSpec ? freqSpec->def : 440.0;
     const double defGain = gainSpec ? gainSpec->def : -12.0;
     const double defOut = outSpec ? outSpec->def : 0.0;
@@ -92,6 +98,11 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     const double defGape = gapeS ? gapeS->def : 0.5;
     const double defBeakZ = beakZ ? beakZ->def : 0.3;
     const double defRad = radS ? radS->def : 1.0;
+    const double defAtt = attS ? attS->def : 8.0;
+    const double defRel = relS ? relS->def : 15.0;
+    const double defSig = sigS ? sigS->def : 0.005;
+    const double defBw = bwS ? bwS->def : 300.0;
+    const double defAsp = aspS ? aspS->def : 0.02;
 
     const auto freqA = spec.automationFor("test.freq_hz", defFreq);
     const auto gainA = spec.automationFor("test.gain_db", defGain);
@@ -108,6 +119,11 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     const auto gapeA = spec.automationFor("beak.gape", defGape);
     const auto beakZA = spec.automationFor("beak.damping", defBeakZ);
     const auto radA = spec.automationFor("out.radiation", defRad);
+    const auto attA = spec.automationFor("resp.attack_ms", defAtt);
+    const auto relA = spec.automationFor("resp.release_ms", defRel);
+    const auto sigA = spec.automationFor("noise.beta_sigma", defSig);
+    const auto bwA = spec.automationFor("noise.beta_bandwidth_hz", defBw);
+    const auto aspA = spec.automationFor("noise.aspiration", defAsp);
 
     ProcessSpec ps;
     ps.hostSampleRate = static_cast<double>(sr);
@@ -148,6 +164,10 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     settings.oec_damping = clampP(oecZ, oecZA.valueAt(0.0));
     settings.beak_damping = clampP(beakZ, beakZA.valueAt(0.0));
     settings.out_radiation = clampP(radS, radA.valueAt(0.0));
+    settings.resp_attack_ms = clampP(attS, attA.valueAt(0.0));
+    settings.resp_release_ms = clampP(relS, relA.valueAt(0.0));
+    settings.noise_beta_bandwidth_hz = clampP(bwS, bwA.valueAt(0.0));
+    settings.noise_aspiration = clampP(aspS, aspA.valueAt(0.0));
     voice.setSettings(settings);
     voice.reset(spec.seed);
 
@@ -176,6 +196,8 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
             to.oec_freq_hz = static_cast<float>(clampP(oecF, oecFA.valueAt(t1)));
             from.beak_gape = static_cast<float>(clampP(gapeS, gapeA.valueAt(t0)));
             to.beak_gape = static_cast<float>(clampP(gapeS, gapeA.valueAt(t1)));
+            from.noise_beta_sigma = static_cast<float>(clampP(sigS, sigA.valueAt(t0)));
+            to.noise_beta_sigma = static_cast<float>(clampP(sigS, sigA.valueAt(t1)));
         } else {
             const float f0 = static_cast<float>(clampP(freqSpec, freqA.valueAt(t0)));
             const float f1 = static_cast<float>(clampP(freqSpec, freqA.valueAt(t1)));
@@ -194,6 +216,10 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
         settings.oec_damping = clampP(oecZ, oecZA.valueAt(t1));
         settings.beak_damping = clampP(beakZ, beakZA.valueAt(t1));
         settings.out_radiation = clampP(radS, radA.valueAt(t1));
+        settings.resp_attack_ms = clampP(attS, attA.valueAt(t1));
+        settings.resp_release_ms = clampP(relS, relA.valueAt(t1));
+        settings.noise_beta_bandwidth_hz = clampP(bwS, bwA.valueAt(t1));
+        settings.noise_aspiration = clampP(aspS, aspA.valueAt(t1));
         voice.setSettings(settings);
         voice.process(from, to, buf.data() + i, ns);
         i += ns;

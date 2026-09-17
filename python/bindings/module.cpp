@@ -14,6 +14,7 @@
 #include <nanobind/stl/vector.h>
 
 #include <algorithm>
+#include <cstdint>
 #include <cstring>
 #include <stdexcept>
 #include <utility>
@@ -203,7 +204,9 @@ NB_MODULE(cuicui_core, m) {
            double sample_rate, int oversampling, double gain_db, double alpha_offset, bool use_trachea,
            double trachea_length_mm, double trachea_reflection, double trachea_loss,
            double trachea_input_gain, bool use_uvt, double oec_freq_hz, double oec_damping, double beak_gape,
-           double beak_damping, double out_radiation) {
+           double beak_damping, double out_radiation, std::uint64_t seed, float noise_beta_sigma,
+           double noise_aspiration, double resp_attack_ms, double resp_release_ms,
+           double noise_beta_bandwidth_hz) {
             if (pressure.shape(0) != beta.shape(0)) {
                 throw std::invalid_argument("render_labial: pressure and beta must have the same length");
             }
@@ -240,8 +243,13 @@ NB_MODULE(cuicui_core, m) {
                 settings.oec_damping = oec_damping;
                 settings.beak_damping = beak_damping;
                 settings.out_radiation = out_radiation;
+                settings.seed = seed;
+                settings.noise_aspiration = noise_aspiration;
+                settings.resp_attack_ms = resp_attack_ms;
+                settings.resp_release_ms = resp_release_ms;
+                settings.noise_beta_bandwidth_hz = noise_beta_bandwidth_hz;
                 voice.setSettings(settings);
-                voice.reset(1);
+                voice.reset(seed);
                 voice.setOutGainSmoothingMs(0.0);
                 voice.setOutGainRamp(static_cast<float>(gain_db), static_cast<float>(gain_db));
                 const double off = alpha_offset;
@@ -262,6 +270,8 @@ NB_MODULE(cuicui_core, m) {
                     to.oec_freq_hz = static_cast<float>(oec_freq_hz);
                     from.beak_gape = static_cast<float>(beak_gape);
                     to.beak_gape = static_cast<float>(beak_gape);
+                    from.noise_beta_sigma = noise_beta_sigma;
+                    to.noise_beta_sigma = noise_beta_sigma;
                     voice.process(from, to, out->data() + i, ns);
                     i += ns;
                 }
@@ -287,6 +297,12 @@ NB_MODULE(cuicui_core, m) {
         nb::arg("beak_gape") = 0.5,
         nb::arg("beak_damping") = 0.3,
         nb::arg("out_radiation") = 1.0,
+        nb::arg("seed") = 1,
+        nb::arg("noise_beta_sigma") = 0.0,
+        nb::arg("noise_aspiration") = 0.0,
+        nb::arg("resp_attack_ms") = 8.0,
+        nb::arg("resp_release_ms") = 15.0,
+        nb::arg("noise_beta_bandwidth_hz") = 300.0,
         "Render the labial source through BirdVoice (optional trachea + UVT). Releases the GIL.");
 
     m.def(
