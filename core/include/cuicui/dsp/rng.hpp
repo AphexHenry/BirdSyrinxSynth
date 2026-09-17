@@ -71,6 +71,27 @@ public:
         return static_cast<float>(next() >> 8) * 0x1.0p-24f;
     }
 
+    void save(std::uint32_t s[4], float& spare, std::uint32_t& hasSpare) const noexcept {
+        s[0] = s_[0];
+        s[1] = s_[1];
+        s[2] = s_[2];
+        s[3] = s_[3];
+        spare = spare_;
+        hasSpare = has_spare_ ? 1u : 0u;
+    }
+
+    void load(const std::uint32_t s[4], float spare, std::uint32_t hasSpare) noexcept {
+        s_[0] = s[0];
+        s_[1] = s[1];
+        s_[2] = s[2];
+        s_[3] = s[3];
+        spare_ = spare;
+        has_spare_ = hasSpare != 0;
+        if (s_[0] == 0 && s_[1] == 0 && s_[2] == 0 && s_[3] == 0) {
+            s_[0] = 1;
+        }
+    }
+
     /// Standard normal. Real-time safe (no allocation).
     [[nodiscard]] float gaussian() noexcept {
         if (has_spare_) {

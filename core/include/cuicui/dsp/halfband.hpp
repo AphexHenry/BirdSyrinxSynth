@@ -1,5 +1,8 @@
 #pragma once
 
+#include "cuicui/model/voice_state.hpp"
+
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <vector>
@@ -133,6 +136,31 @@ public:
             return -400.0;
         }
         return 20.0 * std::log10(mag);
+    }
+
+    void save(HalfbandState& s) const noexcept {
+        s.n = n_;
+        s.w = w_;
+        s.pair = pair_;
+        const int m = std::min(n_, kMaxHalfbandTaps);
+        for (int i = 0; i < m; ++i) {
+            s.z[i] = z_[static_cast<std::size_t>(i)];
+        }
+    }
+
+    void load(const HalfbandState& s) noexcept {
+        w_ = s.w;
+        pair_ = s.pair;
+        const int m = std::min(n_, kMaxHalfbandTaps);
+        for (int i = 0; i < m; ++i) {
+            z_[static_cast<std::size_t>(i)] = s.z[i];
+        }
+        if (n_ > 0) {
+            w_ %= n_;
+            if (w_ < 0) {
+                w_ += n_;
+            }
+        }
     }
 
 private:

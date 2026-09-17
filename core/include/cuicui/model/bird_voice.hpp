@@ -6,12 +6,14 @@
 #include "cuicui/dsp/rng.hpp"
 #include "cuicui/dsp/smoother.hpp"
 #include "cuicui/model/bilateral_source.hpp"
+#include "cuicui/model/body_scaling.hpp"
 #include "cuicui/model/labial_oscillator.hpp"
 #include "cuicui/model/noise_sources.hpp"
 #include "cuicui/model/respiratory_drive.hpp"
 #include "cuicui/model/test_saw.hpp"
 #include "cuicui/model/trachea.hpp"
 #include "cuicui/model/upper_vocal_tract.hpp"
+#include "cuicui/model/voice_state.hpp"
 #include "cuicui/params.hpp"
 
 #include <algorithm>
@@ -32,6 +34,8 @@ struct ControlFrame {
     float oec_freq_hz = 3000.0f;
     float beak_gape = 0.5f;
     float noise_beta_sigma = 0.005f;
+    float test_freq_hz = 440.0f;
+    float test_gain_db = -12.0f;
 };
 
 struct VoiceSettings {
@@ -41,6 +45,8 @@ struct VoiceSettings {
     double out_radiation = 1.0, out_gain_db = 0.0;
     double resp_attack_ms = 8.0, resp_release_ms = 15.0;
     double noise_beta_bandwidth_hz = 300.0, noise_aspiration = 0.02, src_coupling = 0.0;
+    double test_waveform = 0.0;
+    int oversampling = 0;
     std::uint64_t seed = 1;
 };
 
@@ -50,18 +56,127 @@ struct VoiceTelemetry {
     std::uint32_t nonFiniteResets = 0;
 };
 
-/// POD snapshot (A2 test oscillator + B1 labial state; delay lines later).
-struct VoiceState {
-    double sine_phase = 0.0;
-    double saw_phase = 0.0;
-    double labial_x = 0.0;
-    double labial_y = 0.0;
-    float out_gain_y = 0.0f;
-    std::uint32_t rng0 = 1, rng1 = 0, rng2 = 0, rng3 = 0;
-    std::uint32_t nonFiniteResets = 0;
-};
+enum class ParamHome { Control, Settings, None };
 
-/// Voice: source → trachea → UVT (B3) → mix → DC → decimation.
+[[nodiscard]] inline ParamHome paramHome(ParamId id) noexcept {
+    switch (id) {
+    case ParamId::RespPressure:
+    case ParamId::SrcLBeta:
+    case ParamId::SrcRBeta:
+    case ParamId::SrcLGate:
+    case ParamId::SrcRGate:
+    case ParamId::SrcLAlphaOffset:
+    case ParamId::SrcRAlphaOffset:
+    case ParamId::OecFreqHz:
+    case ParamId::BeakGape:
+    case ParamId::NoiseBetaSigma:
+    case ParamId::TestFreqHz:
+    case ParamId::TestGainDb:
+        return ParamHome::Control;
+    case ParamId::RespAttackMs:
+    case ParamId::RespReleaseMs:
+    case ParamId::SrcGamma:
+    case ParamId::SrcCoupling:
+    case ParamId::NoiseBetaBandwidthHz:
+    case ParamId::NoiseAspiration:
+    case ParamId::TracheaLengthMm:
+    case ParamId::TracheaReflection:
+    case ParamId::TracheaLoss:
+    case ParamId::TracheaInputGain:
+    case ParamId::OecDamping:
+    case ParamId::BeakDamping:
+    case ParamId::OutRadiation:
+    case ParamId::OutGainDb:
+    case ParamId::BodySize:
+    case ParamId::EngineOversampling:
+    case ParamId::EngineSeed:
+    case ParamId::TestWaveform:
+        return ParamHome::Settings;
+    default:
+        return ParamHome::None;
+    }
+}
+
+[[nodiscard]] inline const float* controlField(const ControlFrame& f, ParamId id) noexcept {
+    switch (id) {
+    case ParamId::RespPressure:
+        return &f.resp_pressure;
+    case ParamId::SrcLBeta:
+        return &f.src_L_beta;
+    case ParamId::SrcRBeta:
+        return &f.src_R_beta;
+    case ParamId::SrcLGate:
+        return &f.src_L_gate;
+    case ParamId::SrcRGate:
+        return &f.src_R_gate;
+    case ParamId::SrcLAlphaOffset:
+        return &f.src_L_alpha_offset;
+    case ParamId::SrcRAlphaOffset:
+        return &f.src_R_alpha_offset;
+    case ParamId::OecFreqHz:
+        return &f.oec_freq_hz;
+    case ParamId::BeakGape:
+        return &f.beak_gape;
+    case ParamId::NoiseBetaSigma:
+        return &f.noise_beta_sigma;
+    case ParamId::TestFreqHz:
+        return &f.test_freq_hz;
+    case ParamId::TestGainDb:
+        return &f.test_gain_db;
+    default:
+        return nullptr;
+    }
+}
+
+[[nodiscard]] inline float* controlField(ControlFrame& f, ParamId id) noexcept {
+    return const_cast<float*>(controlField(static_cast<const ControlFrame&>(f), id));
+}
+
+/// Address of the VoiceSettings field for `id`, or nullptr. `engine.seed` is uint64.
+[[nodiscard]] inline const void* settingsField(const VoiceSettings& s, ParamId id) noexcept {
+    switch (id) {
+    case ParamId::BodySize:
+        return &s.body_size;
+    case ParamId::SrcGamma:
+        return &s.src_gamma;
+    case ParamId::TracheaLengthMm:
+        return &s.trachea_length_mm;
+    case ParamId::TracheaReflection:
+        return &s.trachea_reflection;
+    case ParamId::TracheaLoss:
+        return &s.trachea_loss;
+    case ParamId::TracheaInputGain:
+        return &s.trachea_input_gain;
+    case ParamId::OecDamping:
+        return &s.oec_damping;
+    case ParamId::BeakDamping:
+        return &s.beak_damping;
+    case ParamId::OutRadiation:
+        return &s.out_radiation;
+    case ParamId::OutGainDb:
+        return &s.out_gain_db;
+    case ParamId::RespAttackMs:
+        return &s.resp_attack_ms;
+    case ParamId::RespReleaseMs:
+        return &s.resp_release_ms;
+    case ParamId::NoiseBetaBandwidthHz:
+        return &s.noise_beta_bandwidth_hz;
+    case ParamId::NoiseAspiration:
+        return &s.noise_aspiration;
+    case ParamId::SrcCoupling:
+        return &s.src_coupling;
+    case ParamId::EngineSeed:
+        return &s.seed;
+    case ParamId::EngineOversampling:
+        return &s.oversampling;
+    case ParamId::TestWaveform:
+        return &s.test_waveform;
+    default:
+        return nullptr;
+    }
+}
+
+/// Voice: source → trachea → UVT → mix → DC → decimation. 01_research.md §4.1.
 class BirdVoice {
 public:
     void prepare(const ProcessSpec& spec) {
@@ -74,6 +189,7 @@ public:
         }
         os_ = spec_.resolvedOversampling();
         internal_rate_ = spec_.internalRate();
+        f0_window_ = std::max(1, static_cast<int>(std::lround(0.01 * internal_rate_)));
         oversampling_.prepare(spec_);
         internal_.assign(static_cast<std::size_t>(spec_.maxBlockSize * os_), 0.0f);
         saw_.prepare(internal_rate_);
@@ -87,6 +203,10 @@ public:
         asp_sm_.setTimeConstantMs(specOf(ParamId::NoiseAspiration).smoothingMs);
         coupling_sm_.prepare(internal_rate_);
         coupling_sm_.setTimeConstantMs(specOf(ParamId::SrcCoupling).smoothingMs);
+        size_sm_.prepare(internal_rate_);
+        size_sm_.setTimeConstantMs(specOf(ParamId::BodySize).smoothingMs);
+        gamma_sm_.prepare(internal_rate_);
+        gamma_sm_.setTimeConstantMs(specOf(ParamId::SrcGamma).smoothingMs);
         out_smoother_.prepare(spec_.hostSampleRate);
         out_smoother_.setTimeConstantMs(smoothing_ms_);
         len_sm_.prepare(internal_rate_);
@@ -120,13 +240,19 @@ public:
         resp_.reset(0.0);
         asp_sm_.snap(static_cast<float>(settings_.noise_aspiration));
         coupling_sm_.snap(static_cast<float>(settings_.src_coupling));
+        size_sm_.snap(static_cast<float>(settings_.body_size));
+        gamma_sm_.snap(static_cast<float>(settings_.src_gamma));
         snapTrachea();
         snapUvt();
+        applyDerivedImmediate();
         primeDcFromSource(0.0);
         oversampling_.reset();
         out_smoother_.snap(static_cast<float>(settings_.out_gain_db));
         std::fill(internal_.begin(), internal_.end(), 0.0f);
         telemetry_ = {};
+        f0_zc_prev_ = 0.0;
+        f0_zc_count_ = 0;
+        f0_zc_samples_ = 0;
         prepared_ = true;
     }
 
@@ -141,9 +267,10 @@ public:
         beak_damp_sm_.setTarget(static_cast<float>(settings_.beak_damping));
         rad_sm_.setTarget(static_cast<float>(settings_.out_radiation));
         resp_.setTimeConstantsMs(settings_.resp_attack_ms, settings_.resp_release_ms);
-        labia_.setBandwidthHz(settings_.noise_beta_bandwidth_hz);
         asp_sm_.setTarget(static_cast<float>(settings_.noise_aspiration));
         coupling_sm_.setTarget(static_cast<float>(settings_.src_coupling));
+        size_sm_.setTarget(static_cast<float>(settings_.body_size));
+        gamma_sm_.setTarget(static_cast<float>(settings_.src_gamma));
     }
 
     void setSource(VoiceSource src) noexcept {
@@ -182,7 +309,11 @@ public:
         resp_.reset(0.0);
         snapTrachea();
         snapUvt();
+        applyDerivedImmediate();
         primeDcFromSource(0.0);
+        f0_zc_prev_ = 0.0;
+        f0_zc_count_ = 0;
+        f0_zc_samples_ = 0;
     }
 
     /// Override registry smoothing for `out.gain_db` (0 = zipper / unsmoothed). Call after prepare.
@@ -206,19 +337,83 @@ public:
     }
 
     void saveState(VoiceState& s) const noexcept {
+        s = VoiceState{};
+        s.version = 1;
         s.sine_phase = sine_phase_;
-        s.saw_phase = 0.0;
-        s.labial_x = labia_.left().x();
-        s.labial_y = labia_.left().y();
-        s.out_gain_y = out_smoother_.value();
-        s.rng0 = s.rng1 = s.rng2 = s.rng3 = 0;
+        s.saw_phase = saw_.phase();
+        labia_.save(s.labial_x_l, s.labial_y_l, s.labial_x_r, s.labial_y_r, s.labial_resets_l,
+                    s.labial_resets_r, s.dc_l, s.dc_r, s.tension_lp_l, s.rng_tension_l, s.tension_lp_r,
+                    s.rng_tension_r);
+        s.dc_out.x1 = dc_.x1();
+        s.dc_out.y1 = dc_.y1();
+        s.resp_p = resp_.pressure();
+        aspiration_.save(s.aspiration_bp, s.rng_aspiration);
+        std::uint32_t rs[4];
+        rng_.save(rs, s.rng_voice.spare, s.rng_voice.has_spare);
+        s.rng_voice.s0 = rs[0];
+        s.rng_voice.s1 = rs[1];
+        s.rng_voice.s2 = rs[2];
+        s.rng_voice.s3 = rs[3];
+        trachea_.saveDelay(s.trachea_buf, kVoiceDelayCapacity, s.trachea_write, s.trachea_size,
+                           s.trachea_lp, s.trachea_last_out);
+        uvt_.save(s.uvt_q0, s.uvt_q1, s.uvt_q2, s.uvt_last_u, s.uvt_flow, s.uvt_dflow,
+                  s.uvt_since_update, s.uvt_dirty);
+        s.uvt_counter = uvt_counter_;
+        saveSm(s.out_gain, out_smoother_);
+        saveSm(s.len, len_sm_);
+        saveSm(s.ref, ref_sm_);
+        saveSm(s.loss, loss_sm_);
+        saveSm(s.tgain, gain_sm_);
+        saveSm(s.oec_damp, oec_damp_sm_);
+        saveSm(s.beak_damp, beak_damp_sm_);
+        saveSm(s.rad, rad_sm_);
+        saveSm(s.asp, asp_sm_);
+        saveSm(s.coupling, coupling_sm_);
+        saveSm(s.size, size_sm_);
+        saveSm(s.gamma, gamma_sm_);
+        oversampling_.save(s.os_stages, s.hb, kMaxHalfbandStages);
+        s.f0_zc_prev = f0_zc_prev_;
+        s.f0_zc_count = f0_zc_count_;
+        s.f0_zc_samples = f0_zc_samples_;
+        s.f0_hz = telemetry_.f0_estimate_hz;
         s.nonFiniteResets = labia_.nonFiniteResets();
     }
 
     void loadState(const VoiceState& s) noexcept {
         sine_phase_ = s.sine_phase;
-        labia_.left().reset(s.labial_x, s.labial_y);
-        out_smoother_.snap(s.out_gain_y);
+        saw_.setPhase(s.saw_phase);
+        labia_.load(s.labial_x_l, s.labial_y_l, s.labial_x_r, s.labial_y_r, s.labial_resets_l,
+                    s.labial_resets_r, s.dc_l, s.dc_r, s.tension_lp_l, s.rng_tension_l, s.tension_lp_r,
+                    s.rng_tension_r);
+        dc_.load(s.dc_out.x1, s.dc_out.y1);
+        resp_.load(s.resp_p);
+        aspiration_.load(s.aspiration_bp, s.rng_aspiration);
+        const std::uint32_t rs[4] = {s.rng_voice.s0, s.rng_voice.s1, s.rng_voice.s2, s.rng_voice.s3};
+        rng_.load(rs, s.rng_voice.spare, s.rng_voice.has_spare);
+        loadSm(out_smoother_, s.out_gain);
+        loadSm(len_sm_, s.len);
+        loadSm(ref_sm_, s.ref);
+        loadSm(loss_sm_, s.loss);
+        loadSm(gain_sm_, s.tgain);
+        loadSm(oec_damp_sm_, s.oec_damp);
+        loadSm(beak_damp_sm_, s.beak_damp);
+        loadSm(rad_sm_, s.rad);
+        loadSm(asp_sm_, s.asp);
+        loadSm(coupling_sm_, s.coupling);
+        loadSm(size_sm_, s.size);
+        loadSm(gamma_sm_, s.gamma);
+        applyDerivedImmediate();
+        trachea_.loadDelay(s.trachea_buf, kVoiceDelayCapacity, s.trachea_write, s.trachea_size,
+                           s.trachea_lp, s.trachea_last_out);
+        uvt_.load(s.uvt_q0, s.uvt_q1, s.uvt_q2, s.uvt_last_u, s.uvt_flow, s.uvt_dflow,
+                  s.uvt_since_update, s.uvt_dirty);
+        uvt_counter_ = s.uvt_counter;
+        oversampling_.load(s.os_stages, s.hb, kMaxHalfbandStages);
+        f0_zc_prev_ = s.f0_zc_prev;
+        f0_zc_count_ = s.f0_zc_count;
+        f0_zc_samples_ = s.f0_zc_samples;
+        telemetry_.f0_estimate_hz = s.f0_hz;
+        telemetry_.nonFiniteResets = s.nonFiniteResets;
     }
 
     [[nodiscard]] VoiceTelemetry telemetry() const noexcept { return telemetry_; }
@@ -233,9 +428,17 @@ public:
     [[nodiscard]] const model::RespiratoryDrive& respiratory() const noexcept { return resp_; }
     [[nodiscard]] bool tracheaEnabled() const noexcept { return use_trachea_; }
     [[nodiscard]] bool uvtEnabled() const noexcept { return use_uvt_; }
+    [[nodiscard]] const VoiceSettings& settings() const noexcept { return settings_; }
 
 private:
     static float lerp(float a, float b, float u) noexcept { return a + u * (b - a); }
+
+    static void saveSm(SmootherState& d, const dsp::Smoother& sm) noexcept {
+        d.y = sm.value();
+        d.target = sm.target();
+    }
+
+    static void loadSm(dsp::Smoother& sm, const SmootherState& d) noexcept { sm.load(d.y, d.target); }
 
     void seedNoiseStreams(std::uint64_t seed) noexcept {
         labia_.resetNoise(seed);
@@ -247,10 +450,6 @@ private:
         ref_sm_.snap(static_cast<float>(settings_.trachea_reflection));
         loss_sm_.snap(static_cast<float>(settings_.trachea_loss));
         gain_sm_.snap(static_cast<float>(settings_.trachea_input_gain));
-        trachea_.setParams(settings_.trachea_length_mm,
-                           settings_.trachea_reflection,
-                           settings_.trachea_loss,
-                           settings_.trachea_input_gain);
         trachea_.reset();
     }
 
@@ -258,36 +457,66 @@ private:
         oec_damp_sm_.snap(static_cast<float>(settings_.oec_damping));
         beak_damp_sm_.snap(static_cast<float>(settings_.beak_damping));
         rad_sm_.snap(static_cast<float>(settings_.out_radiation));
-        uvt_.setParams(static_cast<double>(from_.oec_freq_hz), settings_.oec_damping,
-                       static_cast<double>(from_.beak_gape), settings_.beak_damping, settings_.body_size);
         uvt_.reset();
     }
 
-    void applySmoothedTracheaParams() noexcept {
-        trachea_.setParams(static_cast<double>(len_sm_.next()),
-                           static_cast<double>(ref_sm_.next()),
-                           static_cast<double>(loss_sm_.next()),
-                           static_cast<double>(gain_sm_.next()));
+    void applyDerivedImmediate() noexcept {
+        last_scaled_ = model::scaleAnatomy(static_cast<double>(size_sm_.value()),
+                                           static_cast<double>(gamma_sm_.value()),
+                                           static_cast<double>(len_sm_.value()),
+                                           settings_.noise_beta_bandwidth_hz, settings_.resp_attack_ms,
+                                           settings_.resp_release_ms);
+        trachea_.setParams(last_scaled_.tracheaLengthMm, static_cast<double>(ref_sm_.value()),
+                           static_cast<double>(loss_sm_.value()), static_cast<double>(gain_sm_.value()));
+        labia_.setBandwidthHz(last_scaled_.tensionBandwidthHz);
+        aspiration_.setCentreHz(last_scaled_.aspirationCentreHz);
+        resp_.setTimeConstantsMs(last_scaled_.respAttackMs, last_scaled_.respReleaseMs);
+        uvt_.setParams(static_cast<double>(from_.oec_freq_hz), static_cast<double>(oec_damp_sm_.value()),
+                       static_cast<double>(from_.beak_gape), static_cast<double>(beak_damp_sm_.value()),
+                       last_scaled_.sizeScale);
+        oec_z_ = oec_damp_sm_.value();
+        beak_z_ = beak_damp_sm_.value();
+        rad_ = rad_sm_.value();
+        asp_ = asp_sm_.value();
+        coupling_ = coupling_sm_.value();
+    }
+
+    void tickDerived() noexcept {
+        const double sigma = static_cast<double>(size_sm_.next());
+        const double g0 = static_cast<double>(gamma_sm_.next());
+        const double len = static_cast<double>(len_sm_.next());
+        const double ref = static_cast<double>(ref_sm_.next());
+        const double loss = static_cast<double>(loss_sm_.next());
+        const double gain = static_cast<double>(gain_sm_.next());
+        last_scaled_ = model::scaleAnatomy(sigma, g0, len, settings_.noise_beta_bandwidth_hz,
+                                           settings_.resp_attack_ms, settings_.resp_release_ms);
+        trachea_.setParams(last_scaled_.tracheaLengthMm, ref, loss, gain);
+        oec_z_ = oec_damp_sm_.next();
+        beak_z_ = beak_damp_sm_.next();
+        rad_ = rad_sm_.next();
+        asp_ = asp_sm_.next();
+        coupling_ = coupling_sm_.next();
+        if ((uvt_counter_ & 7) == 0) {
+            labia_.setBandwidthHz(last_scaled_.tensionBandwidthHz);
+            aspiration_.setCentreHz(last_scaled_.aspirationCentreHz);
+            resp_.setTimeConstantsMs(last_scaled_.respAttackMs, last_scaled_.respReleaseMs);
+        }
     }
 
     [[nodiscard]] double throughTrachea(double source) noexcept {
         if (!use_trachea_) {
             return source;
         }
-        applySmoothedTracheaParams();
         return trachea_.process(source);
     }
 
     [[nodiscard]] double throughUvt(double pt, double oecHz, double gape) noexcept {
-        const float oecZ = oec_damp_sm_.next();
-        const float beakZ = beak_damp_sm_.next();
-        const float rho = rad_sm_.next();
-        if ((uvt_counter_++ & 7) == 0) {
-            uvt_.setParams(oecHz, static_cast<double>(oecZ), gape, static_cast<double>(beakZ),
-                           settings_.body_size);
+        if ((uvt_counter_ & 7) == 0) {
+            uvt_.setParams(oecHz, static_cast<double>(oec_z_), gape, static_cast<double>(beak_z_),
+                           last_scaled_.sizeScale);
         }
         const auto o = uvt_.process(pt);
-        return model::uvtMix(o.flow, o.dflow, static_cast<double>(rho));
+        return model::uvtMix(o.flow, o.dflow, static_cast<double>(rad_));
     }
 
     void primeDcFromSource(double sourceSteady) noexcept {
@@ -298,12 +527,28 @@ private:
         }
         if (use_uvt_) {
             uvt_.setParams(static_cast<double>(from_.oec_freq_hz), settings_.oec_damping,
-                           static_cast<double>(from_.beak_gape), settings_.beak_damping, settings_.body_size);
+                           static_cast<double>(from_.beak_gape), settings_.beak_damping,
+                           last_scaled_.sizeScale);
             uvt_.prime(pt);
             dc_.prime(model::uvtMix(uvt_.last().flow, uvt_.last().dflow, settings_.out_radiation));
             uvt_counter_ = 0;
         } else {
             dc_.prime(pt);
+        }
+    }
+
+    void noteZeroCrossing(double x) noexcept {
+        if (f0_zc_prev_ <= 0.0 && x > 0.0) {
+            ++f0_zc_count_;
+        }
+        f0_zc_prev_ = x;
+        ++f0_zc_samples_;
+        if (f0_zc_samples_ >= f0_window_) {
+            const double t = static_cast<double>(f0_zc_samples_) / internal_rate_;
+            telemetry_.f0_estimate_hz = (t > 0.0) ? static_cast<float>(static_cast<double>(f0_zc_count_) / t)
+                                                  : 0.0f;
+            f0_zc_count_ = 0;
+            f0_zc_samples_ = 0;
         }
     }
 
@@ -328,10 +573,14 @@ private:
             out_smoother_.setTarget(outRamp.next());
             const float g = std::pow(10.0f, out_smoother_.next() / 20.0f);
             out[i] *= g;
+            if (!std::isfinite(out[i])) {
+                out[i] = 0.0f;
+                ++telemetry_.nonFiniteResets;
+            }
             peak = std::max(peak, std::abs(out[i]));
         }
         telemetry_.level_db = peak > 1e-12f ? 20.0f * std::log10(peak) : -120.0f;
-        telemetry_.nonFiniteResets = labia_.nonFiniteResets();
+        telemetry_.nonFiniteResets += labia_.nonFiniteResets();
         if (source_ != VoiceSource::Labial) {
             const float f1 = freq_from_ + u1 * (freq_to_ - freq_from_);
             telemetry_.f0_estimate_hz = f1;
@@ -352,6 +601,7 @@ private:
         constexpr double two_pi = 2.0 * std::numbers::pi;
         const double dt = 1.0 / internal_rate_;
         for (int i = 0; i < nInt; ++i) {
+            tickDerived();
             const double freq = std::max(0.0, static_cast<double>(freqRamp.next()));
             const double gdb = static_cast<double>(gainRamp.next());
             const double amp = std::pow(10.0, gdb / 20.0);
@@ -384,6 +634,7 @@ private:
                 y = dc_.tick(y);
             }
             internal_[static_cast<std::size_t>(i)] = static_cast<float>(y);
+            ++uvt_counter_;
         }
     }
 
@@ -409,7 +660,6 @@ private:
         sigRamp.set(lerp(from_.noise_beta_sigma, to_.noise_beta_sigma, u0),
                     lerp(from_.noise_beta_sigma, to_.noise_beta_sigma, u1), nInt);
 
-        const double gamma = settings_.src_gamma > 0.0 ? settings_.src_gamma : 24000.0;
         const auto& betaSpec = specOf(ParamId::SrcLBeta);
         const auto& sigSpec = specOf(ParamId::NoiseBetaSigma);
         const auto& gateSpec = specOf(ParamId::SrcLGate);
@@ -419,6 +669,7 @@ private:
         float lastAL = 0.0f;
         float lastAR = 0.0f;
         for (int i = 0; i < nInt; ++i) {
+            tickDerived();
             lastP = pRamp.next();
             lastBL = bLRamp.next();
             lastBR = bRRamp.next();
@@ -428,7 +679,7 @@ private:
             const float gR = gRRamp.next();
             const float oec = oecRamp.next();
             const float gape = gapeRamp.next();
-            const float sigma = static_cast<float>(clampParam(sigSpec, static_cast<double>(sigRamp.next())));
+            const float sigmaN = static_cast<float>(clampParam(sigSpec, static_cast<double>(sigRamp.next())));
             const auto drive = resp_.process(static_cast<double>(lastP));
             model::BilateralFrame fr;
             fr.alphaBase = drive.alphaBase;
@@ -438,14 +689,13 @@ private:
             fr.betaR = clampParam(specOf(ParamId::SrcRBeta), static_cast<double>(lastBR));
             fr.gateL = clampParam(gateSpec, static_cast<double>(gL));
             fr.gateR = clampParam(specOf(ParamId::SrcRGate), static_cast<double>(gR));
-            fr.gamma = gamma;
-            fr.coupling = static_cast<double>(coupling_sm_.next());
-            fr.sigmaBeta = static_cast<double>(sigma);
+            fr.gamma = last_scaled_.gamma;
+            fr.coupling = static_cast<double>(coupling_);
+            fr.sigmaBeta = static_cast<double>(sigmaN);
             const auto src = labia_.process(fr);
             lastAL = static_cast<float>(src.alphaL);
             lastAR = static_cast<float>(src.alphaR);
-            const double aAsp = static_cast<double>(asp_sm_.next());
-            const double nAsp = aspiration_.process(drive.G, src.xBar, aAsp);
+            const double nAsp = aspiration_.process(drive.G, src.xBar, static_cast<double>(asp_));
             const double source = drive.G * src.mixTilde + nAsp;
             double y = throughTrachea(source);
             if (use_uvt_) {
@@ -453,10 +703,17 @@ private:
             } else {
                 y = 0.5 * dc_.tick(y);
             }
+            if (!std::isfinite(y)) {
+                y = 0.0;
+                ++telemetry_.nonFiniteResets;
+            }
             internal_[static_cast<std::size_t>(i)] = static_cast<float>(y);
             lastP = static_cast<float>(drive.pressure);
             lastBL = static_cast<float>(src.betaEffL);
             lastBR = static_cast<float>(src.betaEffR);
+            const double xDom = (fr.gateR > fr.gateL) ? src.xTildeR : src.xTildeL;
+            noteZeroCrossing(xDom);
+            ++uvt_counter_;
         }
         telemetry_.pressure = lastP;
         telemetry_.beta_L = lastBL;
@@ -475,6 +732,7 @@ private:
     dsp::DcBlocker dc_;
     dsp::Smoother len_sm_, ref_sm_, loss_sm_, gain_sm_;
     dsp::Smoother oec_damp_sm_, beak_damp_sm_, rad_sm_, asp_sm_, coupling_sm_;
+    dsp::Smoother size_sm_, gamma_sm_;
     dsp::Rng rng_{1};
     model::TestSaw saw_;
     model::BilateralSource labia_;
@@ -482,6 +740,7 @@ private:
     model::AspirationNoise aspiration_;
     model::Trachea trachea_;
     model::UpperVocalTract uvt_;
+    model::ScaledAnatomy last_scaled_{};
     std::vector<float> internal_;
     VoiceSource source_ = VoiceSource::Test;
     bool use_trachea_ = false;
@@ -494,6 +753,11 @@ private:
     float freq_from_ = 440.0f, freq_to_ = 440.0f;
     float gain_from_ = -12.0f, gain_to_ = -12.0f;
     float out_from_ = 0.0f, out_to_ = 0.0f;
+    float oec_z_ = 0.1f, beak_z_ = 0.3f, rad_ = 1.0f, asp_ = 0.02f, coupling_ = 0.0f;
+    double f0_zc_prev_ = 0.0;
+    int f0_zc_count_ = 0;
+    int f0_zc_samples_ = 0;
+    int f0_window_ = 1920;
     int os_ = 4;
     bool prepared_ = false;
 };

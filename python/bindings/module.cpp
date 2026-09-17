@@ -19,6 +19,8 @@
 #include <cstdint>
 #include <cstring>
 #include <stdexcept>
+#include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -33,6 +35,84 @@ std::vector<double> copy_f64_1d(const nb::ndarray<nb::numpy, const double, nb::n
         std::memcpy(out.data(), a.data(), n * sizeof(double));
     }
     return out;
+}
+
+std::vector<float> copy_f32_1d(nb::handle obj) {
+    auto a = nb::cast<nb::ndarray<nb::numpy, const float, nb::ndim<1>, nb::c_contig>>(obj);
+    const std::size_t n = a.shape(0);
+    std::vector<float> out(n);
+    if (n != 0) {
+        std::memcpy(out.data(), a.data(), n * sizeof(float));
+    }
+    return out;
+}
+
+double dict_d(const nb::dict& d, const char* key, double def) {
+    if (!d.contains(key)) {
+        return def;
+    }
+    return nb::cast<double>(d[key]);
+}
+
+cuicui::VoiceSettings settings_from_dict(const nb::dict& d) {
+    cuicui::VoiceSettings s;
+    s.body_size = dict_d(d, "body.size", s.body_size);
+    s.src_gamma = dict_d(d, "src.gamma", s.src_gamma);
+    s.trachea_length_mm = dict_d(d, "trachea.length_mm", s.trachea_length_mm);
+    s.trachea_reflection = dict_d(d, "trachea.reflection", s.trachea_reflection);
+    s.trachea_loss = dict_d(d, "trachea.loss", s.trachea_loss);
+    s.trachea_input_gain = dict_d(d, "trachea.input_gain", s.trachea_input_gain);
+    s.oec_damping = dict_d(d, "oec.damping", s.oec_damping);
+    s.beak_damping = dict_d(d, "beak.damping", s.beak_damping);
+    s.out_radiation = dict_d(d, "out.radiation", s.out_radiation);
+    s.out_gain_db = dict_d(d, "out.gain_db", s.out_gain_db);
+    s.resp_attack_ms = dict_d(d, "resp.attack_ms", s.resp_attack_ms);
+    s.resp_release_ms = dict_d(d, "resp.release_ms", s.resp_release_ms);
+    s.noise_beta_bandwidth_hz = dict_d(d, "noise.beta_bandwidth_hz", s.noise_beta_bandwidth_hz);
+    s.noise_aspiration = dict_d(d, "noise.aspiration", s.noise_aspiration);
+    s.src_coupling = dict_d(d, "src.coupling", s.src_coupling);
+    if (d.contains("engine.seed")) {
+        s.seed = static_cast<std::uint64_t>(nb::cast<double>(d["engine.seed"]));
+    }
+    if (d.contains("engine.oversampling")) {
+        s.oversampling = static_cast<int>(nb::cast<double>(d["engine.oversampling"]));
+    }
+    return s;
+}
+
+cuicui::ControlFrame frame_from_dict(const nb::dict& d) {
+    cuicui::ControlFrame f;
+    auto setf = [&](const char* key, float& dst) {
+        if (d.contains(key)) {
+            dst = static_cast<float>(nb::cast<double>(d[key]));
+        }
+    };
+    setf("resp.pressure", f.resp_pressure);
+    setf("src.L.beta", f.src_L_beta);
+    setf("src.R.beta", f.src_R_beta);
+    setf("src.L.gate", f.src_L_gate);
+    setf("src.R.gate", f.src_R_gate);
+    setf("src.L.alpha_offset", f.src_L_alpha_offset);
+    setf("src.R.alpha_offset", f.src_R_alpha_offset);
+    setf("oec.freq_hz", f.oec_freq_hz);
+    setf("beak.gape", f.beak_gape);
+    setf("noise.beta_sigma", f.noise_beta_sigma);
+    setf("test.freq_hz", f.test_freq_hz);
+    setf("test.gain_db", f.test_gain_db);
+    return f;
+}
+
+nb::dict telemetry_to_dict(const cuicui::VoiceTelemetry& t) {
+    nb::dict d;
+    d["alpha_L"] = t.alpha_L;
+    d["alpha_R"] = t.alpha_R;
+    d["beta_L"] = t.beta_L;
+    d["beta_R"] = t.beta_R;
+    d["pressure"] = t.pressure;
+    d["f0_estimate_hz"] = t.f0_estimate_hz;
+    d["level_db"] = t.level_db;
+    d["non_finite_resets"] = t.nonFiniteResets;
+    return d;
 }
 
 } // namespace
@@ -405,4 +485,118 @@ NB_MODULE(cuicui_core, m) {
         nb::arg("requested") = 4,
         nb::arg("stage") = 0,
         "FIR taps of one half-band stage (for plots / tests).");
+
+    m.def(
+        "render_controls",
+        [](const nb::dict& settings, const nb::dict& controls, double control_rate_hz, double sample_rate,
+           std::uint64_t seed, int oversampling, nb::object state) {
+            auto st = settings_from_dict(settings);
+            std::unordered_map<std::string, std::vector<float>> ctrls;
+            for (nb::handle k : controls.keys()) {
+                const std::string id = nb::cast<std::string>(k);
+                ctrls[id] = copy_f32_1d(controls[k]);
+            }
+            cuicui::VoiceState in{};
+            const cuicui::VoiceState* pin = nullptr;
+            if (!state.is_none()) {
+                const auto b = nb::cast<nb::bytes>(state);
+                if (b.size() != sizeof(cuicui::VoiceState)) {
+                    throw std::invalid_argument("render_controls: state bytes have the wrong size");
+                }
+                std::memcpy(&in, b.c_str(), sizeof(in));
+                pin = &in;
+            }
+            cuicui::VoiceState out{};
+            std::vector<float> buf;
+            {
+                nb::gil_scoped_release release;
+                buf = cuicui::io::render_controls(st, ctrls, control_rate_hz, sample_rate, seed, oversampling,
+                                                  pin, &out);
+            }
+            auto* heap = new std::vector<float>(std::move(buf));
+            nb::capsule owner(heap, [](void* p) noexcept { delete static_cast<std::vector<float>*>(p); });
+            nb::bytes stateOut(reinterpret_cast<const char*>(&out), sizeof(out));
+            return nb::make_tuple(
+                nb::ndarray<nb::numpy, float, nb::ndim<1>>(heap->data(), {heap->size()}, owner), stateOut);
+        },
+        nb::arg("settings"),
+        nb::arg("controls"),
+        nb::arg("control_rate_hz"),
+        nb::arg("sample_rate"),
+        nb::arg("seed") = 1,
+        nb::arg("oversampling") = 0,
+        nb::arg("state") = nb::none(),
+        "Render control arrays through BirdVoice. Returns (audio float32, state bytes). Releases the GIL.");
+
+    nb::class_<cuicui::BirdVoice>(m, "Voice")
+        .def(
+            "__init__",
+            [](cuicui::BirdVoice* self, double sample_rate, int oversampling) {
+                new (self) cuicui::BirdVoice();
+                cuicui::ProcessSpec spec;
+                spec.hostSampleRate = sample_rate;
+                spec.maxBlockSize = 512;
+                spec.oversampling = oversampling;
+                self->prepare(spec);
+                self->setSource(cuicui::VoiceSource::Labial);
+                self->reset(1);
+            },
+            nb::arg("sample_rate"),
+            nb::arg("oversampling") = 0)
+        .def(
+            "set_settings",
+            [](cuicui::BirdVoice& v, const nb::dict& d) { v.setSettings(settings_from_dict(d)); },
+            nb::arg("settings"))
+        .def(
+            "reset",
+            [](cuicui::BirdVoice& v, std::uint64_t seed) { v.reset(seed); },
+            nb::arg("seed") = 1)
+        .def(
+            "prime",
+            [](cuicui::BirdVoice& v, double alpha, double beta, double oec_hz, double gape) {
+                v.primeLabial(alpha, beta, oec_hz, gape);
+            },
+            nb::arg("alpha") = -0.1,
+            nb::arg("beta") = 0.3,
+            nb::arg("oec_hz") = 3000.0,
+            nb::arg("gape") = 0.5)
+        .def(
+            "process",
+            [](cuicui::BirdVoice& v, const nb::dict& frame_from, const nb::dict& frame_to, int n) {
+                if (n < 0) {
+                    throw std::invalid_argument("Voice.process: n must be >= 0");
+                }
+                auto* heap = new std::vector<float>(static_cast<std::size_t>(n), 0.0f);
+                const auto from = frame_from_dict(frame_from);
+                const auto to = frame_from_dict(frame_to);
+                {
+                    nb::gil_scoped_release release;
+                    v.setOutGainRamp(0.0f, 0.0f);
+                    v.process(from, to, heap->data(), n);
+                }
+                nb::capsule owner(heap, [](void* p) noexcept { delete static_cast<std::vector<float>*>(p); });
+                return nb::ndarray<nb::numpy, float, nb::ndim<1>>(heap->data(), {heap->size()}, owner);
+            },
+            nb::arg("frame_from"),
+            nb::arg("frame_to"),
+            nb::arg("n"),
+            "Render n host samples. Releases the GIL.")
+        .def("save_state",
+             [](const cuicui::BirdVoice& v) {
+                 cuicui::VoiceState s{};
+                 v.saveState(s);
+                 return nb::bytes(reinterpret_cast<const char*>(&s), sizeof(s));
+             })
+        .def("load_state",
+             [](cuicui::BirdVoice& v, nb::bytes b) {
+                 if (b.size() != sizeof(cuicui::VoiceState)) {
+                     throw std::invalid_argument("Voice.load_state: wrong size");
+                 }
+                 cuicui::VoiceState s{};
+                 std::memcpy(&s, b.c_str(), sizeof(s));
+                 v.loadState(s);
+             },
+             nb::arg("state"))
+        .def("telemetry", [](const cuicui::BirdVoice& v) { return telemetry_to_dict(v.telemetry()); })
+        .def("latency_samples", &cuicui::BirdVoice::latencySamples);
 }

@@ -1,0 +1,24 @@
+{
+  "format": "cuicui.render_spec",
+  "version": 1,
+  "sample_rate": 48000,
+  "duration_s": 0.5,
+  "seed": 2,
+  "oversampling": "auto",
+  "params": {
+    "resp.pressure": 0.55,
+    "src.L.beta": 0.18,
+    "src.R.beta": 0.55,
+    "src.gamma": 24000.0,
+    "body.size": 1.0,
+    "noise.beta_sigma": 0.0,
+    "noise.aspiration": 0.0,
+    "trachea.length_mm": 33.0,
+    "oec.freq_hz": 3200.0,
+    "out.gain_db": 0.0
+  },
+  "automation": {
+    "src.L.gate": [[0.0, 1.0], [0.22, 1.0], [0.26, 0.0], [0.5, 0.0]],
+    "src.R.gate": [[0.0, 0.0], [0.22, 0.0], [0.26, 1.0], [0.5, 1.0]]
+  }
+}

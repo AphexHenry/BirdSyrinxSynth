@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-09-17 — by: WP-B5 agent
+**Last updated:** 2026-09-17 — by: WP-B6 agent
 
 ## Status legend
 
@@ -29,7 +29,7 @@
 | 7 | D2 | Feature extraction (shared real/synthetic) | D1, B3 | todo | | | `work_packages/WP-D2_features.md` |
 | 8 | B4 | Respiratory dynamics & noise sources | B3 | done | 2026-09-17 | wp-B4 | `work_packages/WP-B4_respiration_noise.md` |
 | 9 | B5 | Two sources: left/right, gating, side switching | B4 | done | 2026-09-17 | wp-B5 | `work_packages/WP-B5_two_sources.md` |
-| 10 | B6 | Voice assembly, body size, state save/load, benchmarks | B5 | todo | | | `work_packages/WP-B6_voice_assembly.md` |
+| 10 | B6 | Voice assembly, body size, state save/load, benchmarks | B5 | done | 2026-09-17 | wp-B6 | `work_packages/WP-B6_voice_assembly.md` |
 | 11 | C1 | Plugin shell + offline plugin renderer | B6 | todo | | | `work_packages/WP-C1_plugin_shell.md` |
 | 12 | C2 | Source atlas & inverse pitch map | B6 | todo | | | `work_packages/WP-C2_atlas_inverse_map.md` |
 | 13 | C3 | Pitch-led direct playing | C1, C2 | todo | | | `work_packages/WP-C3_pitch_led_playing.md` |
@@ -50,13 +50,13 @@
 
 ## Current capabilities
 
-The repo builds, tests, and renders. The syrinx now has **two sides**: independent tension and gates, shared air pressure, optional weak coupling, and a 4 ms side switcher for jump-without-glide. Left-only with R gated off matches B4 bit-for-bit. Default trachea reflection is still +0.5 (D-012). D1 is parked until after Phase B.
+**Milestone M2 — complete voice.** `BirdVoice` has settings, per-sample control ramps, telemetry, and memcpy-safe save/load. `body.size` scales pitch, trachea and beak together. Python `Voice` / `render_controls` work. Two sides, gates, coupling and the side switcher from B5 are still there. CPU is real-time (~2.7 % of a core per voice at 48 kHz) but above the 0.5 % planning target. Default trachea reflection is still +0.5 (D-012). D1 is parked until after Phase B.
 
 ## Baselines
 
 | Metric | Value | Measured in | Date |
 |---|---|---|---|
-| CPU per voice @48 kHz (Release, Apple Silicon) | – | B6 | |
+| CPU per voice @48 kHz (Release, Apple Silicon) | 2.72 % of one core (RT 0.027); 16 voices RT 0.43 — **above** 0.5 % / 0.1 targets | B6 | 2026-09-17 |
 | Tuning error, tone 0.6, size 1 (median / max cents) | – | C2 | |
 | Fitting benchmark (synthetic) median MRSTFT loss | – | E1 | |
 | Real zebra finch resynthesis median MRSTFT loss | – | E3/E4 | |
@@ -69,11 +69,16 @@ The repo builds, tests, and renders. The syrinx now has **two sides**: independe
 - B4 item 06 (tension noise vs real alarm) is noisier, not metallic/FM stacked harmonics — see backlog.
 - Weak two-side coupling barely locks (Δβ = 0 / 0 / 0.01 at ε = 0.01 / 0.03 / 0.1).
 - Shared α cannot span 1.2–6 kHz; listening 09 tops out near 4.6 kHz.
+- One voice uses ~2.7 % of a core at 48 kHz OS 4 (planning target 0.5 %). See B6 report §9.
+- Auto OS at σ=0.25 is ~4 cents sharp vs OS 8; request OS 8 for tiny-bird sessions (D-015).
+- `render_controls` vs CLI differs by 1 ULP (float32 prime vs JSON double).
 
 ## Open questions for the human
 
 - D1 is parked (`optional`) until after Phase B. Recordings live at `/Users/baptistebohelay/Dev/research/birds synth/data/annotations/` (`22938.wav` + `22938.json`; custom tseg JSON schema 1.2). When D1 starts: bird identity, label meanings (`peep`, `swipe`, `peep_grillon`, …), and whether to copy into `data/raw/zebra_finch/`.
 - JUCE licence choice before any public release (see `decisions.md` D-003).
+- B6 CPU: accept ~3 % per voice, or spend a WP on optimisation (skip gated-off RK4, UVT dirty-flag)? Recommendation: accept for C1, revisit if the plugin feels heavy.
+- M2 listening: what matters most before playability (C3) starts?
 
 ## Session log (append one line per session)
 
@@ -109,3 +114,7 @@ The repo builds, tests, and renders. The syrinx now has **two sides**: independe
 | 2026-09-17 | B5 | Cursor Grok 4.6 | started WP-B5 (two sources, gating, side switching) |
 | 2026-09-17 | B5 | Cursor Grok 4.6 | WP-B5 awaiting approval (listening page opened) |
 | 2026-09-17 | B5 | Cursor Grok 4.6 | approved, committed and tagged wp-B5 |
+| 2026-09-17 | B6 | Cursor Grok 4.6 | started WP-B6 (voice assembly, body size, state, benchmarks) |
+| 2026-09-17 | B6 | Cursor Grok 4.6 | WP-B6 awaiting approval (M2 listening page opened; CPU target missed, numbers reported) |
+| 2026-09-17 | B6 | Cursor Grok 4.6 | feedback: 03 false A/B pairing; 04 “side” jargon — listening rebuilt |
+| 2026-09-17 | B6 | Cursor Grok 4.6 | approved, committed and tagged wp-B6 |

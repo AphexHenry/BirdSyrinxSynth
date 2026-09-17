@@ -1,0 +1,118 @@
+{
+  "format": "cuicui.expected_features",
+  "renders": {
+    "b6_buzzy_noise.render.json": {
+      "median_f0_hz": 3838.141272898173,
+      "peaks_hz": [
+        3832.03125,
+        3773.4375,
+        7664.0625
+      ],
+      "rms_db": -22.650361479054336,
+      "spectral_centroid_hz": 3792.052161146424,
+      "tol": {
+        "median_f0_hz": 40.0,
+        "peaks_hz": 80.0,
+        "rms_db": 1.5,
+        "spectral_centroid_hz": 120.0
+      }
+    },
+    "b6_side_switch.render.json": {
+      "median_f0_hz": 2984.0590432278623,
+      "peaks_hz": [
+        2601.5625,
+        5203.125,
+        7792.96875
+      ],
+      "rms_db": -13.455236918828815,
+      "spectral_centroid_hz": 2695.3622123906885,
+      "tol": {
+        "median_f0_hz": 40.0,
+        "peaks_hz": 80.0,
+        "rms_db": 1.5,
+        "spectral_centroid_hz": 120.0
+      }
+    },
+    "b6_size_0_5.render.json": {
+      "median_f0_hz": 5316.605330379016,
+      "peaks_hz": [
+        5320.3125,
+        10628.90625,
+        3492.1875
+      ],
+      "rms_db": -16.007982125554207,
+      "spectral_centroid_hz": 5419.505209173085,
+      "tol": {
+        "median_f0_hz": 40.0,
+        "peaks_hz": 80.0,
+        "rms_db": 1.5,
+        "spectral_centroid_hz": 120.0
+      }
+    },
+    "b6_size_3.render.json": {
+      "median_f0_hz": 885.885309407597,
+      "peaks_hz": [
+        890.625,
+        1769.53125,
+        2660.15625
+      ],
+      "rms_db": 0.8529262034981199,
+      "spectral_centroid_hz": 906.6028294456495,
+      "tol": {
+        "median_f0_hz": 40.0,
+        "peaks_hz": 80.0,
+        "rms_db": 1.5,
+        "spectral_centroid_hz": 120.0
+      }
+    },
+    "b6_syllable_train.render.json": {
+      "median_f0_hz": 2328.21586038428,
+      "peaks_hz": [
+        2636.71875,
+        5273.4375,
+        7898.4375
+      ],
+      "rms_db": -13.448349338643151,
+      "spectral_centroid_hz": 2707.719444141206,
+      "tol": {
+        "median_f0_hz": 40.0,
+        "peaks_hz": 80.0,
+        "rms_db": 1.5,
+        "spectral_centroid_hz": 120.0
+      }
+    },
+    "b6_tonal_left.render.json": {
+      "median_f0_hz": 2658.02482816965,
+      "peaks_hz": [
+        2660.15625,
+        5320.3125,
+        7968.75
+      ],
+      "rms_db": -9.072399381059272,
+      "spectral_centroid_hz": 2720.7172694351752,
+      "tol": {
+        "median_f0_hz": 40.0,
+        "peaks_hz": 80.0,
+        "rms_db": 1.5,
+        "spectral_centroid_hz": 120.0
+      }
+    },
+    "b6_two_voice.render.json": {
+      "median_f0_hz": 2869.7571793804755,
+      "peaks_hz": [
+        2871.09375,
+        3527.34375,
+        5742.1875
+      ],
+      "rms_db": -7.881797727888261,
+      "spectral_centroid_hz": 3110.215560912036,
+      "tol": {
+        "median_f0_hz": 40.0,
+        "peaks_hz": 80.0,
+        "rms_db": 1.5,
+        "spectral_centroid_hz": 120.0
+      }
+    }
+  },
+  "version": 1
+}

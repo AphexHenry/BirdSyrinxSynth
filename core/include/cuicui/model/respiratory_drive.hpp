@@ -53,6 +53,7 @@ public:
     }
 
     [[nodiscard]] double pressure() const noexcept { return p_; }
+    void load(double p) noexcept { p_ = p; }
 
 private:
     double h_ = 1.0 / 192000.0;

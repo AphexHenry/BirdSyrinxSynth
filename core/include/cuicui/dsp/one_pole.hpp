@@ -31,6 +31,7 @@ public:
 
     [[nodiscard]] double coefficient() const noexcept { return a_; }
     [[nodiscard]] double value() const noexcept { return y_; }
+    void load(double y) noexcept { y_ = y; }
 
 private:
     void updateCoeff() noexcept {

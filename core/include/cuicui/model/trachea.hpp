@@ -2,9 +2,11 @@
 
 #include "cuicui/dsp/lagrange.hpp"
 #include "cuicui/dsp/one_pole.hpp"
+#include "cuicui/model/voice_state.hpp"
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <vector>
 
 namespace cuicui::model {
@@ -103,7 +105,40 @@ public:
     [[nodiscard]] double lengthMm() const noexcept { return length_mm_; }
     [[nodiscard]] double reflection() const noexcept { return reflection_; }
 
+    void saveDelay(double* dst, int cap, std::int32_t& write, std::int32_t& size,
+                   OnePoleState& lp, double& lastOut) const noexcept {
+        size = size_;
+        write = write_;
+        lastOut = last_out_;
+        lp.y = lp_.value();
+        const int n = std::min(size_, cap);
+        if (dst != nullptr && n > 0) {
+            std::copy(buf_.begin(), buf_.begin() + n, dst);
+        }
+    }
+
+    void loadDelay(const double* src, int cap, std::int32_t write, std::int32_t /*size*/,
+                   const OnePoleState& lp, double lastOut) noexcept {
+        const int n = std::min(size_, cap);
+        if (src != nullptr && n > 0) {
+            std::copy(src, src + n, buf_.begin());
+        }
+        write_ = wrapWrite(write);
+        lp_.load(lp.y);
+        last_out_ = lastOut;
+    }
+
 private:
+    [[nodiscard]] int wrapWrite(int w) const noexcept {
+        if (size_ <= 0) {
+            return 0;
+        }
+        w %= size_;
+        if (w < 0) {
+            w += size_;
+        }
+        return w;
+    }
     std::vector<double> buf_{};
     dsp::OnePole lp_{};
     double rate_ = 192000.0;

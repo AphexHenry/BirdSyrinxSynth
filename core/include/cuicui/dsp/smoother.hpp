@@ -32,6 +32,12 @@ public:
     }
 
     [[nodiscard]] float value() const noexcept { return y_; }
+    [[nodiscard]] float target() const noexcept { return target_; }
+
+    void load(float y, float target) noexcept {
+        y_ = y;
+        target_ = target;
+    }
 
     [[nodiscard]] double timeConstantS() const noexcept { return tau_s_; }
 

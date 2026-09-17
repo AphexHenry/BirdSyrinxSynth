@@ -3,6 +3,8 @@
 #include "cuicui/dsp/biquad.hpp"
 #include "cuicui/dsp/one_pole.hpp"
 #include "cuicui/dsp/rng.hpp"
+#include "cuicui/model/body_scaling.hpp"
+#include "cuicui/model/voice_state.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -39,6 +41,22 @@ public:
 
     [[nodiscard]] double bandwidthHz() const noexcept { return bandwidth_hz_; }
 
+    void save(OnePoleState& lp, RngState& st) const noexcept {
+        lp.y = lp_.value();
+        std::uint32_t s[4];
+        rng_.save(s, st.spare, st.has_spare);
+        st.s0 = s[0];
+        st.s1 = s[1];
+        st.s2 = s[2];
+        st.s3 = s[3];
+    }
+
+    void load(const OnePoleState& lp, const RngState& st) noexcept {
+        lp_.load(lp.y);
+        const std::uint32_t s[4] = {st.s0, st.s1, st.s2, st.s3};
+        rng_.load(s, st.spare, st.has_spare);
+    }
+
 private:
     dsp::OnePole lp_;
     dsp::Rng rng_{1};
@@ -51,10 +69,12 @@ class AspirationNoise {
 public:
     void prepare(double internalRate) noexcept {
         bp_.prepare(internalRate);
-        bp_.setBandPass(4000.0, 0.7);
+        setCentreHz(kAspirationCentreHz);
         rng_.setSeed(1);
         bp_.reset();
     }
+
+    void setCentreHz(double freqHz) noexcept { bp_.setBandPass(freqHz, kAspirationQ); }
 
     void reset(std::uint64_t seed) noexcept {
         rng_.setSeed(seed);
@@ -67,6 +87,22 @@ public:
         const double bp = bp_.tick(w);
         const double gated = 0.5 + 0.5 * std::tanh(4.0 * xBar);
         return aAsp * G * gated * bp;
+    }
+
+    void save(BiquadState& bp, RngState& st) const noexcept {
+        bp_.save(bp.b0, bp.b1, bp.b2, bp.a1, bp.a2, bp.z1, bp.z2);
+        std::uint32_t s[4];
+        rng_.save(s, st.spare, st.has_spare);
+        st.s0 = s[0];
+        st.s1 = s[1];
+        st.s2 = s[2];
+        st.s3 = s[3];
+    }
+
+    void load(const BiquadState& bp, const RngState& st) noexcept {
+        bp_.load(bp.b0, bp.b1, bp.b2, bp.a1, bp.a2, bp.z1, bp.z2);
+        const std::uint32_t s[4] = {st.s0, st.s1, st.s2, st.s3};
+        rng_.load(s, st.spare, st.has_spare);
     }
 
 private:

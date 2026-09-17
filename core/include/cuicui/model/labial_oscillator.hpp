@@ -166,6 +166,7 @@ public:
     [[nodiscard]] double x() const noexcept { return x_; }
     [[nodiscard]] double y() const noexcept { return y_; }
     [[nodiscard]] std::uint32_t nonFiniteResets() const noexcept { return resets_; }
+    void setNonFiniteResets(std::uint32_t n) noexcept { resets_ = n; }
     [[nodiscard]] double stepSize() const noexcept { return h_; }
 
 private:

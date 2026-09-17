@@ -43,6 +43,27 @@ public:
         return y;
     }
 
+    void save(double& b0, double& b1, double& b2, double& a1, double& a2, double& z1,
+              double& z2) const noexcept {
+        b0 = b0_;
+        b1 = b1_;
+        b2 = b2_;
+        a1 = a1_;
+        a2 = a2_;
+        z1 = z1_;
+        z2 = z2_;
+    }
+
+    void load(double b0, double b1, double b2, double a1, double a2, double z1, double z2) noexcept {
+        b0_ = b0;
+        b1_ = b1;
+        b2_ = b2;
+        a1_ = a1;
+        a2_ = a2;
+        z1_ = z1;
+        z2_ = z2;
+    }
+
 private:
     double rate_ = 48000.0;
     double b0_ = 1.0, b1_ = 0.0, b2_ = 0.0;

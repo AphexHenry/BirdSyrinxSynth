@@ -81,11 +81,39 @@ TEST_CASE("BirdVoice two-source process allocates nothing after prepare") {
     to.src_R_beta = 0.55f;
     from.src_L_gate = 1.0f;
     to.src_L_gate = 0.7f;
-    from.src_R_gate = 0.2f;
-    to.src_R_gate = 1.0f;
+    cuicui::test::reset_alloc_count();
+    voice.process(from, to, out.data(), 128);
+    REQUIRE(cuicui::test::alloc_count() == 0);
+}
+
+TEST_CASE("BirdVoice process with body.size changes allocates nothing") {
+    cuicui::ProcessSpec spec;
+    spec.hostSampleRate = 48000.0;
+    spec.maxBlockSize = 128;
+    spec.oversampling = 4;
+    cuicui::BirdVoice voice;
+    voice.prepare(spec);
+    voice.reset(1);
+    voice.setSource(cuicui::VoiceSource::Labial);
+    voice.primeLabial(-0.1, 0.3);
+    cuicui::VoiceSettings s;
+    s.body_size = 1.0;
+    voice.setSettings(s);
+    voice.setOutGainRamp(0.0f, 0.0f);
+
+    std::vector<float> out(128, 0.0f);
+    cuicui::ControlFrame from, to;
+    from.resp_pressure = to.resp_pressure = 0.5f;
+    from.src_L_beta = to.src_L_beta = 0.3f;
+    from.src_L_gate = to.src_L_gate = 1.0f;
     voice.process(from, to, out.data(), 128);
 
     cuicui::test::reset_alloc_count();
+    s.body_size = 2.0;
+    voice.setSettings(s);
+    voice.process(from, to, out.data(), 128);
+    s.body_size = 0.5;
+    voice.setSettings(s);
     voice.process(from, to, out.data(), 128);
     REQUIRE(cuicui::test::alloc_count() == 0);
 }

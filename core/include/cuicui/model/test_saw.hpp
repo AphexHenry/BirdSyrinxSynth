@@ -13,6 +13,8 @@ public:
     }
 
     void reset() noexcept { phase_ = 0.0; }
+    [[nodiscard]] double phase() const noexcept { return phase_; }
+    void setPhase(double p) noexcept { phase_ = p; }
 
     [[nodiscard]] float tick(double freqHz) noexcept {
         const float y = static_cast<float>(2.0 * phase_ - 1.0);

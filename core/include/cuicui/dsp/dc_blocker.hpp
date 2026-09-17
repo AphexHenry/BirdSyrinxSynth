@@ -33,6 +33,13 @@ public:
         return y;
     }
 
+    [[nodiscard]] double x1() const noexcept { return x1_; }
+    [[nodiscard]] double y1() const noexcept { return y1_; }
+    void load(double x1, double y1) noexcept {
+        x1_ = x1;
+        y1_ = y1;
+    }
+
     [[nodiscard]] double coefficient() const noexcept { return r_; }
 
 private:

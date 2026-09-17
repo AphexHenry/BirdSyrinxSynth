@@ -7,7 +7,9 @@
 
 #include <cmath>
 #include <initializer_list>
+#include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 
 namespace cuicui::io {
@@ -15,6 +17,7 @@ namespace cuicui::io {
 struct RenderOptions {
     bool apply_smoothing = true;
     int oversampling_override = -1; // -1 = use spec, 0 = auto, 1/2/4/8 = factor
+    int max_block_size = 64;        // BirdVoice prepare only; CLI still ramps 1 host sample
 };
 
 inline int oversampling_from_spec(const RenderSpec& spec, const RenderOptions& opt) {
@@ -41,7 +44,8 @@ inline bool spec_has_any(const RenderSpec& spec, std::initializer_list<std::stri
 inline bool spec_uses_labial(const RenderSpec& spec) {
     return spec_has_any(spec, {"resp.pressure", "src.L.beta", "src.L.alpha_offset", "src.gamma",
                                "src.R.beta", "src.R.alpha_offset", "src.L.gate", "src.R.gate",
-                               "src.coupling", "resp.attack_ms", "noise.beta_sigma", "noise.aspiration"});
+                               "src.coupling", "resp.attack_ms", "noise.beta_sigma", "noise.aspiration",
+                               "body.size"});
 }
 
 inline bool spec_uses_trachea(const RenderSpec& spec) {
@@ -88,6 +92,7 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     const auto* gLS = findParam("src.L.gate");
     const auto* gRS = findParam("src.R.gate");
     const auto* cplS = findParam("src.coupling");
+    const auto* sizeS = findParam("body.size");
     const double defFreq = freqSpec ? freqSpec->def : 440.0;
     const double defGain = gainSpec ? gainSpec->def : -12.0;
     const double defOut = outSpec ? outSpec->def : 0.0;
@@ -114,6 +119,7 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     const double defGL = gLS ? gLS->def : 1.0;
     const double defGR = gRS ? gRS->def : 0.0;
     const double defCpl = cplS ? cplS->def : 0.0;
+    const double defSize = sizeS ? sizeS->def : 1.0;
 
     const auto freqA = spec.automationFor("test.freq_hz", defFreq);
     const auto gainA = spec.automationFor("test.gain_db", defGain);
@@ -140,10 +146,11 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     const auto gLA = spec.automationFor("src.L.gate", defGL);
     const auto gRA = spec.automationFor("src.R.gate", defGR);
     const auto cplA = spec.automationFor("src.coupling", defCpl);
+    const auto sizeA = spec.automationFor("body.size", defSize);
 
     ProcessSpec ps;
     ps.hostSampleRate = static_cast<double>(sr);
-    ps.maxBlockSize = 64;
+    ps.maxBlockSize = opt.max_block_size > 0 ? opt.max_block_size : 64;
     ps.oversampling = oversampling_from_spec(spec, opt);
 
     BirdVoice voice;
@@ -185,6 +192,9 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     settings.noise_beta_bandwidth_hz = clampP(bwS, bwA.valueAt(0.0));
     settings.noise_aspiration = clampP(aspS, aspA.valueAt(0.0));
     settings.src_coupling = clampP(cplS, cplA.valueAt(0.0));
+    settings.body_size = clampP(sizeS, sizeA.valueAt(0.0));
+    settings.oversampling = ps.oversampling;
+    settings.seed = spec.seed;
     voice.setSettings(settings);
     voice.reset(spec.seed);
 
@@ -197,11 +207,10 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
     }
 
     const double dt = 1.0 / static_cast<double>(sr);
-    constexpr int kBlock = 32;
-    for (int i = 0; i < n;) {
-        const int ns = std::min(kBlock, n - i);
+    // Per host sample (ramps of length 1) so results are independent of maxBlockSize. WP-B6 §4.3.
+    for (int i = 0; i < n; ++i) {
         const double t0 = static_cast<double>(i) * dt;
-        const double t1 = static_cast<double>(i + ns) * dt;
+        const double t1 = static_cast<double>(i + 1) * dt;
         ControlFrame from, to;
         if (labial) {
             from.resp_pressure = static_cast<float>(clampP(pSpec, pA.valueAt(t0)));
@@ -247,9 +256,159 @@ inline std::vector<float> render_offline(const RenderSpec& spec, const RenderOpt
         settings.noise_beta_bandwidth_hz = clampP(bwS, bwA.valueAt(t1));
         settings.noise_aspiration = clampP(aspS, aspA.valueAt(t1));
         settings.src_coupling = clampP(cplS, cplA.valueAt(t1));
+        settings.body_size = clampP(sizeS, sizeA.valueAt(t1));
         voice.setSettings(settings);
-        voice.process(from, to, buf.data() + i, ns);
-        i += ns;
+        voice.process(from, to, buf.data() + i, 1);
+    }
+    return buf;
+}
+
+/// Interpolate a control array at host time `t` (seconds). `rate` is the control sample rate.
+inline float interp_control(const std::vector<float>& x, double rate, double t) noexcept {
+    if (x.empty()) {
+        return 0.0f;
+    }
+    if (x.size() == 1 || rate <= 0.0) {
+        return x[0];
+    }
+    const double idx = t * rate;
+    if (idx <= 0.0) {
+        return x[0];
+    }
+    const double last = static_cast<double>(x.size() - 1);
+    if (idx >= last) {
+        return x.back();
+    }
+    const int i0 = static_cast<int>(idx);
+    const float u = static_cast<float>(idx - static_cast<double>(i0));
+    return x[static_cast<std::size_t>(i0)] * (1.0f - u) + x[static_cast<std::size_t>(i0 + 1)] * u;
+}
+
+inline void apply_control_at(ControlFrame& fr, VoiceSettings& settings, const std::string& id, float v) {
+    if (const auto* p = findParam(id)) {
+        const double c = clampParam(*p, static_cast<double>(v));
+        if (float* f = controlField(fr, p->pid)) {
+            *f = static_cast<float>(c);
+            return;
+        }
+        switch (p->pid) {
+        case ParamId::BodySize:
+            settings.body_size = c;
+            break;
+        case ParamId::SrcGamma:
+            settings.src_gamma = c;
+            break;
+        case ParamId::TracheaLengthMm:
+            settings.trachea_length_mm = c;
+            break;
+        case ParamId::TracheaReflection:
+            settings.trachea_reflection = c;
+            break;
+        case ParamId::TracheaLoss:
+            settings.trachea_loss = c;
+            break;
+        case ParamId::TracheaInputGain:
+            settings.trachea_input_gain = c;
+            break;
+        case ParamId::OecDamping:
+            settings.oec_damping = c;
+            break;
+        case ParamId::BeakDamping:
+            settings.beak_damping = c;
+            break;
+        case ParamId::OutRadiation:
+            settings.out_radiation = c;
+            break;
+        case ParamId::OutGainDb:
+            settings.out_gain_db = c;
+            break;
+        case ParamId::RespAttackMs:
+            settings.resp_attack_ms = c;
+            break;
+        case ParamId::RespReleaseMs:
+            settings.resp_release_ms = c;
+            break;
+        case ParamId::NoiseBetaBandwidthHz:
+            settings.noise_beta_bandwidth_hz = c;
+            break;
+        case ParamId::NoiseAspiration:
+            settings.noise_aspiration = c;
+            break;
+        case ParamId::SrcCoupling:
+            settings.src_coupling = c;
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+/// Host-rate render from per-parameter control arrays. Returns audio; writes final state if `stateOut`.
+inline std::vector<float> render_controls(VoiceSettings settings,
+                                          const std::unordered_map<std::string, std::vector<float>>& controls,
+                                          double controlRateHz, double sampleRate, std::uint64_t seed,
+                                          int oversampling = 0, const VoiceState* stateIn = nullptr,
+                                          VoiceState* stateOut = nullptr, int maxBlockSize = 64) {
+    const double sr = sampleRate > 0.0 ? sampleRate : 48000.0;
+    const double cr = controlRateHz > 0.0 ? controlRateHz : sr;
+    int nCtrl = 0;
+    for (const auto& kv : controls) {
+        nCtrl = std::max(nCtrl, static_cast<int>(kv.second.size()));
+    }
+    const int n = nCtrl > 0 ? static_cast<int>(std::llround(static_cast<double>(nCtrl) * sr / cr)) : 0;
+    std::vector<float> buf(n > 0 ? static_cast<std::size_t>(n) : 0, 0.0f);
+    if (n <= 0) {
+        return buf;
+    }
+
+    ProcessSpec ps;
+    ps.hostSampleRate = sr;
+    ps.maxBlockSize = maxBlockSize > 0 ? maxBlockSize : 64;
+    ps.oversampling = oversampling;
+    BirdVoice voice;
+    voice.prepare(ps);
+    voice.setSource(VoiceSource::Labial);
+    settings.seed = seed;
+    settings.oversampling = oversampling;
+    voice.setSettings(settings);
+    voice.reset(seed);
+    const float b0 = controls.count("src.L.beta") ? interp_control(controls.at("src.L.beta"), cr, 0.0) : 0.3f;
+    const float off0 =
+        controls.count("src.L.alpha_offset") ? interp_control(controls.at("src.L.alpha_offset"), cr, 0.0) : 0.0f;
+    const float oec0 = controls.count("oec.freq_hz") ? interp_control(controls.at("oec.freq_hz"), cr, 0.0) : 3000.0f;
+    const float gape0 = controls.count("beak.gape") ? interp_control(controls.at("beak.gape"), cr, 0.0) : 0.5f;
+    const float offR0 =
+        controls.count("src.R.alpha_offset") ? interp_control(controls.at("src.R.alpha_offset"), cr, 0.0) : 0.0f;
+    const float bR0 = controls.count("src.R.beta") ? interp_control(controls.at("src.R.beta"), cr, 0.0) : 0.3f;
+    voice.primeLabial(model::kAlphaRest + static_cast<double>(off0), static_cast<double>(b0),
+                      static_cast<double>(oec0), static_cast<double>(gape0), static_cast<double>(offR0),
+                      static_cast<double>(bR0));
+    if (stateIn != nullptr) {
+        voice.loadState(*stateIn);
+    }
+
+    auto fill = [&](ControlFrame& fr, VoiceSettings& st, double t) {
+        fr = ControlFrame{};
+        for (const auto& kv : controls) {
+            apply_control_at(fr, st, kv.first, interp_control(kv.second, cr, t));
+        }
+    };
+
+    const double dt = 1.0 / sr;
+    for (int i = 0; i < n; ++i) {
+        const double t0 = static_cast<double>(i) * dt;
+        const double t1 = static_cast<double>(i + 1) * dt;
+        ControlFrame from, to;
+        VoiceSettings s0 = settings;
+        VoiceSettings s1 = settings;
+        fill(from, s0, t0);
+        fill(to, s1, t1);
+        voice.setOutGainRamp(static_cast<float>(s0.out_gain_db), static_cast<float>(s1.out_gain_db));
+        voice.setSettings(s1);
+        voice.process(from, to, buf.data() + i, 1);
+    }
+    if (stateOut != nullptr) {
+        voice.saveState(*stateOut);
     }
     return buf;
 }

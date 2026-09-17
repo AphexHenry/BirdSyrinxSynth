@@ -1,0 +1,21 @@
+{
+  "format": "cuicui.render_spec",
+  "version": 1,
+  "sample_rate": 48000,
+  "duration_s": 0.35,
+  "seed": 1,
+  "oversampling": "auto",
+  "params": {
+    "resp.pressure": 0.54545,
+    "src.L.beta": 0.2,
+    "src.L.gate": 1.0,
+    "src.R.gate": 0.0,
+    "noise.beta_sigma": 0.0,
+    "noise.aspiration": 0.0,
+    "body.size": 3.0,
+    "src.gamma": 24000.0,
+    "trachea.length_mm": 33.0,
+    "oec.freq_hz": 3000.0,
+    "out.gain_db": 0.0
+  }
+}

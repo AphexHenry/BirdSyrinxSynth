@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <numbers>
 
 namespace cuicui::model {
@@ -185,6 +186,30 @@ public:
     [[nodiscard]] UvtOut last() const noexcept { return last_; }
     [[nodiscard]] const UvtPhysical& physical() const noexcept { return phys_; }
     [[nodiscard]] double internalRate() const noexcept { return rate_; }
+
+    void save(double& q0, double& q1, double& q2, double& lastU, double& flow, double& dflow,
+              std::int32_t& since, std::uint32_t& dirty) const noexcept {
+        q0 = q_[0];
+        q1 = q_[1];
+        q2 = q_[2];
+        lastU = last_u_;
+        flow = last_.flow;
+        dflow = last_.dflow;
+        since = since_update_;
+        dirty = dirty_ ? 1u : 0u;
+    }
+
+    void load(double q0, double q1, double q2, double lastU, double flow, double dflow,
+              std::int32_t since, std::uint32_t dirty) noexcept {
+        q_[0] = q0;
+        q_[1] = q1;
+        q_[2] = q2;
+        last_u_ = lastU;
+        last_.flow = flow;
+        last_.dflow = dflow;
+        since_update_ = since;
+        dirty_ = dirty != 0;
+    }
 
 private:
     static constexpr int kUpdatePeriod = 8;

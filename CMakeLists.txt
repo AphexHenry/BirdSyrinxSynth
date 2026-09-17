@@ -54,6 +54,10 @@ add_executable(bird_render apps/bird_render/main.cpp)
 target_link_libraries(bird_render PRIVATE cuicui_core)
 cuicui_set_warnings(bird_render)
 
+add_executable(bird_bench apps/bird_bench/main.cpp)
+target_link_libraries(bird_bench PRIVATE cuicui_core)
+cuicui_set_warnings(bird_bench)
+
 add_executable(cuicui_core_tests
     core/tests/test_automation.cpp
     core/tests/test_rng.cpp
@@ -72,6 +76,9 @@ add_executable(cuicui_core_tests
     core/tests/test_respiration_noise.cpp
     core/tests/test_bilateral_source.cpp
     core/tests/test_side_switcher.cpp
+    core/tests/test_body_scaling.cpp
+    core/tests/test_voice_api.cpp
+    core/tests/test_voice_golden.cpp
 )
 target_link_libraries(cuicui_core_tests PRIVATE cuicui_core Catch2::Catch2WithMain)
 target_compile_definitions(cuicui_core_tests PRIVATE

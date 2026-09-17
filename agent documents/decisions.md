@@ -72,3 +72,10 @@
 - **Decision:** allow an optional top-level `figures` array on `cuicui.listening_manifest` v1: `{file, title, caption?}`. Items stay as they are.
 - **Consequences:** `scripts/listen.sh` embeds those PNGs on the page. Additive; old manifests remain valid.
 
+### D-015 — Auto oversampling does not follow body size
+- **Status:** accepted · 2026-09-17 · WP-B6
+- **Context:** At σ = 0.25, γ = 96 000. RK4 at OS 4 is ~4 cents sharp vs OS 8 (measured 10657 vs 10633 Hz). The WP pitfall said: if error exceeds 1 cent at OS 4, force a higher internal rate — but latency must stay constant for the host.
+- **Decision:** Keep the existing auto-OS policy (internal rate ≥ 176.4 kHz, independent of `body.size`). Sessions that will use σ ≲ 0.35 should set `engine.oversampling` = 8 explicitly. Do not change OS when the musician moves Size.
+- **Consequences:** Tiny-bird pitch at auto OS 4 is a few cents sharp. Plugin latency does not pump when Size is automated.
+
+

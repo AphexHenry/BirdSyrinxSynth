@@ -4,6 +4,7 @@
 #include "cuicui/dsp/rng.hpp"
 #include "cuicui/model/labial_oscillator.hpp"
 #include "cuicui/model/noise_sources.hpp"
+#include "cuicui/model/voice_state.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -157,6 +158,36 @@ public:
     [[nodiscard]] const LabialOscillator& right() const noexcept { return right_; }
     [[nodiscard]] std::uint32_t nonFiniteResets() const noexcept {
         return left_.nonFiniteResets() + right_.nonFiniteResets();
+    }
+
+    void save(double& xL, double& yL, double& xR, double& yR, std::uint32_t& resetsL,
+              std::uint32_t& resetsR, DcState& dcL, DcState& dcR, OnePoleState& tLpL,
+              RngState& tRngL, OnePoleState& tLpR, RngState& tRngR) const noexcept {
+        xL = left_.x();
+        yL = left_.y();
+        xR = right_.x();
+        yR = right_.y();
+        resetsL = left_.nonFiniteResets();
+        resetsR = right_.nonFiniteResets();
+        dcL.x1 = dcL_.x1();
+        dcL.y1 = dcL_.y1();
+        dcR.x1 = dcR_.x1();
+        dcR.y1 = dcR_.y1();
+        tensionL_.save(tLpL, tRngL);
+        tensionR_.save(tLpR, tRngR);
+    }
+
+    void load(double xL, double yL, double xR, double yR, std::uint32_t resetsL, std::uint32_t resetsR,
+              const DcState& dcL, const DcState& dcR, const OnePoleState& tLpL, const RngState& tRngL,
+              const OnePoleState& tLpR, const RngState& tRngR) noexcept {
+        left_.reset(xL, yL);
+        right_.reset(xR, yR);
+        left_.setNonFiniteResets(resetsL);
+        right_.setNonFiniteResets(resetsR);
+        dcL_.load(dcL.x1, dcL.y1);
+        dcR_.load(dcR.x1, dcR.y1);
+        tensionL_.load(tLpL, tRngL);
+        tensionR_.load(tLpR, tRngR);
     }
 
 private:

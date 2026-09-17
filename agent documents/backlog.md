@@ -26,4 +26,6 @@
 - [B4] Alarm “metallic” texture is ~15–20 Hz AM/FM (ring-mod throb), not broadband tension noise. Listening 06 now demos an 18 Hz LFO; a real gesture/LFO in the engine may belong in C4/C5.
 - [B5] Weak coupling (ε ≤ 0.1) barely locks (Δβ ≤ 0.01). If two-voice locking is musically wanted, revisit ε scale or the coupling term.
 - [B5] One shared α cannot span 1.2–6 kHz (09 topped out at ~4.56 kHz). C3 may need per-side α offsets for wide jumps/sweeps.
+- [B6] One voice is ~2.7 % of a core at 48 kHz OS 4 (planning target 0.5 %). Candidates: skip RK4 on a gated-off side; UVT matrix only when params change; Instruments profile of `processLabial`. Human decides before any optimisation.
+- [B6] For σ ≲ 0.35, request OS 8 (~4 cents at auto OS 4). Do not tie auto OS to Size (D-015).
 

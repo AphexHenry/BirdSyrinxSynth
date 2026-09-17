@@ -123,6 +123,21 @@ public:
         }
     }
 
+    void save(int& nStages, HalfbandState* stages, int cap) const noexcept {
+        nStages = static_cast<int>(stages_.size());
+        const int n = std::min(nStages, cap);
+        for (int i = 0; i < n; ++i) {
+            stages_[static_cast<std::size_t>(i)].save(stages[i]);
+        }
+    }
+
+    void load(int nStages, const HalfbandState* stages, int cap) noexcept {
+        const int n = std::min(nStages, std::min(cap, static_cast<int>(stages_.size())));
+        for (int i = 0; i < n; ++i) {
+            stages_[static_cast<std::size_t>(i)].load(stages[i]);
+        }
+    }
+
 private:
     double host_rate_ = 48000.0;
     int os_ = 1;
