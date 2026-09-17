@@ -1,3 +1,4 @@
+#include "cuicui/control/inverse_map.hpp"
 #include "cuicui/control/side_switcher.hpp"
 #include "cuicui/dsp/oversampling.hpp"
 #include "cuicui/io/offline_render.hpp"
@@ -215,6 +216,36 @@ NB_MODULE(cuicui_core, m) {
         nb::arg("x0"),
         nb::arg("y0"),
         "Integrate the labial oscillator at the internal rate. Releases the GIL.");
+
+    m.def(
+        "inverse_solve",
+        [](double nu, double tone, double alpha_breath, double physics, bool range_fold) {
+            static const cuicui::control::InverseMap map;
+            const auto r = map.solve(nu, tone, alpha_breath, physics, range_fold);
+            nb::dict d;
+            d["alpha"] = r.alpha;
+            d["beta"] = r.beta;
+            d["nu_used"] = r.nuUsed;
+            d["reachable"] = r.reachable;
+            d["folded"] = r.folded;
+            d["clamped"] = r.clamped;
+            return d;
+        },
+        nb::arg("nu"),
+        nb::arg("tone"),
+        nb::arg("alpha_breath"),
+        nb::arg("physics"),
+        nb::arg("range_fold") = true,
+        "Inverse map: target ν and tone → (α, β).");
+
+    m.def(
+        "inverse_nu_range",
+        [](double tone) {
+            static const cuicui::control::InverseMap map;
+            return nb::make_tuple(map.nuMin(), map.nuMax(tone));
+        },
+        nb::arg("tone") = 0.6,
+        "Reachable ν interval (nu_min, nu_max(tone)).");
 
     m.def(
         "trachea_process",

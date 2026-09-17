@@ -33,7 +33,7 @@ juce::GroupComponent* groupForId(std::string_view id,
     if (id.rfind("noise.", 0) == 0) {
         return &noise;
     }
-    if (id.rfind("engine.", 0) == 0 || id.rfind("test.", 0) == 0) {
+    if (id.rfind("engine.", 0) == 0 || id.rfind("test.", 0) == 0 || id.rfind("perf.", 0) == 0) {
         return &engine;
     }
     return &body;

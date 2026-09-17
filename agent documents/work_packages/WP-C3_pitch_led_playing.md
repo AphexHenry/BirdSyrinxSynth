@@ -154,6 +154,13 @@ Final message: **milestone M3**. Human checklist: play the Standalone/DAW plugin
 - Ornament FM must be applied in cents before `solve`, never by modulating β directly (keeps tuning and tract couplings consistent).
 - Legato after note-off during release: decide and document (default: treat as new note if pressure fell below 20 %).
 
+## Notes from WP-C2
+
+- Runtime: `cuicui::control::InverseMap` in `core/include/cuicui/control/inverse_map.hpp`. Tables are compiled into `core/include/cuicui/generated/atlas_tables.hpp` (no file I/O). Python: `cuicui_core.inverse_solve(nu, tone, alpha_breath, physics, range_fold)` and `inverse_nu_range(tone)`.
+- Always pass **current** γ: `ν = 2π f₀ / γ` with `γ = 24000 / body.size`. At σ = 1 the playable band is about **D6–C8** (1162–4202 Hz). Notes below that sit on the SNIC/onset floor and were dropped from the map (several–hundred cents of interpolation error).
+- `perf.range_fold` is already in `params.def` (default on). The plugin does not call `InverseMap` yet — C3 must replace the C1 empirical `f₀(β)` table.
+- Closed-loop tests measure f₀ with an interpolated FFT peak near the target. Zero-crossings fail on rich full-voice pulses; integer-lag autocorrelation is ~20 cents coarse near 6 kHz.
+
 ## Notes from WP-C1
 
 C1 MIDI no longer uses Hopf $\beta=(2\pi f/\gamma)^2$ (that sat near 0.02 on piano Hz and made C≈D). It inverts an empirical labial $f_0(\beta)$ table at playing $\alpha$ (vel 100) so C4–C5 is about $2\times$ acoustically, still at bird frequencies (C4 $\approx$ 2.47 kHz, not 261 Hz). Velocity still shifts pitch via $\alpha$. C3 must replace this with the atlas inverse map (and size/γ); do not keep the C1 table.

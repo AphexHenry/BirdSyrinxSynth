@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-09-17 — by: WP-C1 agent
+**Last updated:** 2026-09-17 — by: WP-C2 agent
 
 ## Status legend
 
@@ -31,7 +31,7 @@
 | 9 | B5 | Two sources: left/right, gating, side switching | B4 | done | 2026-09-17 | wp-B5 | `work_packages/WP-B5_two_sources.md` |
 | 10 | B6 | Voice assembly, body size, state save/load, benchmarks | B5 | done | 2026-09-17 | wp-B6 | `work_packages/WP-B6_voice_assembly.md` |
 | 11 | C1 | Plugin shell + offline plugin renderer | B6 | done | 2026-09-17 | wp-C1 | `work_packages/WP-C1_plugin_shell.md` |
-| 12 | C2 | Source atlas & inverse pitch map | B6 | todo | | | `work_packages/WP-C2_atlas_inverse_map.md` |
+| 12 | C2 | Source atlas & inverse pitch map | B6 | done | 2026-09-17 | wp-C2 | `work_packages/WP-C2_atlas_inverse_map.md` |
 | 13 | C3 | Pitch-led direct playing | C1, C2 | todo | | | `work_packages/WP-C3_pitch_led_playing.md` |
 | 14 | C4 | Archetype library + gesture score format & player | C3 | todo | | | `work_packages/WP-C4_archetypes_gesture_score.md` |
 | 15 | C5 | Generative performance engine | C4 | todo | | | `work_packages/WP-C5_generative_engine.md` |
@@ -50,7 +50,7 @@
 
 ## Current capabilities
 
-**Playable plugin (crude pitch).** Syrinx loads as VST3, AU, CLAP and Standalone. Click the C4–C5 piano at the bottom of the window, or use a MIDI keyboard. Notes start/stop through the bird breath; neighbouring keys and an octave now move pitch (~2× from C4 to C5) but this is still bird-range, not concert pitch. All physiology parameters are host-automatable; project save/load works; a safety clipper caps output at 0 dBFS. `plugin_render` renders MIDI offline. Inverse-map tuning is C3. D1 is still parked.
+**Playable plugin (crude pitch) + inverse map (not wired yet).** Syrinx loads as VST3, AU, CLAP and Standalone. Click the C4–C5 piano or use a MIDI keyboard — that path is still C1’s empirical map (bird-range, C4 ≈ 2.5 kHz). A compiled inverse map now turns a concert pitch + Tone into (α, β) with D6–C8 at size 1 in tune (median 0.08 cents); C3 will hook it to MIDI. `plugin_render` renders MIDI offline. D1 is still parked.
 
 ## Baselines
 
@@ -58,7 +58,7 @@
 |---|---|---|---|
 | CPU per voice @48 kHz (Release, Apple Silicon) | 2.72 % of one core (RT 0.027); 16 voices RT 0.43 — **above** 0.5 % / 0.1 targets | B6 | 2026-09-17 |
 | Plugin CPU @48 kHz / 256 (Release, Apple Silicon) | 2.70 % of one core (~1.0× B6 voice) | C1 | 2026-09-17 |
-| Tuning error, tone 0.6, size 1 (median / max cents) | – | C2 | |
+| Tuning error, tone 0.6, size 1 (median / max cents) | 0.08 / 0.25 | C2 | 2026-09-17 |
 | Fitting benchmark (synthetic) median MRSTFT loss | – | E1 | |
 | Real zebra finch resynthesis median MRSTFT loss | – | E3/E4 | |
 
@@ -73,8 +73,10 @@
 - One voice uses ~2.7 % of a core at 48 kHz OS 4 (planning target 0.5 %). See B6 report §9.
 - Auto OS at σ=0.25 is ~4 cents sharp vs OS 8; request OS 8 for tiny-bird sessions (D-015).
 - `render_controls` vs CLI differs by 1 ULP (float32 prime vs JSON double).
-- C1 MIDI pitch is an empirical $f_0(\beta)$ invert at playing α: intervals work on C4–C5, but C4 is ~2.5 kHz and velocity still shifts pitch. Concert tuning is C3.
+- C1 MIDI pitch is an empirical $f_0(\beta)$ invert at playing α: intervals work on C4–C5, but C4 is ~2.5 kHz and velocity still shifts pitch. Concert tuning is C3 (InverseMap is ready).
 - Newly copied AU needs `killall AudioComponentRegistrar` before auval sees it (`scripts/validate_plugin.sh` does this).
+- C2 playable floor at σ=1 is D6 (~1162 Hz), not C6: the SNIC/onset edge cannot invert to 5 cents on a 0.005 β-grid.
+- C2 continuous tone morph (listening 04) at 2 kHz moves ~15–26 cents near whistle; held notes stay ≤ 0.3 cents.
 
 ## Open questions for the human
 
@@ -127,3 +129,6 @@
 | 2026-09-17 | C1 | Cursor Grok 4.6 | feedback: 02 vel 30 noisy; on-screen MIDI keyboard added; still awaiting approve |
 | 2026-09-17 | C1 | Cursor Grok 4.6 | feedback: in-app keyboard C≈D and octave too small; empirical f0(β) invert; still awaiting approve |
 | 2026-09-17 | C1 | Cursor Grok 4.6 | approved, committed and tagged wp-C1 |
+| 2026-09-17 | C2 | Cursor Grok 4.6 | started WP-C2 (source atlas & inverse pitch map) |
+| 2026-09-17 | C2 | Cursor Grok 4.6 | WP-C2 awaiting approval (listening page opened; D6–C8 in tune) |
+| 2026-09-17 | C2 | Cursor Grok 4.6 | approved, committed and tagged wp-C2 |

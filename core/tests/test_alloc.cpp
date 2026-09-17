@@ -1,4 +1,5 @@
 #include "alloc_counter.hpp"
+#include "cuicui/control/inverse_map.hpp"
 #include "cuicui/model/bird_voice.hpp"
 
 #include <catch2/catch_test_macros.hpp>
@@ -115,5 +116,15 @@ TEST_CASE("BirdVoice process with body.size changes allocates nothing") {
     s.body_size = 0.5;
     voice.setSettings(s);
     voice.process(from, to, out.data(), 128);
+    REQUIRE(cuicui::test::alloc_count() == 0);
+}
+
+TEST_CASE("InverseMap::solve allocates nothing") {
+    cuicui::control::InverseMap map;
+    (void)map.solve(0.5, 0.6, 0.2, 0.0, true);
+    cuicui::test::reset_alloc_count();
+    for (int i = 0; i < 1000; ++i) {
+        (void)map.solve(0.4 + 0.0001 * static_cast<double>(i), 0.6, 0.2, 0.0, true);
+    }
     REQUIRE(cuicui::test::alloc_count() == 0);
 }

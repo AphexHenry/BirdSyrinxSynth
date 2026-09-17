@@ -31,5 +31,7 @@
 - [C1] No `clap-info` on PATH; CLAP builds but is not validated. Install a CLAP validator before G1.
 - [C1] `engine.seed` as `AudioParameterInt` up to 2³¹−1: auval warns the max does not stick (int32 display). Cap the host range (e.g. 0–1e9) in C6/G1.
 - [C1] Processor tests `_Exit` after Catch2 because `alloc_counter.hpp` global `new`/`delete` aborts inside `DeletedAtShutdown::deleteAll()`. A JUCE-safe alloc probe would let the test binary shut down normally.
+- [C2] Recover C6 (one semitone below the D6 floor at σ=1) with a denser β-grid near SNIC/onset — current 0.005 step cannot invert that edge to 5 cents.
+- [C2] Continuous Tone morph at fixed ν pulls ~15–26 cents (listening 04) while held notes stay ≤ 0.3 cents; C3 may want a slow f₀ lock or denser inverse along α.
 
 

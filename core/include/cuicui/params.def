@@ -28,6 +28,7 @@ CUICUI_PARAM(BeakDamping, "beak.damping", "Beak damping", "", 0.01, 1.0, 0.3, 1.
 CUICUI_PARAM(OutRadiation, "out.radiation", "Radiation", "", 0.0, 1.0, 1.0, 1.0, 20.0, Physiology, false, "B3")
 CUICUI_PARAM(OutGainDb, "out.gain_db", "Output gain", "dB", -48.0, 12.0, 0.0, 1.0, 20.0, Physiology, false, "A2")
 CUICUI_PARAM(OutMasterDb, "out.master_db", "Master", "dB", -48.0, 6.0, -6.0, 1.0, 5.0, Performance, false, "C1")
+CUICUI_PARAM(PerfRangeFold, "perf.range_fold", "Range fold", "", 0.0, 1.0, 1.0, 1.0, 0.0, Performance, false, "C2")
 CUICUI_PARAM(BodySize, "body.size", "Body size", "", 0.25, 4.0, 1.0, 0.5, 50.0, Physiology, false, "B6")
 CUICUI_PARAM(EngineOversampling, "engine.oversampling", "Oversampling", "enum", 0.0, 8.0, 0.0, 1.0, 0.0, Engine, false, "A2")
 CUICUI_PARAM(EngineSeed, "engine.seed", "Seed", "", 0.0, 2147483647.0, 1.0, 1.0, 0.0, Engine, false, "A2")

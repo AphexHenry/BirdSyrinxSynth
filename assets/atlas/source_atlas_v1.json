@@ -1,0 +1,315 @@
+{
+  "format": "cuicui.source_atlas",
+  "version": 1,
+  "gamma0": 24000.0,
+  "internal_rate": 352800.0,
+  "integration": "RK4 source_only, noise off",
+  "alpha": {
+    "min": -0.1,
+    "max": 0.6,
+    "step": 0.005,
+    "n": 141
+  },
+  "beta": {
+    "min": -0.3,
+    "max": 1.2,
+    "step": 0.005,
+    "n": 301
+  },
+  "nu": {
+    "min": 0.03,
+    "max": 1.1,
+    "n": 256,
+    "spacing": "log"
+  },
+  "protocols": [
+    "from_rest",
+    "from_osc"
+  ],
+  "fields": [
+    {
+      "name": "nu",
+      "shape": [
+        301,
+        141
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "amp",
+      "shape": [
+        301,
+        141
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "sci",
+      "shape": [
+        301,
+        141
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "regime",
+      "shape": [
+        301,
+        141
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "nu_osc",
+      "shape": [
+        301,
+        141
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "amp_osc",
+      "shape": [
+        301,
+        141
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "sci_osc",
+      "shape": [
+        301,
+        141
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "regime_osc",
+      "shape": [
+        301,
+        141
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "alpha_on",
+      "shape": [
+        301
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "alpha_off",
+      "shape": [
+        301
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "beta_of_alpha_nu",
+      "shape": [
+        141,
+        256
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "sci_of_alpha_nu",
+      "shape": [
+        141,
+        256
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "alpha_lo_of_nu",
+      "shape": [
+        256
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "alpha_hi_of_nu",
+      "shape": [
+        256
+      ],
+      "dtype": "float32"
+    },
+    {
+      "name": "nu_grid",
+      "shape": [
+        256
+      ],
+      "dtype": "float32"
+    }
+  ],
+  "generation": {
+    "date": "2026-09-17T19:00:57Z",
+    "git": "9a8ad4c",
+    "seconds": 55.909230082999784
+  },
+  "monotonicity": {
+    "periodic_cells": 32035,
+    "kept_cells": 32035,
+    "violations": 0,
+    "fraction": 0.0,
+    "rows_used": 121,
+    "n_alpha": 141,
+    "n_beta": 301
+  },
+  "smoothing": {
+    "alpha_lo": {
+      "max_abs": 0.051250000000000046,
+      "mean_abs": 0.0017664930555555565,
+      "n": 96
+    },
+    "alpha_hi": {
+      "max_abs": 0.10999999999999999,
+      "mean_abs": 0.001944444444444449,
+      "n": 96
+    }
+  },
+  "nu_min": 0.3042022965597832,
+  "nu_max": 1.1,
+  "nu_max_tone0": 1.1,
+  "nu_max_tone1": 1.1,
+  "playable_range": [
+    {
+      "sigma": 0.25,
+      "tone": 0.0,
+      "f_lo_hz": 4647.868722950032,
+      "f_hi_hz": 16806.76199050415,
+      "note_lo": "D8",
+      "note_hi": "C10",
+      "label": "D8 \u2013 C10"
+    },
+    {
+      "sigma": 0.25,
+      "tone": 0.5,
+      "f_lo_hz": 4647.868722950032,
+      "f_hi_hz": 16806.76199050415,
+      "note_lo": "D8",
+      "note_hi": "C10",
+      "label": "D8 \u2013 C10"
+    },
+    {
+      "sigma": 0.25,
+      "tone": 1.0,
+      "f_lo_hz": 4647.868722950032,
+      "f_hi_hz": 16806.76199050415,
+      "note_lo": "D8",
+      "note_hi": "C10",
+      "label": "D8 \u2013 C10"
+    },
+    {
+      "sigma": 0.5,
+      "tone": 0.0,
+      "f_lo_hz": 2323.934361475016,
+      "f_hi_hz": 8403.380995252075,
+      "note_lo": "D7",
+      "note_hi": "C9",
+      "label": "D7 \u2013 C9"
+    },
+    {
+      "sigma": 0.5,
+      "tone": 0.5,
+      "f_lo_hz": 2323.934361475016,
+      "f_hi_hz": 8403.380995252075,
+      "note_lo": "D7",
+      "note_hi": "C9",
+      "label": "D7 \u2013 C9"
+    },
+    {
+      "sigma": 0.5,
+      "tone": 1.0,
+      "f_lo_hz": 2323.934361475016,
+      "f_hi_hz": 8403.380995252075,
+      "note_lo": "D7",
+      "note_hi": "C9",
+      "label": "D7 \u2013 C9"
+    },
+    {
+      "sigma": 1.0,
+      "tone": 0.0,
+      "f_lo_hz": 1161.967180737508,
+      "f_hi_hz": 4201.6904976260375,
+      "note_lo": "D6",
+      "note_hi": "C8",
+      "label": "D6 \u2013 C8"
+    },
+    {
+      "sigma": 1.0,
+      "tone": 0.5,
+      "f_lo_hz": 1161.967180737508,
+      "f_hi_hz": 4201.6904976260375,
+      "note_lo": "D6",
+      "note_hi": "C8",
+      "label": "D6 \u2013 C8"
+    },
+    {
+      "sigma": 1.0,
+      "tone": 1.0,
+      "f_lo_hz": 1161.967180737508,
+      "f_hi_hz": 4201.6904976260375,
+      "note_lo": "D6",
+      "note_hi": "C8",
+      "label": "D6 \u2013 C8"
+    },
+    {
+      "sigma": 2.0,
+      "tone": 0.0,
+      "f_lo_hz": 580.983590368754,
+      "f_hi_hz": 2100.8452488130188,
+      "note_lo": "D5",
+      "note_hi": "C7",
+      "label": "D5 \u2013 C7"
+    },
+    {
+      "sigma": 2.0,
+      "tone": 0.5,
+      "f_lo_hz": 580.983590368754,
+      "f_hi_hz": 2100.8452488130188,
+      "note_lo": "D5",
+      "note_hi": "C7",
+      "label": "D5 \u2013 C7"
+    },
+    {
+      "sigma": 2.0,
+      "tone": 1.0,
+      "f_lo_hz": 580.983590368754,
+      "f_hi_hz": 2100.8452488130188,
+      "note_lo": "D5",
+      "note_hi": "C7",
+      "label": "D5 \u2013 C7"
+    },
+    {
+      "sigma": 4.0,
+      "tone": 0.0,
+      "f_lo_hz": 290.491795184377,
+      "f_hi_hz": 1050.4226244065094,
+      "note_lo": "D4",
+      "note_hi": "C6",
+      "label": "D4 \u2013 C6"
+    },
+    {
+      "sigma": 4.0,
+      "tone": 0.5,
+      "f_lo_hz": 290.491795184377,
+      "f_hi_hz": 1050.4226244065094,
+      "note_lo": "D4",
+      "note_hi": "C6",
+      "label": "D4 \u2013 C6"
+    },
+    {
+      "sigma": 4.0,
+      "tone": 1.0,
+      "f_lo_hz": 290.491795184377,
+      "f_hi_hz": 1050.4226244065094,
+      "note_lo": "D4",
+      "note_hi": "C6",
+      "label": "D4 \u2013 C6"
+    }
+  ],
+  "bin": "source_atlas_v1.bin",
+  "bin_bytes": 1652360
+}
