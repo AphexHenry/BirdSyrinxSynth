@@ -7,11 +7,12 @@
 namespace cuicui::control {
 
 /// One control-rate sample from a gesture generator (C4/C5/F3). Hint fields use NaN = unset.
+/// `side` is also NaN = unset (VoiceController then uses the jump switcher).
 struct GestureSample {
     double pitchCents = 0.0;
     double ampDb = 0.0;
     double tone = 0.5;
-    double side = 0.0;
+    double side = std::numeric_limits<double>::quiet_NaN();
     bool active = false;
     double oecRatio = std::numeric_limits<double>::quiet_NaN();
     double gape = std::numeric_limits<double>::quiet_NaN();

@@ -273,6 +273,19 @@ public:
             gateL = 1.0;
             gateR = 1.0;
             holdOutgoing_ = false;
+        } else if (g.active && hintSet(g.side)) {
+            const double s = std::clamp(g.side, -1.0, 1.0);
+            betaL = beta;
+            betaR = beta;
+            gateL = std::sqrt(std::max(0.0, 0.5 * (1.0 - s)));
+            gateR = std::sqrt(std::max(0.0, 0.5 * (1.0 + s)));
+            holdOutgoing_ = false;
+            if (s < -0.33) {
+                switcher_.setActive(0);
+            } else if (s > 0.33) {
+                switcher_.setActive(1);
+            }
+            active = switcher_.activeSide();
         } else {
             const double split = playableSplitCents(map, gamma, tone);
             const int jumpSide = detectJumpSide(P, in.sideSwitchCents, active);

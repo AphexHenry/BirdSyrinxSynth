@@ -21,6 +21,7 @@ inline constexpr int kStreamTensionL = 0;
 inline constexpr int kStreamTensionR = 1;
 inline constexpr int kStreamAspiration = 2;
 inline constexpr int kStreamOrnament = 3;
+inline constexpr int kStreamGesture = 4;
 
 /// Independent 64-bit seed for stream `index` (0 = L, 1 = R, 2 = aspiration).
 [[nodiscard]] inline std::uint64_t deriveStreamSeed(std::uint64_t master, int index) noexcept {

@@ -84,5 +84,14 @@
 - **Decision:** Pin JUCE `8.0.15` (no native CLAP) and `clap-juce-extensions` at commit `55525c9` (2026-09-12; tag 0.26.0 does not compile against JUCE 8.0.15). CLAP ID `com.cuicuiinstruments.syrinx`.
 - **Consequences:** Plugin formats are VST3, AU, Standalone, and CLAP. A later move to JUCE 9 needs a new decision.
 
+### D-017 — Additive C4 Python APIs and bird_render gesture scores
+- **Status:** proposed · 2026-09-18 · WP-C4
+- **Context:** WP-C4 adds the gesture-score file format (already specified in `02_architecture.md` §9.4) and Python/CLI entry points that §6.1 does not list yet.
+- **Decision:** Additive, non-breaking APIs:
+  - `cuicui_core.archetype_names()`, `archetype_params(name)`, `generate_archetype(name, params, seed)`, `render_score(score, sample_rate)`
+  - `bird_render` accepts `*.gscore.json` (`format: cuicui.gesture_score`) as well as render specs; optional `--sr`
+  - `GestureSample.side` uses NaN = unset (same convention as hint fields); when set, the controller uses equal-power gates from side instead of the jump switcher
+- **Consequences:** Existing render-spec CLI and C3 MIDI paths are unchanged. C5 plugs in via `ScoreGestureSource` / `VoiceController::setGestureSource`.
+
 
 

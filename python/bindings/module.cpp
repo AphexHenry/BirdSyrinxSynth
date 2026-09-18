@@ -1,6 +1,9 @@
+#include "cuicui/control/archetypes.hpp"
 #include "cuicui/control/inverse_map.hpp"
+#include "cuicui/control/score_player.hpp"
 #include "cuicui/control/side_switcher.hpp"
 #include "cuicui/dsp/oversampling.hpp"
+#include "cuicui/io/gesture_score.hpp"
 #include "cuicui/io/offline_render.hpp"
 #include "cuicui/io/render_spec.hpp"
 #include "cuicui/model/bilateral_source.hpp"
@@ -17,6 +20,8 @@
 #include <nanobind/stl/vector.h>
 
 #include <algorithm>
+#include <array>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <stdexcept>
@@ -558,6 +563,114 @@ NB_MODULE(cuicui_core, m) {
         nb::arg("oversampling") = 0,
         nb::arg("state") = nb::none(),
         "Render control arrays through BirdVoice. Returns (audio float32, state bytes). Releases the GIL.");
+
+    m.def(
+        "archetype_names",
+        []() {
+            nb::list out;
+            for (const auto& n : cuicui::control::archetypeNames()) {
+                out.append(n);
+            }
+            return out;
+        },
+        "Names of the hand-designed C4 archetypes.");
+
+    m.def(
+        "archetype_params",
+        [](const std::string& name) {
+            const auto* info = cuicui::control::findArchetype(name);
+            if (info == nullptr) {
+                throw std::invalid_argument("unknown archetype: " + name);
+            }
+            nb::list out;
+            for (int i = 0; i < info->nParams; ++i) {
+                const auto& p = info->params[i];
+                nb::dict d;
+                d["name"] = p.name;
+                d["default"] = p.def;
+                d["min"] = p.min;
+                d["max"] = p.max;
+                d["choice"] = p.isChoice;
+                out.append(d);
+            }
+            return out;
+        },
+        nb::arg("name"),
+        "Parameter specs for one archetype.");
+
+    m.def(
+        "generate_archetype",
+        [](const std::string& name, const nb::dict& params, std::uint64_t seed) {
+            if (cuicui::control::findArchetype(name) == nullptr) {
+                throw std::invalid_argument("unknown archetype: " + name);
+            }
+            cuicui::control::ArchetypeParamBag bag;
+            for (nb::handle k : params.keys()) {
+                const std::string key = nb::cast<std::string>(k);
+                nb::handle v = params[k];
+                if (nb::isinstance<nb::str>(v)) {
+                    bag.str[key] = nb::cast<std::string>(v);
+                } else {
+                    bag.num[key] = nb::cast<double>(v);
+                }
+            }
+            const auto g = cuicui::control::generateArchetype(name, bag, seed);
+            nb::dict curves;
+            curves["samples"] = cuicui::control::GestureCurves::kN;
+            auto arr = [](const std::array<double, cuicui::control::GestureCurves::kN>& a) {
+                nb::list L;
+                for (double x : a) {
+                    L.append(x);
+                }
+                return L;
+            };
+            curves["pitch_cents"] = arr(g.curves.pitchCents);
+            curves["amp_db"] = arr(g.curves.ampDb);
+            curves["tone"] = arr(g.curves.tone);
+            curves["side"] = arr(g.curves.side);
+            nb::dict hints;
+            auto hint = [](double x) -> nb::object {
+                if (!std::isfinite(x)) {
+                    return nb::none();
+                }
+                return nb::cast(x);
+            };
+            hints["oec_ratio"] = hint(g.hints.oecRatio);
+            hints["gape"] = hint(g.hints.gape);
+            hints["second_voice_cents"] = hint(g.hints.secondVoiceCents);
+            nb::dict out;
+            out["name"] = name;
+            out["duration_ms"] = g.durationMs;
+            out["movement_score"] = cuicui::control::movementScore(g.curves);
+            out["curves"] = curves;
+            out["hints"] = hints;
+            return out;
+        },
+        nb::arg("name"),
+        nb::arg("params") = nb::dict(),
+        nb::arg("seed") = 1,
+        "Generate gesture curves for a named archetype.");
+
+    m.def(
+        "render_score",
+        [](const nb::dict& score, double sample_rate) {
+            nb::object dumps = nb::module_::import_("json").attr("dumps");
+            const std::string text = nb::cast<std::string>(dumps(score));
+            const auto parsed = cuicui::io::parse_gesture_score_string(text);
+            std::vector<float> buf;
+            {
+                nb::gil_scoped_release release;
+                cuicui::control::ScorePlayer player;
+                player.load(parsed);
+                buf = player.render(sample_rate, 0);
+            }
+            auto* heap = new std::vector<float>(std::move(buf));
+            nb::capsule owner(heap, [](void* p) noexcept { delete static_cast<std::vector<float>*>(p); });
+            return nb::ndarray<nb::numpy, float, nb::ndim<1>>(heap->data(), {heap->size()}, owner);
+        },
+        nb::arg("score"),
+        nb::arg("sample_rate") = 48000.0,
+        "Render a gesture-score dict to float32 mono audio. Releases the GIL.");
 
     nb::class_<cuicui::BirdVoice>(m, "Voice")
         .def(

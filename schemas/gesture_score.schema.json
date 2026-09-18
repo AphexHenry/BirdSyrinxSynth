@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cuicuiinstruments.com/schemas/gesture_score.schema.json",
+  "title": "cuicui.gesture_score",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["format", "version"],
+  "properties": {
+    "format": { "const": "cuicui.gesture_score" },
+    "version": { "const": 1 },
+    "name": { "type": "string" },
+    "created_by": { "type": "string" },
+    "created_at": { "type": "string" },
+    "settings": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "physio": {
+      "type": ["object", "null"],
+      "properties": {
+        "control_rate_hz": { "type": "number", "exclusiveMinimum": 0 },
+        "t0_s": { "type": "number" },
+        "tracks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": { "type": "number" }
+          }
+        }
+      }
+    },
+    "gestures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["t_s"],
+        "properties": {
+          "t_s": { "type": "number" },
+          "duration_ms": { "type": "number", "exclusiveMinimum": 0 },
+          "type": { "type": "string" },
+          "anchor_hz": { "type": "number", "exclusiveMinimum": 0 },
+          "params": {
+            "type": "object",
+            "additionalProperties": { "type": ["number", "string"] }
+          },
+          "hints": {
+            "type": "object",
+            "properties": {
+              "oec_ratio": { "type": ["number", "null"] },
+              "gape": { "type": ["number", "null"] },
+              "second_voice_cents": { "type": ["number", "null"] }
+            }
+          },
+          "curves": {
+            "type": "object",
+            "required": ["pitch_cents", "amp_db", "tone", "side"],
+            "properties": {
+              "samples": { "type": "integer", "const": 64 },
+              "pitch_cents": {
+                "type": "array",
+                "minItems": 64,
+                "maxItems": 64,
+                "items": { "type": "number" }
+              },
+              "amp_db": {
+                "type": "array",
+                "minItems": 64,
+                "maxItems": 64,
+                "items": { "type": "number" }
+              },
+              "tone": {
+                "type": "array",
+                "minItems": 64,
+                "maxItems": 64,
+                "items": { "type": "number" }
+              },
+              "side": {
+                "type": "array",
+                "minItems": 64,
+                "maxItems": 64,
+                "items": { "type": "number" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "t0_s": { "type": "number" },
+          "t1_s": { "type": "number" },
+          "label": { "type": "string" }
+        }
+      }
+    }
+  }
+}

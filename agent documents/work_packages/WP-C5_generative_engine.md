@@ -121,3 +121,13 @@ Human checklist: play with Leash on the mod wheel (map it in the DAW), hold chor
 - Blending pitch at Leash between two independent curves can cause wide swoops when curves diverge a lot; keep the generative anchor tied to the held note and limit anchor offsets by Range.
 - Silences from gestures must go through breath (pressure → 0), not through gain — the physical onset is part of the character.
 - Tempo information may be absent (Standalone) → free timing.
+
+## Notes from WP-C4
+
+- `ScoreGestureSource` + `ScorePlayer` live in `core/include/cuicui/control/score_player.hpp`. Load a `.gscore.json`, `prepare`, then `process` (0 alloc). Gesture events: leash=1, Motion=0, breath from `settings["perf.breath"]` (default 0.7).
+- `generate_archetype` / `cuicui.gestures.score_tools.sequence` build scores. Examples: `examples/scores/*.gscore.json`.
+- `movementScore(curves)` is RMS of dP/du in cents — use it to sort archetypes by Motion.
+- Side: NaN = unset (jump switcher). Archetypes write a real side; `switch_sweep` is a step. Two-voice uses `secondVoiceCents` (both gates 1).
+- Playable anchors at σ=1 still D6–C8. Keep default gallery anchors in that band (stack at D6, switch_sweep from C8).
+- Between gestures the player sets gate=false so breath releases physically (not a gain cut).
+

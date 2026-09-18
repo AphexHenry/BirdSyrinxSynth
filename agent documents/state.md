@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-09-17 — by: WP-C3 agent
+**Last updated:** 2026-09-18 — by: WP-C4 agent
 
 ## Status legend
 
@@ -33,7 +33,7 @@
 | 11 | C1 | Plugin shell + offline plugin renderer | B6 | done | 2026-09-17 | wp-C1 | `work_packages/WP-C1_plugin_shell.md` |
 | 12 | C2 | Source atlas & inverse pitch map | B6 | done | 2026-09-17 | wp-C2 | `work_packages/WP-C2_atlas_inverse_map.md` |
 | 13 | C3 | Pitch-led direct playing | C1, C2 | done | 2026-09-17 | wp-C3 | `work_packages/WP-C3_pitch_led_playing.md` |
-| 14 | C4 | Archetype library + gesture score format & player | C3 | todo | | | `work_packages/WP-C4_archetypes_gesture_score.md` |
+| 14 | C4 | Archetype library + gesture score format & player | C3 | done | 2026-09-18 | wp-C4 | `work_packages/WP-C4_archetypes_gesture_score.md` |
 | 15 | C5 | Generative performance engine | C4 | todo | | | `work_packages/WP-C5_generative_engine.md` |
 | 16 | C6 | Perform UI, Physiology page, presets v1 | C5 | todo | | | `work_packages/WP-C6_perform_ui_presets.md` |
 | 17 | E1 | Fitting framework, losses, identifiability benchmark | D2, B6, C2, C4 | todo | | | `work_packages/WP-E1_fitting_framework.md` |
@@ -50,7 +50,7 @@
 
 ## Current capabilities
 
-**Playable instrument (M3).** Syrinx loads as VST3, AU, CLAP and Standalone. In Perform mode, MIDI is concert pitch through the inverse map: D6–C8 at size 1 is in tune (median 0.06 cents). Breath, Tone, Motion, Snap, Glide and Size drive the bird; physiology is solved underneath. Physiology mode still uses C1’s empirical map. D1 is still parked.
+**Playable instrument (M3) plus a gesture vocabulary.** Syrinx still loads as VST3, AU, CLAP and Standalone with MIDI in concert pitch (D6–C8 at size 1). Offline, `bird_render` can play **gesture scores**: hand-designed archetypes (whistle, sweeps, trill, buzz, stack, chip, two-voice, side-switch, intro) or dense physiological tracks. The plugin does not yet improvise (C5). D1 is still parked.
 
 ## Baselines
 
@@ -79,6 +79,8 @@
 - C2 continuous tone morph (listening 04) at 2 kHz moves ~15–26 cents near whistle; held notes stay ≤ 0.3 cents.
 - C3 in-app keyboard is D6–C8. Piano C4–C5 with range_fold sounds as C7 (several keys collapse onto the same bird notes).
 - Jumps on D6 (the SNIC/onset floor) sound printer-like. Listening 07 now uses A6–A7–C8. Syllable-shaped breath around switches is C4/C5.
+- C4 gallery “high” upsweeps / switch_sweeps can leave D6–C8 and fold.
+- C4 hand-designed archetypes match syllable *shapes* better than *colour*. Spectral resemblance to real birds waits on D1 + E (fitting) and possibly G2.
 
 ## Open questions for the human
 
@@ -86,6 +88,7 @@
 - JUCE licence choice before any public release (see `decisions.md` D-003).
 - B6 CPU: accept ~3 % per voice, or spend a WP on optimisation (skip gated-off RK4, UVT dirty-flag)? Recommendation: accept for now, revisit if the plugin feels heavy.
 - M3 feel: Motion default 0.3, onset, tuning on a real keyboard. Snap useful? Keyboard range D6–C8 OK?
+- C4 approved with a colour caveat: hand-designed gestures do not yet resemble real birds. D1 is still parked; resemblance work starts there.
 
 ## Session log (append one line per session)
 
@@ -137,3 +140,7 @@
 | 2026-09-17 | C3 | Cursor Grok 4.6 | WP-C3 awaiting approval (M3 listening page opened; D6–C8 in tune) |
 | 2026-09-17 | C3 | Cursor Grok 4.6 | feedback: 07 printer-like; retuned jumps off D6 floor; still awaiting approve |
 | 2026-09-17 | C3 | Cursor Grok 4.6 | approved, committed and tagged wp-C3 |
+| 2026-09-18 | C4 | Cursor Grok 4.6 | started WP-C4 (archetypes, gesture score, player) |
+| 2026-09-18 | C4 | Cursor Grok 4.6 | WP-C4 awaiting approval (listening page opened) |
+| 2026-09-18 | C4 | Cursor Grok 4.6 | feedback: 12/13 stack+buzz hiss, two-voice machine; song retuned, still awaiting approve |
+| 2026-09-18 | C4 | Cursor Grok 4.6 | approved (colour still not bird-like), committed and tagged wp-C4 |

@@ -36,6 +36,7 @@
 - [C3] In-app keyboard is D6–C8 (concert pitch in the σ=1 playable band). A transposing “bird octave” overlay could help pianists who expect C4.
 - [C3] MIDI 60–72 with range_fold maps several piano octaves onto the same bird notes; glide tests must use in-range pitches (D6–C8) or the interval collapses.
 - [C3] Jumps at the D6 playable floor sound printer-like (SNIC/onset noise + physical side-open). Keep demos in the middle of the band until C4/C5 add syllable-shaped breath around switches.
+- [C4] High-depth upsweeps/switch_sweeps can leave the D6–C8 playable band and fold or sit on the floor — C5 should keep generated anchors inside the atlas range.
 
 
 

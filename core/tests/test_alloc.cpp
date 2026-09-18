@@ -1,6 +1,9 @@
 #include "alloc_counter.hpp"
+#include "cuicui/control/archetypes.hpp"
 #include "cuicui/control/inverse_map.hpp"
+#include "cuicui/control/score_player.hpp"
 #include "cuicui/control/voice_controller.hpp"
+#include "cuicui/io/gesture_score.hpp"
 #include "cuicui/model/bird_voice.hpp"
 
 #include <catch2/catch_test_macros.hpp>
@@ -146,5 +149,32 @@ TEST_CASE("InverseMap::solve allocates nothing") {
     for (int i = 0; i < 1000; ++i) {
         (void)map.solve(0.4 + 0.0001 * static_cast<double>(i), 0.6, 0.2, 0.0, true);
     }
+    REQUIRE(cuicui::test::alloc_count() == 0);
+}
+
+TEST_CASE("ScorePlayer::process allocates nothing after prepare") {
+    auto inst = cuicui::control::generateArchetype("chip", cuicui::control::ArchetypeParamBag{}, 1);
+    cuicui::io::ScoreGestureEvent e;
+    e.t_s = 0.0;
+    e.duration_ms = inst.durationMs;
+    e.type = "archetype:chip";
+    e.anchor_hz = 2093.0;
+    e.curves = inst.curves;
+    e.hints = inst.hints;
+    e.has_curves = true;
+    cuicui::io::GestureScore s;
+    s.settings["body.size"] = 1.0;
+    s.gestures.push_back(e);
+    cuicui::control::ScorePlayer player;
+    player.load(s);
+    cuicui::ProcessSpec spec;
+    spec.hostSampleRate = 48000.0;
+    spec.maxBlockSize = 128;
+    spec.oversampling = 4;
+    player.prepare(spec);
+    std::vector<float> buf(64, 0.0f);
+    player.process(buf.data(), 64);
+    cuicui::test::reset_alloc_count();
+    player.process(buf.data(), 64);
     REQUIRE(cuicui::test::alloc_count() == 0);
 }
