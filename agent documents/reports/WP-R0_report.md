@@ -3,10 +3,10 @@
 | Field | Value |
 |---|---|
 | WP | WP-R0 (no spec file: requested by the human in chat, 2026-10-11) |
-| Status | awaiting approval |
+| Status | done (tag `wp-R0`) |
 | Started / finished | 2026-10-11 / 2026-10-11 |
 | Agent | Claude Opus 5.5 (one long session) |
-| Commits so far | `5f22e66` (human checkpoint: review, PITCH1/2, COLOUR1/2, study scripts). Still uncommitted: ENGINE1, the R1–R4 specs, D-018…D-024, `state.md` and the doc pointers, `studies/data/`, `engine1_make.py`, `engine_gate_poc.py`. |
+| Commits | `5f22e66` (review, PITCH1/2, COLOUR1/2, study scripts) and `f549ec2` (ENGINE1, R1–R4 specs, D-018…D-024, study data), both by the human; closing commit tagged `wp-R0`. |
 
 ## 1. Summary (plain language)
 

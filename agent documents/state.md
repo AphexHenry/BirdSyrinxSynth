@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-10-11 — by: approach-review session (R0 awaiting approval; next WP = R1)
+**Last updated:** 2026-10-11 — by: R0 closed (done, tag wp-R0); next WP = R1
 
 ## Status legend
 
@@ -35,7 +35,7 @@
 | 13 | C3 | Pitch-led direct playing | C1, C2 | done | 2026-09-17 | wp-C3 | `work_packages/WP-C3_pitch_led_playing.md` |
 | 14 | C4 | Archetype library + gesture score format & player | C3 | done | 2026-09-18 | wp-C4 | `work_packages/WP-C4_archetypes_gesture_score.md` |
 | 15 | C5 | Generative performance engine | C4 | optional | 2026-10-11 | | `work_packages/WP-C5_generative_engine.md` |
-| 15a | R0 | Approach review + understanding studies + web prototype (PITCH1/2, COLOUR1/2, ENGINE1, PROTO1) | C5 | awaiting approval | 2026-10-11 | | `reviews/2026-10-11_approach_review.md` |
+| 15a | R0 | Approach review + understanding studies + web prototype (PITCH1/2, COLOUR1/2, ENGINE1, PROTO1) | C5 | done | 2026-10-11 | wp-R0 | `reviews/2026-10-11_approach_review.md` |
 | 15b | R1 | Real syllables + whistle voice + playing modes A/B in the plugin (modular) | R0 | todo | | | `work_packages/WP-R1_real_syllables_whistle_voice.md` |
 | 15c | R4 | Perform UI + presets (revised C6) | R1 | todo | | | `work_packages/WP-R4_perform_ui_presets.md` |
 | 15d | R3 | Variations within the bird's style (+ more recordings) | R1 | todo | | | `work_packages/WP-R3_variations_within_style.md` |
@@ -113,7 +113,6 @@
 - B6 CPU: accept ~3 % per voice, or spend a WP on optimisation (skip gated-off RK4, UVT dirty-flag)? Recommendation: accept for now, revisit if the plugin feels heavy.
 - M3 feel: Motion default 0.3, onset, tuning on a real keyboard. Snap useful? Keyboard range D6–C8 OK?
 - C4 approved with a colour caveat: hand-designed gestures do not yet resemble real birds. D1 is still parked; resemblance work starts there.
-- **R0 awaiting approval.** Most of R0 is already committed by the human (`5f22e66`). Still uncommitted: ENGINE1, the R1–R4 specs, D-018…D-024, this `state.md`, doc pointers, `studies/data/`, `engine1_make.py`, `engine_gate_poc.py`. Reply `approve` to commit and tag `wp-R0`; no plugin code changed. Then the next WP is **R1**.
 - **Where are the other zebra finch recordings** (and their annotations)? Needed for R3. The human said many are available.
 - **Prototype feel:** the human tried it and reported on pitch and fast playing; changes were made (random start, first on note, follow mapping). A further impression is welcome before R1 fixes defaults.
 - C5: Leash / Density / Variation defaults; is tempo sync useful in a DAW; should Leash ship mapped to the mod wheel in C6? (superseded by the re-plan)
@@ -181,3 +180,4 @@
 | 2026-10-11 | R0 | Claude Opus 5.5 | web prototype PROTO1 (A + B with real syllables) built and revised after human feedback |
 | 2026-10-11 | R0 | Claude Opus 5.5 | COLOUR1 / COLOUR2 (breath hurts; bird harmonics best) and ENGINE1 (click cause and fix; engine 100/52 vs whistle 100/100) done |
 | 2026-10-11 | R0 | Claude Opus 5.5 | human: switch to what works → whistle default voice (D-022); re-plan R1–R4 written; R0 awaiting approval |
+| 2026-10-11 | R0 | Claude Opus 5.5 | approved (content committed by the human in `f549ec2`); status done, tagged wp-R0 |
