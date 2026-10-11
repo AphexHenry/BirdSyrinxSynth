@@ -1,0 +1,47 @@
+{
+ "study": "COLOUR2",
+ "design_hash": "2e2e2973d5ee",
+ "seed": 20261014,
+ "key": {
+  "P1": {
+   "span_s": [
+    15.4,
+    17.85
+   ],
+   "letters": {
+    "A": "breath_38",
+    "B": "harm_46",
+    "C": "mix",
+    "D": "breath_44",
+    "E": "harm_38",
+    "F": "breath_50",
+    "G": "ref",
+    "H": "breath_32",
+    "I": "sine",
+    "J": "harm_30"
+   }
+  },
+  "P3": {
+   "span_s": [
+    26.95,
+    29.5
+   ],
+   "letters": {
+    "A": "breath_32",
+    "B": "breath_38",
+    "C": "harm_46",
+    "D": "harm_38",
+    "E": "ref",
+    "F": "mix",
+    "G": "breath_44",
+    "H": "sine",
+    "I": "breath_50",
+    "J": "harm_30"
+   }
+  }
+ },
+ "screen_order": [
+  "P1",
+  "P3"
+ ]
+}

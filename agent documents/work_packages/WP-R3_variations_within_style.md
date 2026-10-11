@@ -1,0 +1,17 @@
+# WP-R3 — Variations within the bird's style
+
+| Field | Value |
+|---|---|
+| Phase | R · Depends on R1 (and R4 if done first) · Size M–L |
+
+**Goal.** Let the bird produce **new** material that still sounds like this finch. The human decided "variation stays within this bird's style" (approach review §10, decision 2).
+
+**Options, safest first** (approach review, "Approach ideas"):
+1. Small, data-calibrated perturbations of real syllables: timing ±, transposition ±, scaled to the bird's own spread.
+2. Morphs between two real syllables of the same type: time-align (DTW), then blend.
+3. A per-type shape model (functional PCA on swipes and peeps). Variation = distance from the type mean, calibrated to the real spread.
+4. A sequence model of syllable labels learned from the annotations, replacing the real order. The motif swipe-swipe-swipe-(swipe+swipe)-Lswipe recurs at 11.99 s and 22.00 s.
+
+**Method.** Each option is checked with a short blind listening test against real phrases, as in COLOUR1/2 (MUSHRA page, pre-registered rule). Only options rated close to the real bird stay. Variation is exposed as one control: 0 = the bird's real syllables (R1), 1 = its natural spread.
+
+**Data.** Many more zebra finch recordings are available (human, 2026-10-11). Ingesting them (annotation, tracking, bank export) widens the repertoire and the variation statistics, and may come first. Ask the human where they are.

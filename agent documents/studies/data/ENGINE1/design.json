@@ -1,0 +1,48 @@
+{
+ "study": "ENGINE1",
+ "design_hash": "28b2e661397a",
+ "seed": 20261015,
+ "settings": {
+  "body.size": 0.75,
+  "perf.breath": 0.75,
+  "perf.tone": 0.6,
+  "resp.attack_ms": 3,
+  "resp.release_ms": 8,
+  "out.radiation": 1.0,
+  "noise.aspiration": 0.0
+ },
+ "pre_ms": 12,
+ "post_ms": 10,
+ "key": {
+  "P1": {
+   "span_s": [
+    15.4,
+    17.85
+   ],
+   "letters": {
+    "A": "engine_today",
+    "B": "anchor",
+    "C": "engine_fixed",
+    "D": "ref",
+    "E": "whistle"
+   }
+  },
+  "P3": {
+   "span_s": [
+    26.95,
+    29.5
+   ],
+   "letters": {
+    "A": "engine_today",
+    "B": "anchor",
+    "C": "ref",
+    "D": "whistle",
+    "E": "engine_fixed"
+   }
+  }
+ },
+ "screen_order": [
+  "P3",
+  "P1"
+ ]
+}

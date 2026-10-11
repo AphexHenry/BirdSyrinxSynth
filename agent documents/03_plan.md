@@ -2,6 +2,9 @@
 
 > Status: reference document. The **execution order and live status** are in `state.md`; the **detailed specification** of each step is in `work_packages/WP-*.md`.
 
+
+> **Re-plan 2026-10-11 (D-018…D-024).** After the approach review (`reviews/2026-10-11_approach_review.md`), the plan continues with phase **R**: R1 real syllables + whistle voice + modes A/B in the plugin → R4 Perform UI → R3 variations; R2 (anatomical voice) optional. C6, D2, E1–E4, F1–F4 are optional/superseded. The live order is in `state.md`.
+
 ---
 
 ## 1. Phases

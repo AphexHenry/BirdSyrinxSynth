@@ -168,6 +168,7 @@ Key figures (copied to `agent documents/reports/assets/C5/`):
 
 ## 13. Partial — remaining work (only if status is partial)
 
+> **Superseded (2026-10-11, D-024):** the remaining work moved to WP-R1 (real syllables, playing modes) and WP-R3 (variations); C5 is now `optional`.
 > **Do not continue C5 from its original spec.** The human is re-planning after the approach review (`agent documents/reviews/2026-10-11_approach_review.md`). The next session waits for that re-plan (see `state.md` → "Open questions for the human").
 
 What the checkpoint keeps (verified by the C5 tests and `scripts/check.sh` on 2026-10-11):

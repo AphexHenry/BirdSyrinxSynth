@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-10-11 — by: approach review session (C5 committed as partial; re-plan pending)
+**Last updated:** 2026-10-11 — by: approach-review session (R0 awaiting approval; next WP = R1)
 
 ## Status legend
 
@@ -26,7 +26,7 @@
 | 4 | B1 | Labial oscillator (normal form) | A2 | done | 2026-09-16 | wp-B1 | `work_packages/WP-B1_labial_oscillator.md` |
 | 5 | B2 | Trachea waveguide | B1 | done | 2026-09-17 | wp-B2 | `work_packages/WP-B2_trachea.md` |
 | 6 | B3 | Upper vocal tract: glottis–OEC–beak + radiation | B2 | done | 2026-09-17 | wp-B3 | `work_packages/WP-B3_upper_vocal_tract.md` |
-| 7 | D2 | Feature extraction (shared real/synthetic) | D1, B3 | todo | | | `work_packages/WP-D2_features.md` |
+| 7 | D2 | Feature extraction (shared real/synthetic) | D1, B3 | optional | | | `work_packages/WP-D2_features.md` |
 | 8 | B4 | Respiratory dynamics & noise sources | B3 | done | 2026-09-17 | wp-B4 | `work_packages/WP-B4_respiration_noise.md` |
 | 9 | B5 | Two sources: left/right, gating, side switching | B4 | done | 2026-09-17 | wp-B5 | `work_packages/WP-B5_two_sources.md` |
 | 10 | B6 | Voice assembly, body size, state save/load, benchmarks | B5 | done | 2026-09-17 | wp-B6 | `work_packages/WP-B6_voice_assembly.md` |
@@ -34,25 +34,31 @@
 | 12 | C2 | Source atlas & inverse pitch map | B6 | done | 2026-09-17 | wp-C2 | `work_packages/WP-C2_atlas_inverse_map.md` |
 | 13 | C3 | Pitch-led direct playing | C1, C2 | done | 2026-09-17 | wp-C3 | `work_packages/WP-C3_pitch_led_playing.md` |
 | 14 | C4 | Archetype library + gesture score format & player | C3 | done | 2026-09-18 | wp-C4 | `work_packages/WP-C4_archetypes_gesture_score.md` |
-| 15 | C5 | Generative performance engine | C4 | partial | 2026-10-11 | | `work_packages/WP-C5_generative_engine.md` |
-| 16 | C6 | Perform UI, Physiology page, presets v1 | C5 | todo | | | `work_packages/WP-C6_perform_ui_presets.md` |
-| 17 | E1 | Fitting framework, losses, identifiability benchmark | D2, B6, C2, C4 | todo | | | `work_packages/WP-E1_fitting_framework.md` |
-| 18 | E2 | Voice atlas + Viterbi initial path | E1, C2 | todo | | | `work_packages/WP-E2_voice_atlas_viterbi.md` |
-| 19 | E3 | Windowed CMA-ES refinement → gesture scores | E2 | todo | | | `work_packages/WP-E3_windowed_refinement.md` |
-| 20 | E4 | Per-bird constants + model adequacy report | E3 | todo | | | `work_packages/WP-E4_bird_constants_adequacy.md` |
-| 21 | F1 | Gesture extraction, alignment, clustering | E4 | todo | | | `work_packages/WP-F1_gesture_extraction.md` |
-| 22 | F2 | Variation model (FPCA), grammar, voice bank export | F1 | todo | | | `work_packages/WP-F2_variation_model_grammar.md` |
-| 23 | F3 | Voice bank runtime integration | F2, C6 | todo | | | `work_packages/WP-F3_voicebank_runtime.md` |
-| 24 | F4 | Advanced Gesture page | F3 | todo | | | `work_packages/WP-F4_gesture_page.md` |
-| 25 | G1 | Release polish: presets, validation, manual, packaging | F4 | todo | | | `work_packages/WP-G1_release_polish.md` |
+| 15 | C5 | Generative performance engine | C4 | optional | 2026-10-11 | | `work_packages/WP-C5_generative_engine.md` |
+| 15a | R0 | Approach review + understanding studies + web prototype (PITCH1/2, COLOUR1/2, ENGINE1, PROTO1) | C5 | awaiting approval | 2026-10-11 | | `reviews/2026-10-11_approach_review.md` |
+| 15b | R1 | Real syllables + whistle voice + playing modes A/B in the plugin (modular) | R0 | todo | | | `work_packages/WP-R1_real_syllables_whistle_voice.md` |
+| 15c | R4 | Perform UI + presets (revised C6) | R1 | todo | | | `work_packages/WP-R4_perform_ui_presets.md` |
+| 15d | R3 | Variations within the bird's style (+ more recordings) | R1 | todo | | | `work_packages/WP-R3_variations_within_style.md` |
+| 15e | R2 | Anatomical engine as optional voice (click fix, colour, re-test) | R1 | optional | | | `work_packages/WP-R2_anatomical_voice_optional.md` |
+| 16 | C6 | Perform UI, Physiology page, presets v1 | C5 | optional | | | `work_packages/WP-C6_perform_ui_presets.md` |
+| 17 | E1 | Fitting framework, losses, identifiability benchmark | D2, B6, C2, C4 | optional | | | `work_packages/WP-E1_fitting_framework.md` |
+| 18 | E2 | Voice atlas + Viterbi initial path | E1, C2 | optional | | | `work_packages/WP-E2_voice_atlas_viterbi.md` |
+| 19 | E3 | Windowed CMA-ES refinement → gesture scores | E2 | optional | | | `work_packages/WP-E3_windowed_refinement.md` |
+| 20 | E4 | Per-bird constants + model adequacy report | E3 | optional | | | `work_packages/WP-E4_bird_constants_adequacy.md` |
+| 21 | F1 | Gesture extraction, alignment, clustering | E4 | optional | | | `work_packages/WP-F1_gesture_extraction.md` |
+| 22 | F2 | Variation model (FPCA), grammar, voice bank export | F1 | optional | | | `work_packages/WP-F2_variation_model_grammar.md` |
+| 23 | F3 | Voice bank runtime integration | F2, C6 | optional | | | `work_packages/WP-F3_voicebank_runtime.md` |
+| 24 | F4 | Advanced Gesture page | F3 | optional | | | `work_packages/WP-F4_gesture_page.md` |
+| 25 | G1 | Release polish: presets, validation, manual, packaging | R4 | todo | | | `work_packages/WP-G1_release_polish.md` |
 | 26 | G2 | Tier-2 physical labial source | B6 | optional | | | `work_packages/WP-G2_tier2_source.md` |
 | 27 | G3 | Differentiable twin & amortised inference | E3 | optional | | | `work_packages/WP-G3_differentiable_amortized.md` |
 
 ## Current capabilities
 
-**Approach review 2026-10-11:** generated singing is rejected (morse code). The bird's real gestures played through the engine, with the OEC tuned on f0, sound right apart from attack clicks. See `reviews/2026-10-11_approach_review.md`.
-
-**Playable instrument that can also sing.** Syrinx still loads as VST3, AU, CLAP and Standalone with MIDI in concert pitch (D6–C8 at size 1). **Leash = 0** is the C3 playable path. Raise Leash and the bird improvises syllables around the held notes (C4 archetypes, not learned). Polyphony 1–16 is a small flock with stereo spread; Freeze repeats the current motif; tempo sync follows the host when the transport is playing. Gesture scores remain an offline `bird_render` feature. D1 is still parked.
+**2026-10-11 — direction changed (D-018…D-024).** The bird's identity comes from its **real syllables**. The default voice is the **whistle**: a sine following the real pitch and loudness, plus the bird's own harmonics. The anatomical engine is optional.
+- **Plugin (unchanged since C5):** VST3/AU/CLAP/Standalone, MIDI in tune (C3 path), C5 generator. The generator content is rejected; its plumbing is reused in R1.
+- **Web prototype** `listening/PROTO1/index.html` (`scripts/studies/proto1_make.py`): playable A + B with all 123 real syllables of 22938, whistle + bird harmonics, the human's note rule, own-height / follow-the-keyboard mapping, first syllable on the note, random start, MIDI (Chrome), computer keys, on-screen keyboard. **It is the executable spec for R1.**
+- **Studies with results:** PITCH1, PITCH2, COLOUR1, COLOUR2, ENGINE1 (`agent documents/studies/`). The real bird vs the whistle with real gestures was rated 98–100/100.
 
 ## Baselines
 
@@ -92,6 +98,13 @@
 - Default OEC tracking (`f_H = 3000·(f0/1000)^0.7`) puts the resonance at 1.7–3× f0 (Riede 2006: on f0). This gives too much 2nd harmonic (−11 dB vs the bird's −33 dB) and a synthetic colour.
 - Attack clicks: at each onset the labial position jumps from rest (x ≈ 1.0) to the oscillation centre (≈ 0.12) in about 1 ms and leaks into the output.
 - Recording `22938` is a finch whose sounds are tonal sweeps at 2.5–4.9 kHz with no low harmonic stacks. `01_research.md` §2.7 zebra-finch priors do not match it.
+- **Anatomical engine** (ENGINE1):
+  - The clicks are cured offline by articulating with a volume envelope plus a 12 ms pre-roll and 10 ms post-roll, but this is not implemented in code yet (R2).
+  - Even fixed, it scores 52 on a passage with a long alarm and low swipes (the whistle scores 100).
+  - Score/gesture renders cannot switch off tension noise: `ControlFrame.noise_beta_sigma` defaults to 0.005 in `ScorePlayer`.
+- **Pitch tracker** (`scripts/review/track.py`, dominant trace): it hops between the two voices on some syllables. `scripts/studies/voice2.py` tracks the second voice only partially (about 10 % of the time).
+- **Prototype pitch feel:** "questionable, maybe fine for now" (human). Pitch at 3–4 kHz is perceptually fuzzy (PITCH1/2); own-height mapping wraps octaves inside a scale (use follow mode for melodies).
+- **Study scripts** in `scripts/review/` and `scripts/studies/` are research code outside the ruff gate. Some lint warnings remain (line length, `zip(strict=)`).
 
 ## Open questions for the human
 
@@ -100,7 +113,9 @@
 - B6 CPU: accept ~3 % per voice, or spend a WP on optimisation (skip gated-off RK4, UVT dirty-flag)? Recommendation: accept for now, revisit if the plugin feels heavy.
 - M3 feel: Motion default 0.3, onset, tuning on a real keyboard. Snap useful? Keyboard range D6–C8 OK?
 - C4 approved with a colour caveat: hand-designed gestures do not yet resemble real birds. D1 is still parked; resemblance work starts there.
-- **Re-plan after the approach review (2026-10-11) — pending.** The human approved a re-plan in principle and wants to discuss the listening results first. Until then, do **not** continue C5 from its original spec and do not start C6. Proposal: R1 real syllable bank, R2 engine colour calibration + onset-click fix, R3 data-driven generator; E-phase optional.
+- **R0 awaiting approval.** Most of R0 is already committed by the human (`5f22e66`). Still uncommitted: ENGINE1, the R1–R4 specs, D-018…D-024, this `state.md`, doc pointers, `studies/data/`, `engine1_make.py`, `engine_gate_poc.py`. Reply `approve` to commit and tag `wp-R0`; no plugin code changed. Then the next WP is **R1**.
+- **Where are the other zebra finch recordings** (and their annotations)? Needed for R3. The human said many are available.
+- **Prototype feel:** the human tried it and reported on pitch and fast playing; changes were made (random start, first on note, follow mapping). A further impression is welcome before R1 fixes defaults.
 - C5: Leash / Density / Variation defaults; is tempo sync useful in a DAW; should Leash ship mapped to the mod wheel in C6? (superseded by the re-plan)
 
 ## Session log (append one line per session)
@@ -162,3 +177,7 @@
 | 2026-09-18 | C5 | Cursor Grok 4.6 | feedback: long glissandi / soft attacks; grammar retuned to short phonemes; page rebuilt |
 | 2026-10-11 | C5 | Claude Opus 5.5 | feedback: all items sound like morse code, colour synthetic; approach review + copy-synthesis experiment (`listening/REVIEW/`) |
 | 2026-10-11 | C5 | Claude Opus 5.5 | human: real gestures sound like a bird (02/03/05); C5 committed as partial; re-plan pending discussion |
+| 2026-10-11 | R0 | Claude Opus 5.5 | PITCH1 / PITCH2 (note of a syllable; dance around the note) done; rule decided (D-019, D-020) |
+| 2026-10-11 | R0 | Claude Opus 5.5 | web prototype PROTO1 (A + B with real syllables) built and revised after human feedback |
+| 2026-10-11 | R0 | Claude Opus 5.5 | COLOUR1 / COLOUR2 (breath hurts; bird harmonics best) and ENGINE1 (click cause and fix; engine 100/52 vs whistle 100/100) done |
+| 2026-10-11 | R0 | Claude Opus 5.5 | human: switch to what works → whistle default voice (D-022); re-plan R1–R4 written; R0 awaiting approval |

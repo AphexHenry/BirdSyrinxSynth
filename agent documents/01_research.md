@@ -3,6 +3,7 @@
 > Status: reference document. Agents READ this; they do not edit it without a logged decision (see `decisions.md`).
 > Scope: **songbird (oscine) syrinx only**. Target species for data-driven work: **zebra finch** (*Taeniopygia guttata*).
 > Audience of the final product: **musicians**. Science is the engine; playability is the priority.
+> **Update 2026-10-11:** listening studies changed several assumptions of this document. The bird's identity is in its real gestures; the default voice is a whistle with the bird's own harmonics, not the Tier-1 engine (D-022); this bird's repertoire has no low stacks (D-023). See `reviews/2026-10-11_approach_review.md` and `decisions.md` D-018…D-024.
 
 ---
 

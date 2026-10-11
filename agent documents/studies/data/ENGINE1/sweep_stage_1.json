@@ -1,0 +1,1016 @@
+{
+ "real_click": [
+  -60.92204449615359,
+  -44.537900105453765
+ ],
+ "rows": [
+  {
+   "tone": 0.3,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.02,
+   "click_db": -39.5,
+   "click_max": -27.7,
+   "h2": -28.5,
+   "h3": -52.5,
+   "pitch_err_c": 43.7
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.0,
+   "click_db": -39.5,
+   "click_max": -27.7,
+   "h2": -28.5,
+   "h3": -52.9,
+   "pitch_err_c": 43.6
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.02,
+   "click_db": -8.5,
+   "click_max": 0.1,
+   "h2": -29.9,
+   "h3": -54.0,
+   "pitch_err_c": 43.2
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.0,
+   "click_db": -8.5,
+   "click_max": 0.1,
+   "h2": -29.9,
+   "h3": -54.4,
+   "pitch_err_c": 43.1
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.02,
+   "click_db": -7.3,
+   "click_max": 2.0,
+   "h2": -34.5,
+   "h3": -61.8,
+   "pitch_err_c": 43.3
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.0,
+   "click_db": -7.3,
+   "click_max": 2.0,
+   "h2": -34.5,
+   "h3": -62.1,
+   "pitch_err_c": 43.4
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.02,
+   "click_db": -37.7,
+   "click_max": -29.9,
+   "h2": -28.8,
+   "h3": -53.2,
+   "pitch_err_c": 43.5
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.0,
+   "click_db": -37.7,
+   "click_max": -29.9,
+   "h2": -28.9,
+   "h3": -53.6,
+   "pitch_err_c": 43.6
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.02,
+   "click_db": -10.8,
+   "click_max": -2.6,
+   "h2": -30.2,
+   "h3": -54.9,
+   "pitch_err_c": 43.0
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.0,
+   "click_db": -10.8,
+   "click_max": -2.6,
+   "h2": -30.2,
+   "h3": -55.1,
+   "pitch_err_c": 42.7
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.02,
+   "click_db": -9.4,
+   "click_max": 0.1,
+   "h2": -34.8,
+   "h3": -62.7,
+   "pitch_err_c": 43.1
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.0,
+   "click_db": -9.4,
+   "click_max": 0.1,
+   "h2": -34.8,
+   "h3": -62.9,
+   "pitch_err_c": 43.1
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.02,
+   "click_db": -27.4,
+   "click_max": -17.1,
+   "h2": -29.5,
+   "h3": -53.7,
+   "pitch_err_c": 48.1
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.0,
+   "click_db": -27.4,
+   "click_max": -17.1,
+   "h2": -29.5,
+   "h3": -54.5,
+   "pitch_err_c": 48.1
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.02,
+   "click_db": -3.9,
+   "click_max": 2.8,
+   "h2": -31.0,
+   "h3": -55.4,
+   "pitch_err_c": 47.9
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.0,
+   "click_db": -3.9,
+   "click_max": 2.8,
+   "h2": -31.0,
+   "h3": -56.4,
+   "pitch_err_c": 48.1
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.02,
+   "click_db": -1.5,
+   "click_max": 4.7,
+   "h2": -35.5,
+   "h3": -63.2,
+   "pitch_err_c": 48.0
+  },
+  {
+   "tone": 0.3,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.0,
+   "click_db": -1.5,
+   "click_max": 4.7,
+   "h2": -35.6,
+   "h3": -64.0,
+   "pitch_err_c": 48.0
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.02,
+   "click_db": -37.1,
+   "click_max": -30.0,
+   "h2": -27.1,
+   "h3": -50.0,
+   "pitch_err_c": 39.0
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.0,
+   "click_db": -37.1,
+   "click_max": -30.0,
+   "h2": -27.1,
+   "h3": -50.1,
+   "pitch_err_c": 39.0
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.02,
+   "click_db": -5.1,
+   "click_max": -1.4,
+   "h2": -28.5,
+   "h3": -51.5,
+   "pitch_err_c": 38.5
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.0,
+   "click_db": -5.1,
+   "click_max": -1.4,
+   "h2": -28.5,
+   "h3": -51.6,
+   "pitch_err_c": 38.5
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.02,
+   "click_db": -2.6,
+   "click_max": 1.6,
+   "h2": -33.1,
+   "h3": -59.6,
+   "pitch_err_c": 38.9
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.0,
+   "click_db": -2.6,
+   "click_max": 1.6,
+   "h2": -33.1,
+   "h3": -59.6,
+   "pitch_err_c": 38.9
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.02,
+   "click_db": -37.0,
+   "click_max": -30.6,
+   "h2": -27.1,
+   "h3": -49.3,
+   "pitch_err_c": 40.2
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.0,
+   "click_db": -37.0,
+   "click_max": -30.6,
+   "h2": -27.0,
+   "h3": -49.7,
+   "pitch_err_c": 40.2
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.02,
+   "click_db": -6.6,
+   "click_max": -2.4,
+   "h2": -28.5,
+   "h3": -50.9,
+   "pitch_err_c": 39.7
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.0,
+   "click_db": -6.6,
+   "click_max": -2.4,
+   "h2": -28.5,
+   "h3": -51.3,
+   "pitch_err_c": 39.8
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.02,
+   "click_db": -3.9,
+   "click_max": 0.4,
+   "h2": -33.1,
+   "h3": -58.9,
+   "pitch_err_c": 40.2
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.0,
+   "click_db": -3.9,
+   "click_max": 0.4,
+   "h2": -33.0,
+   "h3": -59.1,
+   "pitch_err_c": 40.2
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.02,
+   "click_db": -26.7,
+   "click_max": -23.2,
+   "h2": -27.4,
+   "h3": -49.3,
+   "pitch_err_c": 41.3
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.0,
+   "click_db": -26.7,
+   "click_max": -23.2,
+   "h2": -27.3,
+   "h3": -50.1,
+   "pitch_err_c": 41.2
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.02,
+   "click_db": -1.8,
+   "click_max": 1.6,
+   "h2": -28.7,
+   "h3": -51.0,
+   "pitch_err_c": 40.9
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.0,
+   "click_db": -1.8,
+   "click_max": 1.6,
+   "h2": -28.7,
+   "h3": -51.8,
+   "pitch_err_c": 41.2
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.02,
+   "click_db": 1.1,
+   "click_max": 4.1,
+   "h2": -33.4,
+   "h3": -58.8,
+   "pitch_err_c": 41.4
+  },
+  {
+   "tone": 0.6,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.0,
+   "click_db": 1.1,
+   "click_max": 4.1,
+   "h2": -33.4,
+   "h3": -59.6,
+   "pitch_err_c": 41.6
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.02,
+   "click_db": -37.7,
+   "click_max": -33.8,
+   "h2": -25.8,
+   "h3": -47.5,
+   "pitch_err_c": 37.3
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.0,
+   "click_db": -37.7,
+   "click_max": -33.8,
+   "h2": -25.8,
+   "h3": -47.5,
+   "pitch_err_c": 37.4
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.02,
+   "click_db": -5.8,
+   "click_max": -2.7,
+   "h2": -27.2,
+   "h3": -49.1,
+   "pitch_err_c": 36.9
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.0,
+   "click_db": -5.8,
+   "click_max": -2.7,
+   "h2": -27.3,
+   "h3": -49.1,
+   "pitch_err_c": 37.0
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.02,
+   "click_db": -1.7,
+   "click_max": 0.4,
+   "h2": -31.8,
+   "h3": -57.1,
+   "pitch_err_c": 37.0
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.0,
+   "click_db": -1.7,
+   "click_max": 0.4,
+   "h2": -31.8,
+   "h3": -57.0,
+   "pitch_err_c": 37.0
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.02,
+   "click_db": -35.1,
+   "click_max": -31.3,
+   "h2": -25.5,
+   "h3": -46.6,
+   "pitch_err_c": 38.0
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.0,
+   "click_db": -35.2,
+   "click_max": -31.3,
+   "h2": -25.5,
+   "h3": -46.9,
+   "pitch_err_c": 37.9
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.02,
+   "click_db": -6.9,
+   "click_max": -4.3,
+   "h2": -26.9,
+   "h3": -48.3,
+   "pitch_err_c": 37.6
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.0,
+   "click_db": -6.9,
+   "click_max": -4.3,
+   "h2": -26.9,
+   "h3": -48.5,
+   "pitch_err_c": 37.5
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.02,
+   "click_db": -2.8,
+   "click_max": -0.8,
+   "h2": -31.5,
+   "h3": -56.2,
+   "pitch_err_c": 37.7
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.0,
+   "click_db": -2.8,
+   "click_max": -0.8,
+   "h2": -31.5,
+   "h3": -56.4,
+   "pitch_err_c": 37.4
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.02,
+   "click_db": -26.5,
+   "click_max": -24.1,
+   "h2": -25.6,
+   "h3": -46.3,
+   "pitch_err_c": 35.8
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.0,
+   "click_db": -26.5,
+   "click_max": -24.2,
+   "h2": -25.6,
+   "h3": -46.6,
+   "pitch_err_c": 35.6
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.02,
+   "click_db": -1.6,
+   "click_max": 1.0,
+   "h2": -27.1,
+   "h3": -48.1,
+   "pitch_err_c": 35.3
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.0,
+   "click_db": -1.6,
+   "click_max": 1.0,
+   "h2": -27.1,
+   "h3": -48.3,
+   "pitch_err_c": 35.3
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.02,
+   "click_db": 1.6,
+   "click_max": 3.7,
+   "h2": -31.7,
+   "h3": -55.9,
+   "pitch_err_c": 36.1
+  },
+  {
+   "tone": 0.9,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.0,
+   "click_db": 1.6,
+   "click_max": 3.7,
+   "h2": -31.7,
+   "h3": -56.2,
+   "pitch_err_c": 36.2
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.02,
+   "click_db": -37.9,
+   "click_max": -32.2,
+   "h2": -25.2,
+   "h3": -46.3,
+   "pitch_err_c": 36.7
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.0,
+   "click_db": -37.9,
+   "click_max": -32.2,
+   "h2": -25.2,
+   "h3": -46.5,
+   "pitch_err_c": 36.8
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.02,
+   "click_db": -6.3,
+   "click_max": -1.5,
+   "h2": -26.6,
+   "h3": -48.0,
+   "pitch_err_c": 36.3
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.0,
+   "click_db": -6.3,
+   "click_max": -1.5,
+   "h2": -26.6,
+   "h3": -48.1,
+   "pitch_err_c": 36.4
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.02,
+   "click_db": -2.1,
+   "click_max": 1.1,
+   "h2": -31.2,
+   "h3": -55.9,
+   "pitch_err_c": 37.0
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    3,
+    8
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.0,
+   "click_db": -2.1,
+   "click_max": 1.1,
+   "h2": -31.2,
+   "h3": -56.1,
+   "pitch_err_c": 37.0
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.02,
+   "click_db": -35.4,
+   "click_max": -31.3,
+   "h2": -24.8,
+   "h3": -45.6,
+   "pitch_err_c": 36.4
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.0,
+   "click_db": -35.4,
+   "click_max": -31.3,
+   "h2": -24.8,
+   "h3": -45.6,
+   "pitch_err_c": 36.3
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.02,
+   "click_db": -7.2,
+   "click_max": -4.6,
+   "h2": -26.3,
+   "h3": -47.3,
+   "pitch_err_c": 36.0
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.0,
+   "click_db": -7.2,
+   "click_max": -4.6,
+   "h2": -26.3,
+   "h3": -47.4,
+   "pitch_err_c": 36.0
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.02,
+   "click_db": -2.9,
+   "click_max": -1.4,
+   "h2": -30.9,
+   "h3": -55.2,
+   "pitch_err_c": 36.2
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    8,
+    15
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.0,
+   "click_db": -2.9,
+   "click_max": -1.4,
+   "h2": -30.9,
+   "h3": -55.3,
+   "pitch_err_c": 36.2
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.02,
+   "click_db": -26.7,
+   "click_max": -24.6,
+   "h2": -25.1,
+   "h3": -45.1,
+   "pitch_err_c": 34.3
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 1.0,
+   "aspiration": 0.0,
+   "click_db": -26.7,
+   "click_max": -24.6,
+   "h2": -25.1,
+   "h3": -45.4,
+   "pitch_err_c": 34.2
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.02,
+   "click_db": -1.8,
+   "click_max": 2.2,
+   "h2": -26.5,
+   "h3": -47.0,
+   "pitch_err_c": 34.0
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.5,
+   "aspiration": 0.0,
+   "click_db": -1.8,
+   "click_max": 2.2,
+   "h2": -26.5,
+   "h3": -47.2,
+   "pitch_err_c": 34.0
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.02,
+   "click_db": 1.6,
+   "click_max": 4.4,
+   "h2": -31.1,
+   "h3": -54.6,
+   "pitch_err_c": 34.4
+  },
+  {
+   "tone": 1.0,
+   "att_rel": [
+    20,
+    30
+   ],
+   "radiation": 0.0,
+   "aspiration": 0.0,
+   "click_db": 1.6,
+   "click_max": 4.4,
+   "h2": -31.1,
+   "h3": -55.0,
+   "pitch_err_c": 34.3
+  }
+ ]
+}

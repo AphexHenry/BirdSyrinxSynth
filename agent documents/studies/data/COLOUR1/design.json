@@ -1,0 +1,73 @@
+{
+ "study": "COLOUR1",
+ "design_hash": "5898443cdc43",
+ "seed": 20261013,
+ "noise_bed_s": [
+  29.6,
+  34.2
+ ],
+ "key": {
+  "P1": {
+   "span_s": [
+    15.4,
+    17.85
+   ],
+   "letters": {
+    "A": "no_harm",
+    "B": "anchor",
+    "C": "no_room",
+    "D": "no_breath",
+    "E": "sine",
+    "F": "engine",
+    "G": "full",
+    "H": "ref",
+    "I": "voice2"
+   },
+   "second_voice_ms": 164,
+   "voiced_ms": 1583
+  },
+  "P2": {
+   "span_s": [
+    11.9,
+    13.0
+   ],
+   "letters": {
+    "A": "sine",
+    "B": "full",
+    "C": "engine",
+    "D": "no_breath",
+    "E": "anchor",
+    "F": "no_room",
+    "G": "voice2",
+    "H": "no_harm",
+    "I": "ref"
+   },
+   "second_voice_ms": 39,
+   "voiced_ms": 616
+  },
+  "P3": {
+   "span_s": [
+    26.95,
+    29.5
+   ],
+   "letters": {
+    "A": "voice2",
+    "B": "anchor",
+    "C": "sine",
+    "D": "no_harm",
+    "E": "ref",
+    "F": "full",
+    "G": "engine",
+    "H": "no_breath",
+    "I": "no_room"
+   },
+   "second_voice_ms": 120,
+   "voiced_ms": 1770
+  }
+ },
+ "screen_order": [
+  "P2",
+  "P1",
+  "P3"
+ ]
+}

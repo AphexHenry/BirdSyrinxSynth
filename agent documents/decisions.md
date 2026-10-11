@@ -95,3 +95,57 @@
 
 
 
+### D-018 — Approach pivot: gestures come from real recordings; understand before building
+- **Status:** accepted · 2026-10-11 · human (approach review R0)
+- **Context:**
+  - C4/C5 hand-designed gestures sounded like "morse code". The C5 output measured 16× slower than the real bird, with 60 % steady frames (6 % in the bird) and elements 2.5× too long.
+  - Real gestures on a plain sine "really feel like a bird" (rated 94–100 vs the recording).
+- **Decision:**
+  - Bird identity comes from **real syllables of real recordings** (pitch and loudness curves); hand-designed archetypes are dropped.
+  - **Real syllables first, variations later**, and variations stay within the bird's style.
+  - Each open question is answered with a short blind listening test (the human as tester, pre-registered decision rule) before implementation.
+- **Consequences:** C5's generator content, C6, D2, E1–E4 and F1–F4 are superseded or optional. The new phase is R (R1–R4). See `reviews/2026-10-11_approach_review.md`.
+
+### D-019 — The note of a syllable
+- **Status:** accepted · 2026-10-11 · human (after PITCH1/PITCH2)
+- **Decision:**
+  - A syllable's note = its **longest steady part** (pitch within ±50 c for ≥ 20 ms), otherwise its **ending** (last quarter).
+  - "Steady parts", "landing" and "average" stay available as a user toggle.
+- **Context:** pitch at 3–4 kHz is fuzzy (±1.5 semitones on steady tones, more on real syllables), and a held note 2–3 octaves below barely anchors the bird. The aim is "dance around the note", not "in key".
+
+### D-020 — Keyboard mapping and placement
+- **Status:** accepted · 2026-10-11 · human
+- **Decision:**
+  - **Own height** (default): a key's note name, sung at the octave nearest the bird's natural height.
+  - Option **follow the keyboard**: the bird sings 3 octaves above the key, so melodies keep their shape.
+  - The **first syllable lands exactly on the note**; following syllables are placed by a Melody/snap control (natural melody ↔ all on the note; mod wheel).
+  - Size transposes the whole bird.
+
+### D-021 — Playing modes A + B as one behaviour; modular for C, D, E
+- **Status:** accepted · 2026-10-11 · human
+- **Decision:**
+  - Tap a key → one real syllable (**a random one** by default).
+  - Hold → the bird continues the real phrase around the note, with real timing and pauses between phrases.
+  - Release → the current syllable finishes.
+  - The code must be modular (input → playing mode → syllable bank → placement → voice) so modes C (conductor/flock), D (drawn gestures) and E (whistle-in) can be added later.
+
+### D-022 — Default voice: the whistle (non-anatomical), with the bird's own harmonics
+- **Status:** accepted · 2026-10-11 · human ("if the anatomical model does not work, let's simply switch to what works, even if non-anatomical")
+- **Context:**
+  - COLOUR1/COLOUR2: a sine on the real gestures scored 94; with the bird's own harmonics (−30 / −33 dB, the level measured in 22938) it scored 98–100; breath noise hurt at every level; room had no consistent effect.
+  - ENGINE1: the anatomical engine, even with the click fix, scored 100 on one passage and 52 on another; the whistle scored 100 on both.
+- **Decision:**
+  - The default voice is a **sine following the real contour + 2nd/3rd harmonics at −30 / −33 dB, no breath, light room** (optional).
+  - The anatomical engine becomes an **optional/experimental** voice (WP-R2).
+- **Consequences:** the anatomical model is no longer the product's core voice. Anatomical controls may survive as musical controls (size, brightness) mapped onto the whistle voice.
+
+### D-023 — Recording 22938 and data
+- **Status:** accepted · 2026-10-11 · human
+- **Decision:** `22938` is a **zebra finch**. Its recorded repertoire (tonal sweeps at 2.5–4.9 kHz, no low harmonic stacks) sets the design targets, not the textbook song in `01_research.md` §2.7. Many more recordings are available; to be ingested when R3 needs them.
+
+### D-024 — C5 committed as partial; the plan continues with R1
+- **Status:** accepted · 2026-10-11 · human
+- **Decision:**
+  - C5 is committed as `partial` (commit `0822405`): its plumbing (allocator, polyphony, tempo, Leash blend) is reused; its generator content is replaced.
+  - New order: **R0** (review and studies, awaiting approval) → **R1** (real syllables + whistle + modes A/B in the plugin) → **R4** (Perform UI and presets) → **R3** (variations).
+  - R2 (anatomical voice) is optional.
