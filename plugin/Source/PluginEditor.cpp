@@ -107,7 +107,8 @@ void SyrinxAudioProcessorEditor::addSlider(const cuicui::ParamSpec& spec, juce::
     box->addAndMakeVisible(row->label);
 
     const std::string_view id{spec.id};
-    if (id == "engine.oversampling" || id == "test.waveform" || id == "perf.mode" || id == "perf.scale") {
+    if (id == "engine.oversampling" || id == "test.waveform" || id == "perf.mode" || id == "perf.scale" ||
+        id == "perf.sync_division" || id == "perf.voice_bank") {
         row->isCombo = true;
         if (id == "engine.oversampling") {
             row->combo.addItemList(juce::StringArray{"auto", "1", "2", "4", "8"}, 1);
@@ -115,6 +116,10 @@ void SyrinxAudioProcessorEditor::addSlider(const cuicui::ParamSpec& spec, juce::
             row->combo.addItemList(juce::StringArray{"sine", "saw", "noise"}, 1);
         } else if (id == "perf.mode") {
             row->combo.addItemList(juce::StringArray{"perform", "physiology"}, 1);
+        } else if (id == "perf.sync_division") {
+            row->combo.addItemList(juce::StringArray{"1/4", "1/8", "1/16", "1/32", "1/8T", "1/16T"}, 1);
+        } else if (id == "perf.voice_bank") {
+            row->combo.addItemList(juce::StringArray{"archetypes", "learned"}, 1);
         } else {
             row->combo.addItemList(juce::StringArray{"chromatic", "major", "minor", "pentatonic_major",
                                                     "pentatonic_minor", "whole_tone"},

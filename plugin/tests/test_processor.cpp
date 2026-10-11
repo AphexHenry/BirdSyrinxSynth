@@ -290,6 +290,33 @@ TEST_CASE("zero allocations in processBlock over 10 s of MIDI and param changes"
     proc.releaseResources();
 }
 
+TEST_CASE("zero allocations in generative processBlock (leash 1)") {
+    SyrinxAudioProcessor proc;
+    proc.setNonRealtime(true);
+    proc.setParamPlain("out.master_db", -6.0f);
+    proc.setParamPlain("perf.leash", 1.0f);
+    proc.setParamPlain("perf.seed", 5.0f);
+    proc.setParamPlain("perf.density", 0.6f);
+    const double sr = 48000.0;
+    const int block = 256;
+    proc.prepareToPlay(sr, block);
+    juce::AudioBuffer<float> buf(2, block);
+    juce::MidiBuffer midi;
+    midi.ensureSize(64);
+    midi.addEvent(juce::MidiMessage::noteOn(1, 96, static_cast<juce::uint8>(100)), 0);
+    buf.clear();
+    proc.processBlock(buf, midi);
+    midi.clear();
+    const int nBlocks = static_cast<int>(60.0 * sr / block);
+    for (int b = 0; b < nBlocks; ++b) {
+        buf.clear();
+        const int before = cuicui::test::alloc_count();
+        proc.processBlock(buf, midi);
+        REQUIRE(cuicui::test::alloc_count() == before);
+    }
+    proc.releaseResources();
+}
+
 TEST_CASE("limiter fuzz: output never exceeds 0 dBFS") {
     SyrinxAudioProcessor proc;
     proc.setNonRealtime(true);

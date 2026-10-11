@@ -1,8 +1,10 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "cuicui/control/gesture_engine.hpp"
 #include "cuicui/model/labial_oscillator.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstring>
 
@@ -63,6 +65,9 @@ void SyrinxAudioProcessor::cacheParamPointers() {
     osParam_ = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("engine.oversampling"));
     modeParam_ = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("perf.mode"));
     scaleParam_ = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("perf.scale"));
+    syncDivParam_ = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("perf.sync_division"));
+    polyParam_ = dynamic_cast<juce::AudioParameterInt*>(apvts.getParameter("perf.polyphony"));
+    perfSeedParam_ = dynamic_cast<juce::AudioParameterInt*>(apvts.getParameter("perf.seed"));
 }
 
 float SyrinxAudioProcessor::raw(cuicui::ParamId id) const noexcept {
@@ -104,7 +109,11 @@ void SyrinxAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     voice_.setSource(cuicui::VoiceSource::Labial);
     const double ctrlRate = sampleRate / static_cast<double>(kSubBlock);
     controller_.prepare(ctrlRate, map_);
+    allocator_.prepare(spec, map_);
+    allocator_.reset(readSeed());
     mono_.assign(static_cast<std::size_t>(maxBlock), 0.0f);
+    right_.assign(static_cast<std::size_t>(maxBlock), 0.0f);
+    phraseCounter_ = 1;
     masterSm_.prepare(sampleRate);
     masterSm_.setTimeConstantMs(cuicui::specOf(cuicui::ParamId::OutMasterDb).smoothingMs);
     limiter_.reset();
@@ -120,8 +129,8 @@ void SyrinxAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     wasGated_ = false;
     prepared_ = true;
 
-    primeVoice();
     lastFrame_ = readControlFrame();
+    primeVoice();
     if (!performMode()) {
         applyPhysiologyNote(lastFrame_);
     }
@@ -136,10 +145,12 @@ void SyrinxAudioProcessor::primeVoice() noexcept {
     voice_.setOutGainRamp(static_cast<float>(st.out_gain_db), static_cast<float>(st.out_gain_db));
     const double off = static_cast<double>(raw(cuicui::ParamId::SrcLAlphaOffset));
     const double beta = static_cast<double>(raw(cuicui::ParamId::SrcLBeta));
-    voice_.primeLabial(cuicui::model::kAlphaRest + off, beta, static_cast<double>(raw(cuicui::ParamId::OecFreqHz)),
-                       static_cast<double>(raw(cuicui::ParamId::BeakGape)),
-                       static_cast<double>(raw(cuicui::ParamId::SrcRAlphaOffset)),
-                       static_cast<double>(raw(cuicui::ParamId::SrcRBeta)));
+    const double oec = static_cast<double>(raw(cuicui::ParamId::OecFreqHz));
+    const double gape = static_cast<double>(raw(cuicui::ParamId::BeakGape));
+    const double rOff = static_cast<double>(raw(cuicui::ParamId::SrcRAlphaOffset));
+    const double rBeta = static_cast<double>(raw(cuicui::ParamId::SrcRBeta));
+    voice_.primeLabial(cuicui::model::kAlphaRest + off, beta, oec, gape, rOff, rBeta);
+    allocator_.prime(st, cuicui::model::kAlphaRest + off, beta, oec, gape, rOff, rBeta, lastFrame_);
 }
 
 void SyrinxAudioProcessor::releaseResources() {
@@ -246,7 +257,15 @@ void SyrinxAudioProcessor::handleMidi(const juce::MidiMessage& msg) noexcept {
             midiPressurePhys_ = 0.35f + 0.55f * (static_cast<float>(vel) / 127.0f);
         }
         betaDriven_ = true;
+        ++phraseCounter_;
+        if (performMode() && polyParam_ != nullptr && polyParam_->get() > 1) {
+            allocator_.noteOn(msg.getNoteNumber(), vel, makePhraseSeed(msg.getNoteNumber()));
+        }
     } else if (msg.isNoteOff()) {
+        popHeld(msg.getNoteNumber());
+        if (performMode() && polyParam_ != nullptr && polyParam_->get() > 1) {
+            allocator_.noteOff(msg.getNoteNumber());
+        }
         popHeld(msg.getNoteNumber());
         if (nHeld_ == 0 && !sustain_) {
             midiPressurePhys_ = 0.0f;
@@ -278,6 +297,7 @@ void SyrinxAudioProcessor::handleMidi(const juce::MidiMessage& msg) noexcept {
         sustain_ = false;
         aftertouch_ = 0.0f;
         polyAt_ = 0.0f;
+        allocator_.allNotesOff();
     }
 }
 
@@ -296,10 +316,9 @@ void SyrinxAudioProcessor::applyPhysiologyNote(cuicui::ControlFrame& frame) noex
     }
 }
 
-void SyrinxAudioProcessor::applyPerformTick(cuicui::ControlFrame& frame, bool noteOnEvent,
-                                            bool noteOffEvent) noexcept {
+void SyrinxAudioProcessor::fillPerformInputs(cuicui::control::PerformInputs& in, bool noteOnEvent,
+                                             bool noteOffEvent) noexcept {
     const bool gated = nHeld_ > 0 || sustain_;
-    cuicui::control::PerformInputs in;
     in.gate = gated;
     in.noteCents = static_cast<double>(lastNote_) * 100.0;
     const double bendSt = static_cast<double>(raw(cuicui::ParamId::PerfBendRangeSt));
@@ -323,11 +342,43 @@ void SyrinxAudioProcessor::applyPerformTick(cuicui::ControlFrame& frame, bool no
     in.gapeTracking = static_cast<double>(raw(cuicui::ParamId::PerfGapeTracking));
     in.sideSwitchCents = static_cast<double>(raw(cuicui::ParamId::PerfSideSwitchCents));
     in.rangeFold = raw(cuicui::ParamId::PerfRangeFold) >= 0.5f;
-    in.leash = 0.0;
+    in.leash = static_cast<double>(raw(cuicui::ParamId::PerfLeash));
+    in.variation = static_cast<double>(raw(cuicui::ParamId::PerfVariation));
+    in.density = static_cast<double>(raw(cuicui::ParamId::PerfDensity));
+    in.freeze = raw(cuicui::ParamId::PerfFreeze) >= 0.5f;
+    in.tempoSync = raw(cuicui::ParamId::PerfTempoSync) >= 0.5f;
+    in.syncDivision = choiceIndex(syncDivParam_);
+    in.tempoValid = hostTempoValid_;
+    in.hostPlaying = hostPlaying_;
+    in.bpm = hostBpm_;
+    in.ppq = hostPpq_;
     in.seed = readSeed();
+    in.phraseSeed = makePhraseSeed(lastNote_);
     in.noteOnEvent = noteOnEvent;
     in.noteOffEvent = noteOffEvent;
-    controller_.tick(in, readSettings(), frame);
+}
+
+std::uint32_t SyrinxAudioProcessor::makePhraseSeed(int note) noexcept {
+    const std::uint32_t perf =
+        perfSeedParam_ != nullptr ? static_cast<std::uint32_t>(std::max(0, perfSeedParam_->get())) : 0u;
+    const std::uint32_t c = phraseCounter_;
+    if (perf != 0) {
+        return cuicui::control::hashPhraseSeed(perf, note, c);
+    }
+    return cuicui::control::hashPhraseSeed(static_cast<std::uint32_t>(readSeed()) ^ 0xC50u, note, c);
+}
+
+void SyrinxAudioProcessor::readHostTempo() noexcept {
+    hostTempoValid_ = false;
+    hostPlaying_ = false;
+    if (auto* ph = getPlayHead()) {
+        if (auto pos = ph->getPosition()) {
+            hostTempoValid_ = true;
+            hostBpm_ = pos->getBpm().orFallback(120.0);
+            hostPpq_ = pos->getPpqPosition().orFallback(0.0);
+            hostPlaying_ = pos->getIsPlaying();
+        }
+    }
 }
 
 void SyrinxAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi) {
@@ -343,6 +394,12 @@ void SyrinxAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
         return;
     }
 
+    const auto t0 = std::chrono::steady_clock::now();
+    readHostTempo();
+    const int poly = polyParam_ != nullptr ? polyParam_->get() : 1;
+    allocator_.setPolyphony(poly);
+    allocator_.setSpread(raw(cuicui::ParamId::OutStereoSpread));
+
     voice_.setSettings(readSettings());
     {
         const float gdb = raw(cuicui::ParamId::OutGainDb);
@@ -357,10 +414,19 @@ void SyrinxAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
         std::memcpy(left + offset, mono_.data(), static_cast<std::size_t>(chunk) * sizeof(float));
         if (nOut > 1) {
             auto* right = buffer.getWritePointer(1);
-            std::memcpy(right + offset, mono_.data(), static_cast<std::size_t>(chunk) * sizeof(float));
+            if (performMode()) {
+                std::memcpy(right + offset, right_.data(), static_cast<std::size_t>(chunk) * sizeof(float));
+            } else {
+                std::memcpy(right + offset, mono_.data(), static_cast<std::size_t>(chunk) * sizeof(float));
+            }
         }
         offset += chunk;
     }
+
+    const auto t1 = std::chrono::steady_clock::now();
+    const double elapsed = std::chrono::duration<double>(t1 - t0).count();
+    const double sr = getSampleRate() > 0.0 ? getSampleRate() : 48000.0;
+    allocator_.notifyBlockTime(elapsed, static_cast<double>(n) / sr);
 
     publishTelemetry();
     midi.clear();
@@ -410,34 +476,49 @@ void SyrinxAudioProcessor::processSubblocks(float* dest, int n, const juce::Midi
         }
 
         cuicui::ControlFrame to = readControlFrame();
-        if (performMode()) {
-            applyPerformTick(to, noteOnEvent, noteOffEvent);
-        } else {
-            applyPhysiologyNote(to);
-        }
-        if (nHeld_ > 0 && !performMode()) {
-            midiBeta_ = to.src_L_beta;
-        }
-        wasGated_ = nHeld_ > 0 || sustain_;
-
         const int count = end - pos;
         const float gdb = raw(cuicui::ParamId::OutGainDb);
-        voice_.setOutGainRamp(gdb, gdb);
-        voice_.process(lastFrame_, to, dest + pos, count);
+        if (performMode()) {
+            cuicui::control::PerformInputs in;
+            fillPerformInputs(in, noteOnEvent, noteOffEvent);
+            const int poly = polyParam_ != nullptr ? polyParam_->get() : 1;
+            allocator_.setPolyphony(poly);
+            if (poly <= 1) {
+                allocator_.setMono(lastNote_, lastVel_, in.gate, noteOnEvent, noteOffEvent, in.phraseSeed);
+            }
+            float* r = right_.empty() ? dest : right_.data();
+            allocator_.process(dest + pos, r + pos, count, in, readSettings(), to);
+        } else {
+            applyPhysiologyNote(to);
+            if (nHeld_ > 0) {
+                midiBeta_ = to.src_L_beta;
+            }
+            voice_.setOutGainRamp(gdb, gdb);
+            voice_.process(lastFrame_, to, dest + pos, count);
+        }
+        wasGated_ = nHeld_ > 0 || sustain_;
 
         masterSm_.setTarget(raw(cuicui::ParamId::OutMasterDb));
         for (int i = 0; i < count; ++i) {
             const float g = juce::Decibels::decibelsToGain(masterSm_.next());
             dest[pos + i] = SafetyLimiter::processSample(dest[pos + i] * g);
+            if (performMode() && !right_.empty()) {
+                right_[static_cast<std::size_t>(pos + i)] =
+                    SafetyLimiter::processSample(right_[static_cast<std::size_t>(pos + i)] * g);
+            }
         }
 
         lastFrame_ = to;
         pos = end;
+        if (hostTempoValid_ && hostPlaying_ && hostBpm_ > 0.0) {
+            const double sr = getSampleRate() > 0.0 ? getSampleRate() : 48000.0;
+            hostPpq_ += (static_cast<double>(count) / sr) * hostBpm_ / 60.0;
+        }
     }
 }
 
 void SyrinxAudioProcessor::publishTelemetry() noexcept {
-    const auto t = voice_.telemetry();
+    const auto t = performMode() ? allocator_.firstTelemetry() : voice_.telemetry();
     telem_f0_.store(t.f0_estimate_hz, std::memory_order_relaxed);
     telem_aL_.store(t.alpha_L, std::memory_order_relaxed);
     telem_aR_.store(t.alpha_R, std::memory_order_relaxed);
@@ -446,7 +527,7 @@ void SyrinxAudioProcessor::publishTelemetry() noexcept {
     telem_p_.store(t.pressure, std::memory_order_relaxed);
     telem_level_.store(t.level_db, std::memory_order_relaxed);
     telem_resets_.store(t.nonFiniteResets, std::memory_order_relaxed);
-    const auto d = controller_.debug();
+    const auto d = performMode() ? allocator_.firstDebug() : controller_.debug();
     telem_target_.store(static_cast<float>(d.f0Target), std::memory_order_relaxed);
     telem_side_.store(d.activeSide, std::memory_order_relaxed);
     telem_folded_.store(d.folded ? 1 : 0, std::memory_order_relaxed);

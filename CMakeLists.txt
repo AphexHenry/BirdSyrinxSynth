@@ -88,6 +88,7 @@ add_executable(cuicui_core_tests
     core/tests/test_voice_controller.cpp
     core/tests/test_archetypes.cpp
     core/tests/test_gesture_score.cpp
+    core/tests/test_gesture_engine.cpp
 )
 target_link_libraries(cuicui_core_tests PRIVATE cuicui_core Catch2::Catch2WithMain)
 target_compile_definitions(cuicui_core_tests PRIVATE

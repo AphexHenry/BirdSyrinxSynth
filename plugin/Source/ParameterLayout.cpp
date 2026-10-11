@@ -40,6 +40,24 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout() {
                 0));
             continue;
         }
+        if (std::string_view(spec.id) == "perf.sync_division") {
+            params.push_back(std::make_unique<juce::AudioParameterChoice>(
+                pid, name, juce::StringArray{"1/4", "1/8", "1/16", "1/32", "1/8T", "1/16T"}, 2));
+            continue;
+        }
+        if (std::string_view(spec.id) == "perf.voice_bank") {
+            params.push_back(std::make_unique<juce::AudioParameterChoice>(
+                pid, name, juce::StringArray{"archetypes", "learned"}, 0));
+            continue;
+        }
+        if (std::string_view(spec.id) == "perf.polyphony") {
+            params.push_back(std::make_unique<juce::AudioParameterInt>(pid, name, 1, 16, 1));
+            continue;
+        }
+        if (std::string_view(spec.id) == "perf.seed") {
+            params.push_back(std::make_unique<juce::AudioParameterInt>(pid, name, 0, 9999, 0));
+            continue;
+        }
 
         const cuicui::ParamSpec captured = spec;
         // JUCE: convertFrom0To1 first, convertTo0To1 second.

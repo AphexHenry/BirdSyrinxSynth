@@ -8,6 +8,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <iterator>
 #include <numbers>
 #include <string>
 #include <string_view>
@@ -190,11 +191,45 @@ struct ArchetypeParamBag {
     }
 };
 
+/// Real-time-safe bag (no heap). Keys must be interned `ArchetypeParamSpec::name` literals.
+struct FixedParamBag {
+    static constexpr int kMax = 8;
+    const char* keys[kMax]{};
+    double vals[kMax]{};
+    int n = 0;
+
+    void set(const char* k, double v) noexcept {
+        for (int i = 0; i < n; ++i) {
+            if (keys[static_cast<std::size_t>(i)] == k ||
+                std::strcmp(keys[static_cast<std::size_t>(i)], k) == 0) {
+                vals[static_cast<std::size_t>(i)] = v;
+                return;
+            }
+        }
+        if (n < kMax) {
+            keys[static_cast<std::size_t>(n)] = k;
+            vals[static_cast<std::size_t>(n)] = v;
+            ++n;
+        }
+    }
+
+    [[nodiscard]] double get(const char* key, double def) const noexcept {
+        for (int i = 0; i < n; ++i) {
+            if (keys[static_cast<std::size_t>(i)] == key ||
+                std::strcmp(keys[static_cast<std::size_t>(i)], key) == 0) {
+                return vals[static_cast<std::size_t>(i)];
+            }
+        }
+        return def;
+    }
+};
+
 inline double clampSpec(const ArchetypeParamSpec& s, double v) noexcept {
     return std::clamp(v, s.min, s.max);
 }
 
-inline double lookupParam(const ArchetypeInfo& info, const ArchetypeParamBag& bag, const char* key) {
+template <typename Bag>
+inline double lookupParam(const ArchetypeInfo& info, const Bag& bag, const char* key) {
     for (int i = 0; i < info.nParams; ++i) {
         if (std::strcmp(info.params[i].name, key) == 0) {
             return clampSpec(info.params[i], bag.get(key, info.params[i].def));
@@ -202,6 +237,17 @@ inline double lookupParam(const ArchetypeInfo& info, const ArchetypeParamBag& ba
     }
     return bag.get(key, 0.0);
 }
+
+[[nodiscard]] inline int archetypeIndex(std::string_view name) noexcept {
+    for (int i = 0; i < static_cast<int>(std::size(kArchetypes)); ++i) {
+        if (name == kArchetypes[static_cast<std::size_t>(i)].name) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+inline constexpr int kNumArchetypes = static_cast<int>(std::size(kArchetypes));
 
 inline void fillU(double* u) noexcept {
     constexpr int n = GestureCurves::kN;
@@ -242,7 +288,8 @@ inline GestureInstance makeBlank(double durMs) noexcept {
     return g;
 }
 
-inline GestureInstance generateWhistle(const ArchetypeParamBag& bag) {
+template <typename Bag>
+inline GestureInstance generateWhistle(const Bag& bag) {
     const auto& info = *findArchetype("whistle");
     const double dur = lookupParam(info, bag, "dur");
     const double arch = lookupParam(info, bag, "arch");
@@ -260,7 +307,8 @@ inline GestureInstance generateWhistle(const ArchetypeParamBag& bag) {
     return g;
 }
 
-inline GestureInstance generateUpsweep(const ArchetypeParamBag& bag) {
+template <typename Bag>
+inline GestureInstance generateUpsweep(const Bag& bag) {
     const auto& info = *findArchetype("upsweep");
     const double dur = lookupParam(info, bag, "dur");
     const double depth = lookupParam(info, bag, "depth");
@@ -281,7 +329,8 @@ inline GestureInstance generateUpsweep(const ArchetypeParamBag& bag) {
     return g;
 }
 
-inline GestureInstance generateDownsweep(const ArchetypeParamBag& bag) {
+template <typename Bag>
+inline GestureInstance generateDownsweep(const Bag& bag) {
     const auto& info = *findArchetype("downsweep");
     const double dur = lookupParam(info, bag, "dur");
     const double depth = lookupParam(info, bag, "depth");
@@ -302,7 +351,8 @@ inline GestureInstance generateDownsweep(const ArchetypeParamBag& bag) {
     return g;
 }
 
-inline GestureInstance generateArch(const ArchetypeParamBag& bag) {
+template <typename Bag>
+inline GestureInstance generateArch(const Bag& bag) {
     const auto& info = *findArchetype("arch");
     const double dur = lookupParam(info, bag, "dur");
     const double depth = lookupParam(info, bag, "depth");
@@ -322,7 +372,8 @@ inline GestureInstance generateArch(const ArchetypeParamBag& bag) {
     return g;
 }
 
-inline GestureInstance generateTrill(const ArchetypeParamBag& bag) {
+template <typename Bag>
+inline GestureInstance generateTrill(const Bag& bag) {
     const auto& info = *findArchetype("trill");
     const double dur = lookupParam(info, bag, "dur");
     const double rate = lookupParam(info, bag, "rate");
@@ -362,7 +413,8 @@ inline GestureInstance generateTrill(const ArchetypeParamBag& bag) {
     return g;
 }
 
-inline GestureInstance generateBuzz(const ArchetypeParamBag& bag, std::uint64_t seed) {
+template <typename Bag>
+inline GestureInstance generateBuzz(const Bag& bag, std::uint64_t seed) {
     const auto& info = *findArchetype("buzz");
     const double dur = lookupParam(info, bag, "dur");
     const double wobble = lookupParam(info, bag, "wobble");
@@ -408,7 +460,8 @@ inline GestureInstance generateBuzz(const ArchetypeParamBag& bag, std::uint64_t 
     return g;
 }
 
-inline GestureInstance generateStack(const ArchetypeParamBag& bag) {
+template <typename Bag>
+inline GestureInstance generateStack(const Bag& bag) {
     const auto& info = *findArchetype("stack");
     const double dur = lookupParam(info, bag, "dur");
     const double droop = lookupParam(info, bag, "droop");
@@ -428,7 +481,8 @@ inline GestureInstance generateStack(const ArchetypeParamBag& bag) {
     return g;
 }
 
-inline GestureInstance generateChip(const ArchetypeParamBag& bag) {
+template <typename Bag>
+inline GestureInstance generateChip(const Bag& bag) {
     const auto& info = *findArchetype("chip");
     const double dur = lookupParam(info, bag, "dur");
     const double depth = lookupParam(info, bag, "depth");
@@ -447,7 +501,8 @@ inline GestureInstance generateChip(const ArchetypeParamBag& bag) {
     return g;
 }
 
-inline GestureInstance generateTwoVoice(const ArchetypeParamBag& bag) {
+template <typename Bag>
+inline GestureInstance generateTwoVoice(const Bag& bag) {
     const auto& info = *findArchetype("two_voice");
     const double dur = lookupParam(info, bag, "dur");
     const double interval = lookupParam(info, bag, "interval");
@@ -466,7 +521,8 @@ inline GestureInstance generateTwoVoice(const ArchetypeParamBag& bag) {
     return g;
 }
 
-inline GestureInstance generateSwitchSweep(const ArchetypeParamBag& bag) {
+template <typename Bag>
+inline GestureInstance generateSwitchSweep(const Bag& bag) {
     const auto& info = *findArchetype("switch_sweep");
     const double dur = lookupParam(info, bag, "dur");
     const double depth = lookupParam(info, bag, "depth");
@@ -486,7 +542,8 @@ inline GestureInstance generateSwitchSweep(const ArchetypeParamBag& bag) {
     return g;
 }
 
-inline GestureInstance generateIntro(const ArchetypeParamBag& bag) {
+template <typename Bag>
+inline GestureInstance generateIntro(const Bag& bag) {
     const auto& info = *findArchetype("intro");
     const double dur = lookupParam(info, bag, "dur");
     const double depth = lookupParam(info, bag, "depth");
@@ -505,9 +562,8 @@ inline GestureInstance generateIntro(const ArchetypeParamBag& bag) {
     return g;
 }
 
-inline GestureInstance generateArchetype(std::string_view name,
-                                         const ArchetypeParamBag& bag,
-                                         std::uint64_t seed = 1) {
+template <typename Bag>
+inline GestureInstance generateArchetype(std::string_view name, const Bag& bag, std::uint64_t seed = 1) {
     if (name == "whistle") {
         return generateWhistle(bag);
     }
@@ -550,6 +606,21 @@ inline GestureInstance generateArchetype(std::string_view name,
     ArchetypeParamBag bag;
     bag.num = params;
     return generateArchetype(name, bag, seed);
+}
+
+/// Real-time-safe generate: `values[i]` matches `kArchetypes[idx].params[i]`.
+[[nodiscard]] inline GestureInstance generateArchetypeIndexed(int idx, const double* values, int nValues,
+                                                             std::uint64_t seed) noexcept {
+    if (idx < 0 || idx >= kNumArchetypes) {
+        return {};
+    }
+    const auto& info = kArchetypes[static_cast<std::size_t>(idx)];
+    FixedParamBag bag;
+    const int n = std::min(std::max(0, nValues), info.nParams);
+    for (int i = 0; i < n; ++i) {
+        bag.set(info.params[i].name, values[i]);
+    }
+    return generateArchetype(info.name, bag, seed);
 }
 
 } // namespace cuicui::control

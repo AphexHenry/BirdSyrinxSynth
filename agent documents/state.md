@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-09-18 — by: WP-C4 agent
+**Last updated:** 2026-10-11 — by: approach review session (C5 committed as partial; re-plan pending)
 
 ## Status legend
 
@@ -34,7 +34,7 @@
 | 12 | C2 | Source atlas & inverse pitch map | B6 | done | 2026-09-17 | wp-C2 | `work_packages/WP-C2_atlas_inverse_map.md` |
 | 13 | C3 | Pitch-led direct playing | C1, C2 | done | 2026-09-17 | wp-C3 | `work_packages/WP-C3_pitch_led_playing.md` |
 | 14 | C4 | Archetype library + gesture score format & player | C3 | done | 2026-09-18 | wp-C4 | `work_packages/WP-C4_archetypes_gesture_score.md` |
-| 15 | C5 | Generative performance engine | C4 | todo | | | `work_packages/WP-C5_generative_engine.md` |
+| 15 | C5 | Generative performance engine | C4 | partial | 2026-10-11 | | `work_packages/WP-C5_generative_engine.md` |
 | 16 | C6 | Perform UI, Physiology page, presets v1 | C5 | todo | | | `work_packages/WP-C6_perform_ui_presets.md` |
 | 17 | E1 | Fitting framework, losses, identifiability benchmark | D2, B6, C2, C4 | todo | | | `work_packages/WP-E1_fitting_framework.md` |
 | 18 | E2 | Voice atlas + Viterbi initial path | E1, C2 | todo | | | `work_packages/WP-E2_voice_atlas_viterbi.md` |
@@ -50,7 +50,9 @@
 
 ## Current capabilities
 
-**Playable instrument (M3) plus a gesture vocabulary.** Syrinx still loads as VST3, AU, CLAP and Standalone with MIDI in concert pitch (D6–C8 at size 1). Offline, `bird_render` can play **gesture scores**: hand-designed archetypes (whistle, sweeps, trill, buzz, stack, chip, two-voice, side-switch, intro) or dense physiological tracks. The plugin does not yet improvise (C5). D1 is still parked.
+**Approach review 2026-10-11:** generated singing is rejected (morse code). The bird's real gestures played through the engine, with the OEC tuned on f0, sound right apart from attack clicks. See `reviews/2026-10-11_approach_review.md`.
+
+**Playable instrument that can also sing.** Syrinx still loads as VST3, AU, CLAP and Standalone with MIDI in concert pitch (D6–C8 at size 1). **Leash = 0** is the C3 playable path. Raise Leash and the bird improvises syllables around the held notes (C4 archetypes, not learned). Polyphony 1–16 is a small flock with stereo spread; Freeze repeats the current motif; tempo sync follows the host when the transport is playing. Gesture scores remain an offline `bird_render` feature. D1 is still parked.
 
 ## Baselines
 
@@ -58,6 +60,9 @@
 |---|---|---|---|
 | CPU per voice @48 kHz (Release, Apple Silicon) | 2.72 % of one core (RT 0.027); 16 voices RT 0.43 — **above** 0.5 % / 0.1 targets | B6 | 2026-09-17 |
 | Plugin CPU @48 kHz / 256 (Release, Apple Silicon) | 2.70 % of one core (~1.0× B6 voice) | C1 | 2026-09-17 |
+| Generative density syl/s | 3.23 / 4.50 / 7.00 at Density 0.2 / 0.5 / 0.8 | C5 | 2026-09-18 |
+| Flock CPU (8 notes vs 1, generative) | 8.10× (limit 9.6×) | C5 | 2026-09-18 |
+| Syllable generate worst | 0.002 ms | C5 | 2026-09-18 |
 | Tuning error, tone 0.6, size 1 (median / max cents) | 0.06 / 0.25 (plugin MIDI, D6–C8) | C3 | 2026-09-17 |
 | Fitting benchmark (synthetic) median MRSTFT loss | – | E1 | |
 | Real zebra finch resynthesis median MRSTFT loss | – | E3/E4 | |
@@ -81,6 +86,12 @@
 - Jumps on D6 (the SNIC/onset floor) sound printer-like. Listening 07 now uses A6–A7–C8. Syllable-shaped breath around switches is C4/C5.
 - C4 gallery “high” upsweeps / switch_sweeps can leave D6–C8 and fold.
 - C4 hand-designed archetypes match syllable *shapes* better than *colour*. Spectral resemblance to real birds waits on D1 + E (fitting) and possibly G2.
+- `perf.voice_bank` = `learned` is a placeholder so auval accepts the enum; it still uses archetypes until F3.
+- C5 generative Range can still throw syllable anchors outside D6–C8 at σ=1 and fold.
+- **Approach review (2026-10-11):** C4/C5 gestures are not bird-like (on a bare sine they still sound like morse code). Real bird gestures carry the identity. See `reviews/2026-10-11_approach_review.md`.
+- Default OEC tracking (`f_H = 3000·(f0/1000)^0.7`) puts the resonance at 1.7–3× f0 (Riede 2006: on f0). This gives too much 2nd harmonic (−11 dB vs the bird's −33 dB) and a synthetic colour.
+- Attack clicks: at each onset the labial position jumps from rest (x ≈ 1.0) to the oscillation centre (≈ 0.12) in about 1 ms and leaks into the output.
+- Recording `22938` is a finch whose sounds are tonal sweeps at 2.5–4.9 kHz with no low harmonic stacks. `01_research.md` §2.7 zebra-finch priors do not match it.
 
 ## Open questions for the human
 
@@ -89,6 +100,8 @@
 - B6 CPU: accept ~3 % per voice, or spend a WP on optimisation (skip gated-off RK4, UVT dirty-flag)? Recommendation: accept for now, revisit if the plugin feels heavy.
 - M3 feel: Motion default 0.3, onset, tuning on a real keyboard. Snap useful? Keyboard range D6–C8 OK?
 - C4 approved with a colour caveat: hand-designed gestures do not yet resemble real birds. D1 is still parked; resemblance work starts there.
+- **Re-plan after the approach review (2026-10-11) — pending.** The human approved a re-plan in principle and wants to discuss the listening results first. Until then, do **not** continue C5 from its original spec and do not start C6. Proposal: R1 real syllable bank, R2 engine colour calibration + onset-click fix, R3 data-driven generator; E-phase optional.
+- C5: Leash / Density / Variation defaults; is tempo sync useful in a DAW; should Leash ship mapped to the mod wheel in C6? (superseded by the re-plan)
 
 ## Session log (append one line per session)
 
@@ -144,3 +157,8 @@
 | 2026-09-18 | C4 | Cursor Grok 4.6 | WP-C4 awaiting approval (listening page opened) |
 | 2026-09-18 | C4 | Cursor Grok 4.6 | feedback: 12/13 stack+buzz hiss, two-voice machine; song retuned, still awaiting approve |
 | 2026-09-18 | C4 | Cursor Grok 4.6 | approved (colour still not bird-like), committed and tagged wp-C4 |
+| 2026-09-18 | C5 | Cursor Grok 4.6 | started WP-C5 (generative engine, Leash, polyphony, tempo sync) |
+| 2026-09-18 | C5 | Cursor Grok 4.6 | WP-C5 awaiting approval (listening page opened; pluginval 5 PASS) |
+| 2026-09-18 | C5 | Cursor Grok 4.6 | feedback: long glissandi / soft attacks; grammar retuned to short phonemes; page rebuilt |
+| 2026-10-11 | C5 | Claude Opus 5.5 | feedback: all items sound like morse code, colour synthetic; approach review + copy-synthesis experiment (`listening/REVIEW/`) |
+| 2026-10-11 | C5 | Claude Opus 5.5 | human: real gestures sound like a bird (02/03/05); C5 committed as partial; re-plan pending discussion |

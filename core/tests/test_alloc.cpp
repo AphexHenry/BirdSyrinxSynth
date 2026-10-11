@@ -1,5 +1,6 @@
 #include "alloc_counter.hpp"
 #include "cuicui/control/archetypes.hpp"
+#include "cuicui/control/gesture_engine.hpp"
 #include "cuicui/control/inverse_map.hpp"
 #include "cuicui/control/score_player.hpp"
 #include "cuicui/control/voice_controller.hpp"
@@ -176,5 +177,50 @@ TEST_CASE("ScorePlayer::process allocates nothing after prepare") {
     player.process(buf.data(), 64);
     cuicui::test::reset_alloc_count();
     player.process(buf.data(), 64);
+    REQUIRE(cuicui::test::alloc_count() == 0);
+}
+
+TEST_CASE("GestureEngine::next allocates nothing after noteOn") {
+    cuicui::control::GestureEngine eng;
+    eng.prepare();
+    cuicui::control::GestureEngineContext cx;
+    cx.variation = 1.0;
+    cx.density = 0.7;
+    eng.setContext(cx);
+    eng.noteOn(9600.0, 100, 11);
+    const double dt = 1.0 / 1500.0;
+    for (int i = 0; i < 64; ++i) {
+        (void)eng.next(dt);
+    }
+    cuicui::test::reset_alloc_count();
+    for (int i = 0; i < 1500 * 8; ++i) {
+        (void)eng.next(dt);
+    }
+    REQUIRE(cuicui::test::alloc_count() == 0);
+}
+
+TEST_CASE("VoiceController+GestureEngine tick allocates nothing") {
+    cuicui::control::InverseMap map;
+    cuicui::control::VoiceController vc;
+    cuicui::control::GestureEngine eng;
+    eng.prepare();
+    vc.prepare(48000.0 / 32.0, map);
+    vc.setGestureSource(&eng);
+    cuicui::VoiceSettings st;
+    cuicui::ControlFrame fr;
+    cuicui::control::PerformInputs in;
+    in.gate = true;
+    in.noteCents = 9600.0;
+    in.velocity01 = 0.8;
+    in.leash = 1.0;
+    in.variation = 1.0;
+    in.phraseSeed = 7;
+    in.noteOnEvent = true;
+    vc.tick(in, st, fr);
+    in.noteOnEvent = false;
+    cuicui::test::reset_alloc_count();
+    for (int i = 0; i < 4096; ++i) {
+        vc.tick(in, st, fr);
+    }
     REQUIRE(cuicui::test::alloc_count() == 0);
 }

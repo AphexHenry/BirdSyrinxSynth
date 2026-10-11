@@ -10,6 +10,8 @@ set(SYRINX_PLUGIN_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/ParameterLayout.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/PluginProcessor.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/PluginProcessor.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/VoiceAllocator.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/VoiceAllocator.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/PluginEditor.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/PluginEditor.cpp"
 )
@@ -81,6 +83,7 @@ add_executable(syrinx_plugin_tests
     tests/main.cpp
     tests/test_processor.cpp
     tests/test_perform_mode.cpp
+    tests/test_generative.cpp
     ${SYRINX_PLUGIN_SOURCES}
 )
 target_include_directories(syrinx_plugin_tests PRIVATE
@@ -104,8 +107,6 @@ set_target_properties(plugin_render syrinx_plugin_tests PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
-# One process for the whole Catch2 binary. catch_discover_tests spawned a process
-# per case; JUCE teardown then SIGABRT'd after "All tests passed".
 # One process for the whole Catch2 binary. catch_discover_tests spawned a process
 # per case; JUCE teardown then SIGABRT'd after "All tests passed".
 add_test(NAME syrinx_plugin_tests COMMAND syrinx_plugin_tests)

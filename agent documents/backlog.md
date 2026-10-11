@@ -37,6 +37,9 @@
 - [C3] MIDI 60–72 with range_fold maps several piano octaves onto the same bird notes; glide tests must use in-range pitches (D6–C8) or the interval collapses.
 - [C3] Jumps at the D6 playable floor sound printer-like (SNIC/onset noise + physical side-open). Keep demos in the middle of the band until C4/C5 add syllable-shaped breath around switches.
 - [C4] High-depth upsweeps/switch_sweeps can leave the D6–C8 playable band and fold or sit on the floor — C5 should keep generated anchors inside the atlas range.
+- [C5] Factory MIDI map Leash → mod wheel (CC1) in C6 — the WP asked the human to map it in the DAW.
+- [C5] `perf.voice_bank` = `learned` is a no-op until F3; keep two combo names so auval stays happy.
+- [C5] Clamp generative syllable anchors to the InverseMap playable band so high Range does not fold.
 
 
 

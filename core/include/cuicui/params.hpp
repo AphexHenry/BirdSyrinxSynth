@@ -233,6 +233,72 @@ inline constexpr std::array<const char*, 6> kPerfScaleNames{
 }
 
 /// engine.oversampling: 0 = auto, else 1, 2, 4, 8.
+/// perf.sync_division: 0=1/4, 1=1/8, 2=1/16, 3=1/32, 4=1/8T, 5=1/16T. WP-C5.
+enum class PerfSyncDivision { Quarter = 0, Eighth = 1, Sixteenth = 2, ThirtySecond = 3, EighthT = 4, SixteenthT = 5 };
+
+inline constexpr std::array<const char*, 6> kPerfSyncDivisionNames{{"1/4", "1/8", "1/16", "1/32", "1/8T", "1/16T"}};
+
+[[nodiscard]] inline int perfSyncDivisionIndexFromValue(double v) noexcept {
+    const int i = static_cast<int>(std::lround(v));
+    return std::clamp(i, 0, 5);
+}
+
+[[nodiscard]] inline bool parsePerfSyncDivisionToken(std::string_view s, int& out) noexcept {
+    for (int i = 0; i < static_cast<int>(kPerfSyncDivisionNames.size()); ++i) {
+        if (s == kPerfSyncDivisionNames[static_cast<std::size_t>(i)]) {
+            out = i;
+            return true;
+        }
+    }
+    if (s.size() == 1 && s[0] >= '0' && s[0] <= '5') {
+        out = s[0] - '0';
+        return true;
+    }
+    return false;
+}
+
+/// Grid length in quarter-notes for `perf.sync_division`.
+[[nodiscard]] inline double syncDivisionQuarterNotes(int index) noexcept {
+    switch (std::clamp(index, 0, 5)) {
+    case 0:
+        return 1.0;
+    case 1:
+        return 0.5;
+    case 2:
+        return 0.25;
+    case 3:
+        return 0.125;
+    case 4:
+        return 1.0 / 3.0;
+    case 5:
+        return 1.0 / 6.0;
+    default:
+        return 0.25;
+    }
+}
+
+/// perf.voice_bank: 0 = archetypes; 1 = learned placeholder (F3). WP-C5.
+enum class PerfVoiceBank { Archetypes = 0, Learned = 1 };
+
+inline constexpr std::array<const char*, 2> kPerfVoiceBankNames{{"archetypes", "learned"}};
+
+[[nodiscard]] inline int perfVoiceBankIndexFromValue(double v) noexcept {
+    const int i = static_cast<int>(std::lround(v));
+    return std::clamp(i, 0, 1);
+}
+
+[[nodiscard]] inline bool parsePerfVoiceBankToken(std::string_view s, int& out) noexcept {
+    if (s == "archetypes" || s == "0") {
+        out = 0;
+        return true;
+    }
+    if (s == "learned" || s == "1") {
+        out = 1;
+        return true;
+    }
+    return false;
+}
+
 [[nodiscard]] inline bool parseOversamplingToken(std::string_view s, int& out) noexcept {
     if (s == "auto" || s == "0") {
         out = 0;

@@ -43,6 +43,17 @@ struct PerformInputs {
     bool rangeFold = true;
     double leash = 0.0;
     std::uint64_t seed = 1;
+    /// Phrase seed for GestureEngine (0 = caller already randomised). WP-C5.
+    std::uint32_t phraseSeed = 0;
+    double variation = 1.0;
+    double density = 0.5;
+    bool freeze = false;
+    bool tempoSync = false;
+    int syncDivision = 2;
+    bool tempoValid = false;
+    bool hostPlaying = false;
+    double bpm = 120.0;
+    double ppq = 0.0;
     /// Set true on the tick a new MIDI note-on is processed (including legato).
     bool noteOnEvent = false;
     bool noteOffEvent = false;
@@ -114,6 +125,7 @@ public:
         fadeBetaL_ = 0.3;
         fadeBetaR_ = 0.3;
         pUnsnapped_ = 6900.0;
+        lambda_ = 0.0;
     }
 
     void setGestureSource(GestureSource* src) noexcept { src_ = src; }
@@ -131,22 +143,20 @@ public:
         const double relMs = std::max(1.0, base.resp_release_ms) * rootS;
         resp_.setTimeConstantsMs(attMs, relMs);
 
-        GestureSample g{};
-        if (src_ != nullptr) {
-            g = src_->next(dt);
-        }
-
         const bool gate = in.gate;
         const bool fromSilence = gate && !wasGate_;
         const bool asNew = fromSilence && (pHat_ < 0.20); // new note, not release-legato
         const std::uint64_t noteSeed = dsp::deriveStreamSeed(
             in.seed == 0 ? 1ULL : in.seed, dsp::kStreamOrnament + static_cast<int>(noteIndex_));
         const int vel127 = static_cast<int>(std::lround(std::clamp(in.velocity01, 0.0, 1.0) * 127.0));
+        const std::uint32_t gSeed =
+            in.phraseSeed != 0 ? in.phraseSeed : static_cast<std::uint32_t>(noteSeed == 0 ? 1ULL : noteSeed);
+        const double anchor = in.noteCents + in.bendCents;
 
         if (asNew) {
             ornaments_.noteOn(in.motion, in.range, in.speed, relMs, noteSeed, true);
             if (src_ != nullptr) {
-                src_->noteOn(in.noteCents, vel127, static_cast<std::uint32_t>(noteSeed));
+                src_->noteOn(anchor, vel127, gSeed);
             }
             ++noteIndex_;
             pNote_ = in.noteCents;
@@ -159,7 +169,7 @@ public:
             pHistIdx_ = 0;
         } else if (fromSilence || (in.noteOnEvent && wasGate_)) {
             if (src_ != nullptr) {
-                src_->noteOn(in.noteCents, vel127, static_cast<std::uint32_t>(noteSeed));
+                src_->noteOn(anchor, vel127, gSeed);
             }
         }
         if (!gate && wasGate_) {
@@ -167,6 +177,11 @@ public:
             if (src_ != nullptr) {
                 src_->noteOff();
             }
+        }
+
+        GestureSample g{};
+        if (src_ != nullptr) {
+            g = src_->next(dt);
         }
 
         // Glide: one-pole in cents, legato only; jump after silence. WP-C3 §4.2.
@@ -180,7 +195,13 @@ public:
 
         const double ornament = ornaments_.next(dt);
         const double D = pNote_ + in.bendCents + ornament;
-        const double lambda = std::clamp(in.leash, 0.0, 1.0);
+        const double leashT = std::clamp(in.leash, 0.0, 1.0);
+        if (asNew) {
+            lambda_ = leashT;
+        } else {
+            lambda_ = onePole(lambda_, leashT, 0.010, dt);
+        }
+        const double lambda = lambda_;
         const double G = (g.active && src_ != nullptr) ? g.pitchCents : D;
         double P = (1.0 - lambda) * D + lambda * G;
 
@@ -200,8 +221,10 @@ public:
                                           (1.0 + std::clamp(in.pressure01, 0.0, 1.0) * 0.5),
                                       0.0, 1.0);
         const double eGest = g.active ? g.ampDb : 0.0;
-        const double gestAmp = std::pow(10.0, eGest / 20.0);
-        const double u = gate ? std::clamp(uPl * gestAmp, 0.0, 1.0) : 0.0;
+        const double gestAmp = g.active ? std::pow(10.0, eGest / 20.0) : 0.0;
+        // WP-C5 §4.2: gaps become silences as λ → 1; λ = 0 is the C3 player breath.
+        const double art = (1.0 - lambda) + lambda * gestAmp;
+        const double u = gate ? std::clamp(uPl * art, 0.0, 1.0) : 0.0;
 
         const double alphaBreath = model::alphaFromPressure(uPl, 0.0);
         const auto solved = map.solve(nu, tone, alphaBreath, in.physics, in.rangeFold);
@@ -227,7 +250,7 @@ public:
         // OEC / gape tracking. 01_research.md §7.3.
         const double fRef = 1000.0 / sigma;
         double fH = static_cast<double>(out.oec_freq_hz);
-        if (hintSet(g.oecRatio) && g.oecRatio > 0.0) {
+        if (lambda > 0.5 && hintSet(g.oecRatio) && g.oecRatio > 0.0) {
             fH = g.oecRatio * f0;
         } else {
             const double kappa = std::clamp(in.oecTracking, 0.0, 1.0);
@@ -237,7 +260,7 @@ public:
         fH = clampParam(specOf(ParamId::OecFreqHz), fH);
 
         double gape = static_cast<double>(out.beak_gape);
-        if (hintSet(g.gape)) {
+        if (lambda > 0.5 && hintSet(g.gape)) {
             gape = g.gape;
         } else {
             const double kg = std::clamp(in.gapeTracking, 0.0, 0.5);
@@ -257,7 +280,7 @@ public:
         double gateR = 0.0;
         int active = switcher_.activeSide();
 
-        if (hintSet(g.secondVoiceCents)) {
+        if (lambda > 0.5 && hintSet(g.secondVoiceCents)) {
             const double nu2 = (gamma > 0.0)
                                    ? (2.0 * std::numbers::pi * hzFromCents(P + g.secondVoiceCents) / gamma)
                                    : nu;
@@ -273,7 +296,7 @@ public:
             gateL = 1.0;
             gateR = 1.0;
             holdOutgoing_ = false;
-        } else if (g.active && hintSet(g.side)) {
+        } else if (lambda > 0.5 && g.active && hintSet(g.side)) {
             const double s = std::clamp(g.side, -1.0, 1.0);
             betaL = beta;
             betaR = beta;
@@ -446,6 +469,7 @@ private:
     double fadeBetaL_ = 0.3;
     double fadeBetaR_ = 0.3;
     std::uint32_t noteIndex_ = 0;
+    double lambda_ = 0.0;
     Debug debug_{};
 };
 

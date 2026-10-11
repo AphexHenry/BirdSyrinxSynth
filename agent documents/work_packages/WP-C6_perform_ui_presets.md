@@ -100,3 +100,17 @@ Final message: **milestone M4**. Human checklist: install the plugin, browse pre
 - Keep all UI text in English, short, no physics jargon on the Perform page.
 - Don't load presets on the audio thread.
 - Pitch trace must handle polyphony (one colour per active voice, max 8 traces).
+
+## Notes from WP-C5
+
+- `GestureEngine` is always attached in the plugin. **Leash default is 0**: that path is bit-identical to `NullGestureSource` (C3). Raise Leash to hear generation.
+- Scores (`ScorePlayer` / `.gscore.json`) are still `bird_render` / C4 — the plugin does not load scores. Factory presets in C6 drive macros, not scores.
+- Polyphony 1: last-note MIDI, dual-mono pan = 1, controller is **not** reset on every note (keeps C3 glide). Polyphony > 1: steal oldest, 5 ms cosine fade, constant-power pan from `out.stereo_spread`, tiny size/tone detune × Variation.
+- Motif memory is the **first 2–5 syllables**, not the 16-slot pool. Freeze replays that motif; Variation then only micro-deviates.
+- `plugin_render` flags: `--bpm` / `--playing` for tempo sync. Automation JSON: `{ "perf.leash": [[t, v], ...] }`. Phrase seed = hash(`perf.seed`, note, counter); `perf.seed` 0 hashes `engine.seed`.
+- Playable band at σ=1 is still D6–C8. Listening holds C7 (MIDI 96). High Range can still throw anchors outside the atlas and fold.
+- Allocator voices must be primed with the **current** `body.size` after prepare (C3 size-0.5 pitch tests fail if primed at σ=1).
+- `VoiceBankSource` is a declared stub for F3. C6 UI can show the `perf.voice_bank` combo (`archetypes` and a no-op `learned` placeholder so auval accepts the enum).
+- Leash λ snaps on a new note (`asNew`) and otherwise 10 ms one-pole. Amplitude blend is through pressure (`u_player * art`), not output gain. Hints (OEC/gape/second voice/side) apply only when λ > 0.5.
+- Grammar is in `archetype_grammar.hpp` (`kGrammarBaseWeight`, `kGenDurBlend`, `kAnchorSigmaCents`, gap constants). Listening feedback lives in those knobs — do not silently revert to long sweeps.
+- Human asked to map Leash to the mod wheel in the DAW; C6 MIDI learn / factory mapping should ship that.

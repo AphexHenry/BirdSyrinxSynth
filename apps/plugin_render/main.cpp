@@ -61,7 +61,7 @@ void usage(const char* argv0) {
               << " [--midi phrase.mid] [--notes \"60:0.0:1.0:100,...\"]\n"
               << "              [--params params.json] [--automation automation.json]\n"
               << "              [--sr 48000] [--block 256] [--tail 1.5] [--duration 0]\n"
-              << "              [--seed 1] [--screenshot editor.png] -o out.wav\n";
+              << "              [--seed 1] [--bpm 120] [--playing 0|1] [--screenshot editor.png] -o out.wav\n";
 }
 
 std::vector<MidiEvt> parseNotes(const std::string& spec, double sr) {
@@ -138,6 +138,26 @@ std::map<std::string, Lane> loadAutomation(const std::filesystem::path& path) {
     return out;
 }
 
+class RenderPlayHead final : public juce::AudioPlayHead {
+public:
+    juce::Optional<PositionInfo> getPosition() const override {
+        PositionInfo p;
+        p.setBpm(bpm);
+        p.setPpqPosition(ppq);
+        p.setIsPlaying(playing);
+        p.setTimeInSamples(samples);
+        if (sr > 0.0) {
+            p.setTimeInSeconds(static_cast<double>(samples) / sr);
+        }
+        return p;
+    }
+    double bpm = 120.0;
+    double ppq = 0.0;
+    double sr = 48000.0;
+    bool playing = false;
+    juce::int64 samples = 0;
+};
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -151,6 +171,9 @@ int main(int argc, char** argv) {
         double duration = 0.0;
         std::uint64_t seed = 1;
         bool seedSet = false;
+        double bpm = 120.0;
+        bool playing = false;
+        bool bpmSet = false;
 
         for (int i = 1; i < argc; ++i) {
             const std::string a = argv[i];
@@ -187,6 +210,12 @@ int main(int argc, char** argv) {
                 seedSet = true;
             } else if (a == "--screenshot") {
                 screenshotPath = need("--screenshot");
+            } else if (a == "--bpm") {
+                bpm = std::stod(need("--bpm"));
+                bpmSet = true;
+            } else if (a == "--playing") {
+                playing = std::stoi(need("--playing")) != 0;
+                bpmSet = true;
             } else {
                 usage(argv[0]);
                 return 1;
@@ -265,7 +294,17 @@ int main(int argc, char** argv) {
             }
         }
         proc.prepareToPlay(sr, block);
-        proc.setPlayHead(nullptr);
+        RenderPlayHead playHead;
+        playHead.sr = sr;
+        playHead.bpm = bpm;
+        playHead.playing = playing;
+        playHead.ppq = 0.0;
+        playHead.samples = 0;
+        if (bpmSet) {
+            proc.setPlayHead(&playHead);
+        } else {
+            proc.setPlayHead(nullptr);
+        }
 
         std::vector<float> stereo(static_cast<std::size_t>(n) * 2u, 0.0f);
         juce::AudioBuffer<float> buf(2, block);
@@ -285,6 +324,10 @@ int main(int argc, char** argv) {
                 ++evtI;
             }
             proc.processBlock(buf, midi);
+            if (bpmSet && playHead.bpm > 0.0) {
+                playHead.samples += nThis;
+                playHead.ppq += (static_cast<double>(nThis) / sr) * playHead.bpm / 60.0;
+            }
             for (int i = 0; i < nThis; ++i) {
                 stereo[static_cast<std::size_t>((done + i) * 2)] = buf.getSample(0, i);
                 stereo[static_cast<std::size_t>((done + i) * 2 + 1)] = buf.getSample(1, i);

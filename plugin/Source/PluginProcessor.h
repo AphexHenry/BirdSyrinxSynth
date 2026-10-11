@@ -2,6 +2,7 @@
 
 #include "ParameterLayout.h"
 #include "SafetyLimiter.h"
+#include "VoiceAllocator.h"
 #include "cuicui/control/inverse_map.hpp"
 #include "cuicui/control/voice_controller.hpp"
 #include "cuicui/dsp/smoother.hpp"
@@ -79,7 +80,9 @@ private:
     void cacheParamPointers();
     void handleMidi(const juce::MidiMessage& msg) noexcept;
     void applyPhysiologyNote(cuicui::ControlFrame& frame) noexcept;
-    void applyPerformTick(cuicui::ControlFrame& frame, bool noteOnEvent, bool noteOffEvent) noexcept;
+    void fillPerformInputs(cuicui::control::PerformInputs& in, bool noteOnEvent, bool noteOffEvent) noexcept;
+    std::uint32_t makePhraseSeed(int note) noexcept;
+    void readHostTempo() noexcept;
     cuicui::ControlFrame readControlFrame() const noexcept;
     cuicui::VoiceSettings readSettings() const noexcept;
     int readOversampling() const noexcept;
@@ -95,6 +98,7 @@ private:
     cuicui::BirdVoice voice_;
     cuicui::control::InverseMap map_;
     cuicui::control::VoiceController controller_;
+    VoiceAllocator allocator_;
     SafetyLimiter limiter_;
     cuicui::dsp::Smoother masterSm_;
 
@@ -103,10 +107,19 @@ private:
     juce::AudioParameterChoice* osParam_ = nullptr;
     juce::AudioParameterChoice* modeParam_ = nullptr;
     juce::AudioParameterChoice* scaleParam_ = nullptr;
+    juce::AudioParameterChoice* syncDivParam_ = nullptr;
+    juce::AudioParameterInt* polyParam_ = nullptr;
+    juce::AudioParameterInt* perfSeedParam_ = nullptr;
 
     std::vector<float> mono_;
+    std::vector<float> right_;
     cuicui::ControlFrame lastFrame_{};
     bool prepared_ = false;
+    std::uint32_t phraseCounter_ = 1;
+    double hostBpm_ = 120.0;
+    double hostPpq_ = 0.0;
+    bool hostPlaying_ = false;
+    bool hostTempoValid_ = false;
 
     HeldNote held_[kMaxHeldNotes]{};
     int nHeld_ = 0;
