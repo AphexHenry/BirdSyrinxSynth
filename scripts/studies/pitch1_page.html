@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bird Pitch Test</title>
+<style>
+  :root {
+    --bg: #f7f6f1; --card: #ffffff; --fg: #1f1e1b; --muted: #6d6b64; --line: #e2e0d8;
+    --accent: #2e6b4f; --accent-fg: #ffffff; --warn: #a3471b; --track: #d9d6cc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141413; --card: #1d1d1b; --fg: #ecebe5; --muted: #9b998f; --line: #34332f;
+      --accent: #7cc49d; --accent-fg: #10231a; --warn: #f0a070; --track: #3a3934;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 28px 16px 64px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  ol, ul { padding-left: 1.2rem; } li { margin: 4px 0; }
+  button { font: inherit; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--fg);
+           padding: 10px 14px; cursor: pointer; }
+  button:hover { border-color: var(--muted); }
+  button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+  button:disabled { opacity: .45; cursor: default; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 12px 0; }
+  kbd { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid var(--line); border-bottom-width: 2px;
+        border-radius: 4px; padding: 0 5px; margin-left: 6px; color: var(--muted); background: var(--bg); }
+  .progress { display: flex; justify-content: space-between; color: var(--muted); font-size: .9rem; }
+  .bar { height: 6px; background: var(--track); border-radius: 3px; margin: 6px 0 16px; overflow: hidden; }
+  .bar > div { height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+  .slider { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; margin: 22px 0 8px; }
+  .slider span { color: var(--muted); font-size: .9rem; }
+  input[type=range] { width: 100%; accent-color: var(--accent); height: 28px; }
+  .nudges button { min-width: 64px; }
+  fieldset { border: 1px solid var(--line); border-radius: 8px; margin: 18px 0; padding: 10px 14px; }
+  legend { color: var(--muted); font-size: .9rem; padding: 0 4px; }
+  fieldset label { margin-right: 18px; white-space: nowrap; }
+  fieldset.missing { border-color: var(--warn); }
+  .hint { color: var(--muted); font-size: .9rem; }
+  .tag { display: inline-block; font-size: .8rem; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px;
+         padding: 0 8px; margin-left: 8px; }
+  textarea { width: 100%; min-height: 110px; font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+             background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+  .status { color: var(--muted); font-size: .9rem; min-height: 1.4em; }
+  @media (max-width: 520px) { .nudges button { min-width: 52px; padding: 10px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>What note is this bird syllable?</h1>
+  <p class="sub">PITCH1 · pitch matching · about 20 minutes · progress is saved, you can pause any time</p>
+
+  <section id="intro" class="card">
+    <ol>
+      <li>Use headphones or good monitors. Set a comfortable level with the reference tone and do not change it during the test.</li>
+      <li>Each trial plays a short <b>bird syllable</b>, then a <b>steady tone</b>.</li>
+      <li>Move the slider until the steady tone has <b>the same pitch as the syllable</b>: the single note that best represents it. Don't try to follow the movement; ask yourself "which note is it?".</li>
+      <li>Tell how clear the syllable's pitch was. If there is no clear note, still give your best match and choose "no clear note".</li>
+      <li>Replay as often as you like. Loop mode repeats bird → tone while you adjust.</li>
+    </ol>
+    <p class="hint">The first 2 trials are practice. The slider's ends and starting point change on every trial, so the middle of the slider means nothing.</p>
+    <div class="row">
+      <button id="refTone">Reference tone (set your level)</button>
+      <button id="start" class="primary">Start</button>
+      <button id="restart" hidden>Start over</button>
+    </div>
+    <p class="status" id="introStatus"></p>
+  </section>
+
+  <section id="trial" class="card" hidden>
+    <div class="progress"><span id="trialLabel"></span><span id="trialHint"></span></div>
+    <div class="bar"><div id="barFill"></div></div>
+    <div class="row">
+      <button id="playPair" class="primary">▶ Bird → tone<kbd>space</kbd></button>
+      <label><input type="checkbox" id="loop"> Loop<kbd>L</kbd></label>
+    </div>
+    <div class="row">
+      <button id="playBird">Bird only<kbd>B</kbd></button>
+      <button id="playTone">Tone only<kbd>T</kbd></button>
+    </div>
+    <div class="slider">
+      <span>lower</span>
+      <input type="range" id="pitch" step="any" aria-label="Tone pitch">
+      <span>higher</span>
+    </div>
+    <div class="row nudges">
+      <button data-d="-25" title="Shift + ←">−25</button>
+      <button data-d="-5" title="←">−5</button>
+      <button data-d="5" title="→">+5</button>
+      <button data-d="25" title="Shift + →">+25</button>
+      <span class="hint">cents · arrow keys work too</span>
+    </div>
+    <fieldset id="clarityBox">
+      <legend>How clear was the syllable's pitch?</legend>
+      <label><input type="radio" name="clarity" value="clear"> clear note <kbd>1</kbd></label>
+      <label><input type="radio" name="clarity" value="vague"> vague <kbd>2</kbd></label>
+      <label><input type="radio" name="clarity" value="none"> no clear note <kbd>3</kbd></label>
+    </fieldset>
+    <div class="row">
+      <button id="next" class="primary">Next ▶<kbd>enter</kbd></button>
+      <span class="status" id="trialStatus"></span>
+    </div>
+  </section>
+
+  <section id="done" class="card" hidden>
+    <h2 style="margin-top:0">Done, thank you.</h2>
+    <p>Optional: what were you listening for? Anything surprising, tiring or ambiguous?</p>
+    <textarea id="comment" placeholder="Your notes…"></textarea>
+    <div class="row">
+      <button id="download" class="primary">Download results (.json)</button>
+      <button id="copy">Copy results</button>
+    </div>
+    <p class="status" id="doneStatus"></p>
+    <p class="hint">Either send me the downloaded file's location or paste the copied text in the chat.</p>
+    <textarea id="resultsText" readonly hidden></textarea>
+  </section>
+</main>
+
+<script src="stimuli.js"></script>
+<script>
+(function () {
+  "use strict";
+  const D = window.PITCH1;
+  const KEY = "pitch1-progress-" + D.design_hash;
+  const TARGET_RMS = 0.08;            // about -22 dBFS for every sound
+  const GAP_PAIR = 0.40;              // s between syllable and tone
+  const GAP_LOOP = 0.90;              // s between repetitions in loop mode
+  const $ = (id) => document.getElementById(id);
+
+  let ctx = null;
+  let active = [];                    // scheduled AudioBufferSourceNodes
+  let loopTimer = null;
+  let state = loadState() || freshState();
+  let cur = null;                     // runtime info for the current trial
+
+  function freshState() {
+    return { study: D.study, version: D.version, design_hash: D.design_hash, seed: D.seed,
+             started: new Date().toISOString(), idx: 0, results: [], user_agent: navigator.userAgent };
+  }
+  function loadState() {
+    try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; }
+  }
+  function saveState() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable: keep going */ }
+  }
+
+  function ensureCtx() {
+    if (!ctx) { ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+    if (ctx.state === "suspended") { ctx.resume(); }
+    return ctx;
+  }
+
+  function normalise(d, env) {
+    let peak = 0;
+    for (let i = 0; i < env.length; i++) { if (env[i] > peak) peak = env[i]; }
+    let s = 0, n = 0;
+    for (let i = 0; i < d.length; i++) { if (env[i] >= 0.1 * peak) { s += d[i] * d[i]; n++; } }
+    const g = n ? TARGET_RMS / Math.sqrt(s / n) : 1;
+    for (let i = 0; i < d.length; i++) { d[i] *= g; }
+  }
+
+  // Syllable: sine following the stored contour (1 ms points, log-frequency interpolation).
+  function synthStim(stim, roveCents) {
+    const sr = ctx.sampleRate;
+    const n = Math.round(stim.dur_ms / 1000 * sr);
+    const buf = ctx.createBuffer(1, n, sr);
+    const d = buf.getChannelData(0);
+    const env = new Float32Array(n);
+    const k = Math.pow(2, roveCents / 1200);
+    const F = stim.f_hz, A = stim.a, m = F.length;
+    let ph = 0;
+    for (let i = 0; i < n; i++) {
+      const tms = i / sr * 1000;
+      let j = Math.floor(tms), fr = tms - j;
+      if (j >= m - 1) { j = m - 2; fr = 1; }
+      if (j < 0) { j = 0; fr = 0; }
+      const f = Math.exp(Math.log(F[j]) * (1 - fr) + Math.log(F[j + 1]) * fr) * k;
+      const a = A[j] * (1 - fr) + A[j + 1] * fr;
+      ph += 2 * Math.PI * f / sr;
+      if (ph > 2 * Math.PI) ph -= 2 * Math.PI;
+      d[i] = a * Math.sin(ph);
+      env[i] = a;
+    }
+    normalise(d, env);
+    return buf;
+  }
+
+  // Comparison: steady sine, same duration as the syllable (min 80 ms), 5 ms raised-cosine ramps.
+  function synthTone(cents, durMs) {
+    const sr = ctx.sampleRate;
+    const n = Math.round(Math.max(durMs, 80) / 1000 * sr);
+    const r = Math.round(0.005 * sr);
+    const f = 440 * Math.pow(2, (cents - 6900) / 1200);
+    const buf = ctx.createBuffer(1, n, sr);
+    const d = buf.getChannelData(0);
+    const env = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      let a = 1;
+      if (i < r) a = 0.5 - 0.5 * Math.cos(Math.PI * i / r);
+      else if (i >= n - r) a = 0.5 - 0.5 * Math.cos(Math.PI * (n - 1 - i) / r);
+      d[i] = a * Math.sin(2 * Math.PI * f * i / sr);
+      env[i] = a;
+    }
+    normalise(d, env);
+    return buf;
+  }
+
+  function schedule(buf, when) {
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(when);
+    active.push(src);
+    src.onended = () => { active = active.filter((s) => s !== src); };
+  }
+
+  function stopAll() {
+    if (loopTimer) { clearTimeout(loopTimer); loopTimer = null; }
+    active.forEach((s) => { try { s.stop(); } catch (e) { /* already stopped */ } });
+    active = [];
+  }
+
+  function trialSpec() { return D.trials[state.idx]; }
+  function stimOf(t) { return D.stimuli[t.stim]; }
+
+  function playPair() {
+    ensureCtx();
+    stopAll();
+    const t = trialSpec(), st = stimOf(t);
+    const now = ctx.currentTime + 0.05;
+    const b = synthStim(st, t.rove_cents);
+    const tone = synthTone(cur.cmp, st.dur_ms);
+    schedule(b, now);
+    schedule(tone, now + b.duration + GAP_PAIR);
+    cur.pairs++;
+    const end = now + b.duration + GAP_PAIR + tone.duration;
+    if ($("loop").checked) {
+      loopTimer = setTimeout(() => { if ($("loop").checked) { cur.loops++; playPair(); } },
+                             (end - ctx.currentTime + GAP_LOOP) * 1000);
+    }
+  }
+  function playBird() {
+    ensureCtx(); stopAll();
+    const t = trialSpec();
+    schedule(synthStim(stimOf(t), t.rove_cents), ctx.currentTime + 0.05);
+    cur.bird_only++;
+  }
+  function playTone() {
+    ensureCtx(); stopAll();
+    schedule(synthTone(cur.cmp, stimOf(trialSpec()).dur_ms), ctx.currentTime + 0.05);
+    cur.tone_only++;
+  }
+
+  function setCmp(v) {
+    const t = trialSpec();
+    cur.cmp = Math.min(t.slider_max_cents, Math.max(t.slider_min_cents, v));
+    $("pitch").value = String(cur.cmp);
+    cur.moves++;
+  }
+
+  function showTrial() {
+    stopAll();
+    const t = trialSpec();
+    const N = D.trials.length;
+    cur = { cmp: t.cmp_start_cents, pairs: 0, loops: 0, bird_only: 0, tone_only: 0, moves: 0, t0: performance.now() };
+    const s = $("pitch");
+    s.min = String(t.slider_min_cents); s.max = String(t.slider_max_cents); s.value = String(t.cmp_start_cents);
+    document.querySelectorAll("input[name=clarity]").forEach((r) => { r.checked = false; });
+    $("clarityBox").classList.remove("missing");
+    $("trialLabel").innerHTML = "Trial " + (state.idx + 1) + " / " + N + (t.practice ? '<span class="tag">practice</span>' : "");
+    $("trialHint").textContent = t.practice ? "Practice: learn the controls" : "";
+    $("barFill").style.width = (100 * state.idx / N) + "%";
+    $("trialStatus").textContent = "";
+  }
+
+  function next() {
+    const c = document.querySelector("input[name=clarity]:checked");
+    if (!c) { $("clarityBox").classList.add("missing"); $("trialStatus").textContent = "Choose how clear the pitch was."; return; }
+    if (cur.pairs + cur.bird_only === 0) { $("trialStatus").textContent = "Listen to the syllable at least once."; return; }
+    stopAll();
+    const t = trialSpec();
+    state.results.push({
+      n: t.n, stim: t.stim, practice: t.practice, rove_cents: t.rove_cents,
+      cmp_start_cents: t.cmp_start_cents, match_cents: Math.round(cur.cmp * 10) / 10,
+      clarity: c.value, pairs: cur.pairs, loops: cur.loops, bird_only: cur.bird_only, tone_only: cur.tone_only,
+      moves: cur.moves, ms: Math.round(performance.now() - cur.t0), at: new Date().toISOString()
+    });
+    state.idx++;
+    saveState();
+    if (state.idx >= D.trials.length) { finish(); } else { showTrial(); }
+  }
+
+  function resultsJson() {
+    const out = Object.assign({}, state, { finished: state.finished || null, comment: $("comment").value,
+                                           sample_rate: ctx ? ctx.sampleRate : null });
+    return JSON.stringify(out, null, 1);
+  }
+
+  function finish() {
+    stopAll();
+    state.finished = new Date().toISOString();
+    saveState();
+    $("trial").hidden = true;
+    $("intro").hidden = true;
+    $("done").hidden = false;
+  }
+
+  // ---------------------------------------------------------------- wiring
+  $("refTone").addEventListener("click", () => {
+    ensureCtx(); stopAll();
+    const b = synthTone(6900 + 1200 * Math.log2(3400 / 440), 400);
+    schedule(b, ctx.currentTime + 0.05);
+  });
+  $("start").addEventListener("click", () => {
+    ensureCtx();
+    if (state.idx >= D.trials.length) { finish(); return; }
+    $("intro").hidden = true; $("trial").hidden = false;
+    showTrial();
+  });
+  $("restart").addEventListener("click", () => {
+    if (!confirm("Erase saved answers and start from trial 1?")) return;
+    state = freshState(); saveState();
+    $("restart").hidden = true; $("start").textContent = "Start"; $("introStatus").textContent = "";
+  });
+  $("playPair").addEventListener("click", playPair);
+  $("playBird").addEventListener("click", playBird);
+  $("playTone").addEventListener("click", playTone);
+  $("loop").addEventListener("change", () => { if ($("loop").checked) playPair(); else stopAll(); });
+  $("pitch").addEventListener("input", (e) => { cur.cmp = Number(e.target.value); cur.moves++; });
+  document.querySelectorAll(".nudges button").forEach((b) => {
+    b.addEventListener("click", () => { setCmp(cur.cmp + Number(b.dataset.d)); if (!$("loop").checked) playPair(); });
+  });
+  // keep keyboard shortcuts from also activating whatever control has focus
+  document.querySelectorAll("button, input[type=radio], input[type=checkbox]").forEach((el) => {
+    el.addEventListener("click", () => el.blur());
+  });
+  $("next").addEventListener("click", next);
+  $("download").addEventListener("click", () => {
+    const blob = new Blob([resultsJson()], { type: "application/json" });
+    const a = document.createElement("a");
+    const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+    a.href = URL.createObjectURL(blob);
+    a.download = "pitch1_results_" + stamp + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    $("doneStatus").textContent = "Saved to your Downloads folder as " + a.download;
+  });
+  $("copy").addEventListener("click", async () => {
+    const txt = resultsJson();
+    try { await navigator.clipboard.writeText(txt); $("doneStatus").textContent = "Copied. Paste it in the chat."; }
+    catch (e) {
+      const ta = $("resultsText"); ta.hidden = false; ta.value = txt; ta.select();
+      $("doneStatus").textContent = "Select-all and copy the text below (⌘C).";
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if ($("trial").hidden) return;
+    if (e.target && e.target.tagName === "TEXTAREA") return;
+    const k = e.key;
+    if (k === " ") { e.preventDefault(); playPair(); }
+    else if (k === "l" || k === "L") { $("loop").checked = !$("loop").checked; $("loop").dispatchEvent(new Event("change")); }
+    else if (k === "b" || k === "B") { playBird(); }
+    else if (k === "t" || k === "T") { playTone(); }
+    else if (k === "ArrowLeft" || k === "ArrowRight") {
+      e.preventDefault();
+      const step = (e.shiftKey ? 25 : 5) * (k === "ArrowLeft" ? -1 : 1);
+      setCmp(cur.cmp + step);
+      if (!$("loop").checked) playPair();
+    }
+    else if (k === "1" || k === "2" || k === "3") {
+      const v = { "1": "clear", "2": "vague", "3": "none" }[k];
+      document.querySelector("input[name=clarity][value=" + v + "]").checked = true;
+      $("clarityBox").classList.remove("missing");
+    }
+    else if (k === "Enter") { e.preventDefault(); next(); }
+  });
+
+  if (state.idx > 0 && state.idx < D.trials.length) {
+    $("start").textContent = "Resume at trial " + (state.idx + 1);
+    $("restart").hidden = false;
+    $("introStatus").textContent = state.idx + " answers saved on this computer.";
+  } else if (state.idx >= D.trials.length) {
+    $("start").textContent = "Show results";
+    $("restart").hidden = false;
+  }
+})();
+</script>
+</body>
+</html>

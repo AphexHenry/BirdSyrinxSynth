@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bird Note Test</title>
+<style>
+  :root {
+    --bg: #f7f6f1; --card: #ffffff; --fg: #1f1e1b; --muted: #6d6b64; --line: #e2e0d8;
+    --accent: #2e6b4f; --accent-fg: #ffffff; --track: #d9d6cc; --warn: #a3471b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141413; --card: #1d1d1b; --fg: #ecebe5; --muted: #9b998f; --line: #34332f;
+      --accent: #7cc49d; --accent-fg: #10231a; --track: #3a3934; --warn: #f0a070;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 28px 16px 64px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  ol { padding-left: 1.2rem; } li { margin: 4px 0; }
+  button { font: inherit; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--fg); padding: 10px 14px; cursor: pointer; }
+  button:hover { border-color: var(--muted); }
+  button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 12px 0; }
+  .answers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+  .answers button { padding: 16px 10px; min-height: 64px; }
+  kbd { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; margin-left: 6px; color: var(--muted); background: var(--bg); }
+  .progress { display: flex; justify-content: space-between; color: var(--muted); font-size: .9rem; }
+  .bar { height: 6px; background: var(--track); border-radius: 3px; margin: 6px 0 16px; overflow: hidden; }
+  .bar > div { height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+  .q { font-size: 1.15rem; font-weight: 600; margin: 18px 0 0; }
+  .hint { color: var(--muted); font-size: .9rem; }
+  .tag { display: inline-block; font-size: .8rem; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 0 8px; margin-left: 8px; }
+  textarea { width: 100%; min-height: 110px; font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+  .status { color: var(--muted); font-size: .9rem; min-height: 1.4em; }
+  @media (max-width: 520px) { .answers { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Does the bird sing around this note?</h1>
+  <p class="sub">PITCH2 · about 15 minutes · progress is saved, you can pause any time</p>
+
+  <section id="intro" class="card">
+    <ol>
+      <li>Each trial plays a soft <b>held note</b> (around the middle of a keyboard), then the <b>bird</b> sings over it, at its own height, a few octaves up.</li>
+      <li>Answer one question: <b>does the bird sing around this note?</b> Not "exactly in tune": does it belong to that note, dancing around it, or is it somewhere else?</li>
+      <li>Sometimes you hear a whole phrase, sometimes a single syllable. Judge each on its own.</li>
+      <li>Answer quickly, by feel. Replay if you need to. The next trial starts by itself.</li>
+    </ol>
+    <p class="hint">Headphones, same volume throughout. The first 4 trials are practice.</p>
+    <div class="row">
+      <button id="example">Example (set your level)</button>
+      <button id="start" class="primary">Start</button>
+      <button id="restart" hidden>Start over</button>
+    </div>
+    <p class="status" id="introStatus"></p>
+  </section>
+
+  <section id="trial" class="card" hidden>
+    <div class="progress"><span id="trialLabel"></span><span id="trialHint"></span></div>
+    <div class="bar"><div id="barFill"></div></div>
+    <div class="row"><button id="replay">↻ Replay<kbd>space</kbd></button></div>
+    <p class="q">Does the bird sing around this note?</p>
+    <div class="answers">
+      <button data-a="yes" class="primary">Yes, it belongs<kbd>1</kbd></button>
+      <button data-a="unsure">Not sure<kbd>2</kbd></button>
+      <button data-a="no">No, it's off<kbd>3</kbd></button>
+    </div>
+  </section>
+
+  <section id="done" class="card" hidden>
+    <h2 style="margin-top:0">Done, thank you.</h2>
+    <p>Optional: what did you listen for? Did phrases and single syllables feel different to judge?</p>
+    <textarea id="comment" placeholder="Your notes…"></textarea>
+    <div class="row">
+      <button id="download" class="primary">Download results (.json)</button>
+      <button id="copy">Copy results</button>
+    </div>
+    <p class="status" id="doneStatus"></p>
+    <p class="hint">Then try the <a href="playground.html">playground</a>: it uses the same placement logic with a rule toggle.</p>
+    <textarea id="resultsText" readonly hidden></textarea>
+  </section>
+</main>
+
+<!--DATA-->
+<!--COMMON-->
+<script>
+(function () {
+  "use strict";
+  const D = window.PITCH2;
+  const KEY = "pitch2-progress-" + D.design_hash;
+  const $ = (id) => document.getElementById(id);
+  let ctx = null, src = null, cur = null, busy = false;
+  let state = load() || fresh();
+
+  function fresh() { return { study: D.study, version: D.version, design_hash: D.design_hash, seed: D.seed, started: new Date().toISOString(), idx: 0, results: [], user_agent: navigator.userAgent }; }
+  function load() { try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ } }
+  function ensureCtx() { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === "suspended") ctx.resume(); return ctx; }
+  function stop() { if (src) { try { src.stop(); } catch (e) { /* already stopped */ } src = null; } }
+  function playBuffer(buf) { stop(); src = ctx.createBufferSource(); src.buffer = buf; src.connect(ctx.destination); src.start(ctx.currentTime + 0.05); }
+
+  function trialBuffer(t) {
+    return P2.renderTrial(ctx, D.materials[t.material], { rule: t.rule, delta: t.delta, target: t.target_cents, refMidi: t.ref_midi, snap: 1 });
+  }
+  function play() { ensureCtx(); const t = D.trials[state.idx]; if (!cur.buf) cur.buf = trialBuffer(t); playBuffer(cur.buf); cur.plays++; }
+
+  function show() {
+    const t = D.trials[state.idx], N = D.trials.length;
+    cur = { plays: 0, t0: performance.now(), buf: null };
+    $("trialLabel").innerHTML = "Trial " + (state.idx + 1) + " / " + N + (t.practice ? '<span class="tag">practice</span>' : "");
+    $("trialHint").textContent = t.practice ? "Practice" : "";
+    $("barFill").style.width = (100 * state.idx / N) + "%";
+    busy = false;
+    play();
+  }
+
+  function answer(a) {
+    if (busy || !cur || cur.plays === 0) return;
+    busy = true;
+    const t = D.trials[state.idx];
+    state.results.push({ n: t.n, practice: t.practice, material: t.material, rule: t.rule, delta: t.delta,
+                         target_cents: t.target_cents, ref_midi: t.ref_midi, answer: a, plays: cur.plays,
+                         ms: Math.round(performance.now() - cur.t0), at: new Date().toISOString() });
+    state.idx++; save(); stop();
+    if (state.idx >= D.trials.length) { finish(); return; }
+    setTimeout(show, 450);
+  }
+
+  function resultsJson() { return JSON.stringify(Object.assign({}, state, { comment: $("comment").value, sample_rate: ctx ? ctx.sampleRate : null }), null, 1); }
+  function finish() { stop(); state.finished = state.finished || new Date().toISOString(); save(); $("intro").hidden = true; $("trial").hidden = true; $("done").hidden = false; }
+
+  $("example").addEventListener("click", () => {
+    ensureCtx();
+    const m = D.materials.phrase_B, rule = "landing";
+    const target = P2.ownHeightTarget(m, rule, 9);  // an A, at the bird's own height
+    playBuffer(P2.renderTrial(ctx, m, { rule, delta: 0, target, refMidi: 69, snap: 0.5 }));
+  });
+  $("start").addEventListener("click", () => { ensureCtx(); if (state.idx >= D.trials.length) { finish(); return; } $("intro").hidden = true; $("trial").hidden = false; show(); });
+  $("restart").addEventListener("click", () => { if (!confirm("Erase saved answers and start from trial 1?")) return; state = fresh(); save(); $("restart").hidden = true; $("start").textContent = "Start"; $("introStatus").textContent = ""; });
+  $("replay").addEventListener("click", play);
+  document.querySelectorAll(".answers button").forEach((b) => b.addEventListener("click", () => { b.blur(); answer(b.dataset.a); }));
+  document.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => b.blur()));
+  $("download").addEventListener("click", () => {
+    const blob = new Blob([resultsJson()], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "pitch2_results_" + new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-") + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    $("doneStatus").textContent = "Saved to your Downloads folder as " + a.download;
+  });
+  $("copy").addEventListener("click", async () => {
+    const txt = resultsJson();
+    try { await navigator.clipboard.writeText(txt); $("doneStatus").textContent = "Copied. Paste it in the chat."; }
+    catch (e) { const ta = $("resultsText"); ta.hidden = false; ta.value = txt; ta.select(); $("doneStatus").textContent = "Select-all and copy the text below (⌘C)."; }
+  });
+  document.addEventListener("keydown", (e) => {
+    if ($("trial").hidden || (e.target && e.target.tagName === "TEXTAREA")) return;
+    if (e.key === " ") { e.preventDefault(); play(); }
+    else if (e.key === "1") answer("yes");
+    else if (e.key === "2") answer("unsure");
+    else if (e.key === "3") answer("no");
+  });
+
+  if (state.idx > 0 && state.idx < D.trials.length) { $("start").textContent = "Resume at trial " + (state.idx + 1); $("restart").hidden = false; $("introStatus").textContent = state.idx + " answers saved on this computer."; }
+  else if (state.idx >= D.trials.length) { $("start").textContent = "Show results"; $("restart").hidden = false; }
+})();
+</script>
+</body>
+</html>

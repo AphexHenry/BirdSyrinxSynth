@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bird Keyboard Prototype</title>
+<style>
+  :root {
+    --bg: #f7f6f1; --card: #ffffff; --fg: #1f1e1b; --muted: #6d6b64; --line: #e2e0d8;
+    --accent: #2e6b4f; --accent-fg: #ffffff; --chip: #eef3ef;
+    --white-key: #ffffff; --black-key: #23221f; --key-line: #c9c6bb; --key-on: #7cc49d; --key-label: #8a877d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141413; --card: #1d1d1b; --fg: #ecebe5; --muted: #9b998f; --line: #34332f;
+      --accent: #7cc49d; --accent-fg: #10231a; --chip: #23302a;
+      --white-key: #e9e7df; --black-key: #0c0c0b; --key-line: #6b6960; --key-on: #3f9a6b; --key-label: #6d6b64;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 22px 16px 230px; }
+  h1 { font-size: 1.4rem; margin: 0 0 2px; }
+  .sub { color: var(--muted); margin: 0 0 16px; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .label { font-size: .78rem; color: var(--muted); margin: 0 0 8px; text-transform: uppercase; letter-spacing: .05em; }
+  .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+  .seg button, .btn { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--fg); border-radius: 8px; padding: 7px 11px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+  .slider { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
+  .slider span { color: var(--muted); font-size: .82rem; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .hint { color: var(--muted); font-size: .85rem; margin: 6px 0 0; }
+  .value { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--fg); }
+  .status { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 12px 0; color: var(--muted); font-size: .88rem; }
+  .now { min-height: 2.2em; display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill { background: var(--chip); border-radius: 999px; padding: 3px 10px; font-size: .85rem; color: var(--fg); font-variant-numeric: tabular-nums; }
+  .span2 { grid-column: 1 / -1; }
+  footer { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--line); padding: 8px 10px 10px; z-index: 5; }
+  .kbbar { display: flex; justify-content: space-between; align-items: center; max-width: 980px; margin: 0 auto 6px; color: var(--muted); font-size: .82rem; gap: 8px; }
+  .kbwrap { max-width: 980px; margin: 0 auto; }
+  #kb { position: relative; height: 150px; user-select: none; touch-action: none; }
+  .wk, .bk { position: absolute; top: 0; border-radius: 0 0 6px 6px; display: flex; align-items: flex-end; justify-content: center; font-size: .72rem; padding-bottom: 6px; cursor: pointer; }
+  .wk { background: var(--white-key); border: 1px solid var(--key-line); height: 100%; color: var(--key-label); z-index: 1; }
+  .bk { background: var(--black-key); height: 62%; z-index: 2; color: #9b998f; border: 1px solid var(--black-key); }
+  .wk.on, .bk.on { background: var(--key-on); color: #10231a; }
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 10; }
+  .overlay .card { max-width: 420px; text-align: center; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } #kb { height: 120px; } }
+</style>
+</head>
+<body>
+<div class="overlay" id="unlock"><div class="card"><h2 style="margin-top:0">Bird keyboard</h2><p>Click to switch the sound on.</p><button class="btn" id="unlockBtn">Start</button></div></div>
+<main>
+  <h1>Bird keyboard: prototype 1 (A + B)</h1>
+  <p class="sub">Tap a key: the bird sings one real syllable (a random one) on that note. Hold the key and it keeps singing around the note. Release it and the bird finishes the syllable, then stops.</p>
+
+  <div class="status">
+    <span id="midiStatus">MIDI: checking…</span>
+    <span>Computer keys: <b>A W S E D F T G Y H U J K</b> (US layout positions) · <b>Z / X</b> octave · <b>Space</b> sustain</span>
+    <button class="btn" id="panic">Stop all</button>
+  </div>
+  <div class="now" id="now"></div>
+
+  <div class="grid">
+    <section class="card">
+      <p class="label">Voice</p>
+      <div class="seg" id="voice"></div>
+      <p class="hint">Bird harmonics: 2nd and 3rd harmonics at the level measured in your recording (−30 / −33 dB), no breath (COLOUR1 + COLOUR2).</p>
+    </section>
+    <section class="card">
+      <p class="label">A syllable's note is…</p>
+      <div class="seg" id="rule"></div>
+      <p class="hint" id="ruleHint"></p>
+    </section>
+    <section class="card">
+      <p class="label">Melody</p>
+      <div class="seg" id="first"></div>
+      <div class="slider" style="margin-top:10px"><span>natural</span><input type="range" id="snap" min="0" max="100" value="0"><span>all on the note</span></div>
+      <p class="hint">The first syllable can land exactly on your note. The following ones (while you hold) are placed by the slider, snap <span class="value" id="snapVal"></span>. Natural: the bird keeps its own melody around your note. Mod wheel = slider.</p>
+    </section>
+    <section class="card">
+      <p class="label">What the bird sings</p>
+      <div class="seg" id="order"></div>
+      <div class="seg" id="start" style="margin-top:8px"></div>
+      <div class="slider" style="margin-top:10px"><span>pause</span><input type="range" id="pause" min="0.1" max="2" step="0.05" value="0.5"><span class="value" id="pauseVal"></span></div>
+      <p class="hint">Pause between phrases while you hold the key.</p>
+    </section>
+    <section class="card">
+      <p class="label">Height</p>
+      <div class="seg" id="octave"></div>
+      <div class="slider" style="margin-top:10px"><span>−12</span><input type="range" id="transpose" min="-12" max="12" step="1" value="0"><span>+12</span></div>
+      <p class="hint">Own height: each key sings its note name at the bird's natural height (the octave you play doesn't matter). Follow the keyboard: the bird sings 3 octaves above your key, so melodies keep their shape (best between about C4 and C6). Size <span class="value" id="transVal"></span> semitones; negative = a bigger, lower bird.</p>
+    </section>
+    <section class="card">
+      <p class="label">Output</p>
+      <div class="seg" id="poly"></div>
+      <div class="slider" style="margin-top:10px"><span>volume</span><input type="range" id="vol" min="-30" max="0" step="1" value="-8"><span class="value" id="volVal"></span></div>
+      <label style="display:inline-flex;gap:6px;margin-top:8px"><input type="checkbox" id="room" checked> Room</label>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="kbbar"><span id="kbInfo"></span><span>Click, drag or touch the keys</span></div>
+  <div class="kbwrap"><div id="kb"></div></div>
+</footer>
+
+<!--BANK-->
+<script>
+(function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const NAMES = ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
+  const hz = (c) => 440 * Math.pow(2, (c - 6900) / 1200);
+  const median = (xs) => { const s = xs.slice().sort((a, b) => a - b); const m = s.length >> 1; return s.length % 2 ? s[m] : 0.5 * (s[m - 1] + s[m]); };
+
+  // ------------------------------------------------------------------ settings (shared by every module)
+  const S = { voice: "colour", rule: "rule", snap: 0, first: "note", start: "random", octave: "own", order: "real", pause: 0.5, transpose: 0, poly: 4, volDb: -8, room: true };
+
+  // ------------------------------------------------------------------ Engine: audio graph
+  const Engine = {
+    ctx: null, bus: null, master: null, wet: null,
+    init() {
+      if (this.ctx) return;
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.ctx = ctx;
+      this.master = ctx.createGain();
+      const limiter = ctx.createDynamicsCompressor();
+      limiter.threshold.value = -6; limiter.ratio.value = 12; limiter.attack.value = 0.002; limiter.release.value = 0.12;
+      this.master.connect(limiter).connect(ctx.destination);
+      this.bus = ctx.createGain();
+      this.bus.connect(this.master);
+      const conv = ctx.createConvolver();
+      conv.buffer = this.roomIR(0.22);
+      this.wet = ctx.createGain();
+      this.bus.connect(conv).connect(this.wet).connect(this.master);
+      this.apply();
+    },
+    roomIR(rt60) {
+      const ctx = this.ctx, n = Math.round(0.4 * ctx.sampleRate), b = ctx.createBuffer(2, n, ctx.sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const d = b.getChannelData(ch); let lp = 0;
+        for (let i = 0; i < n; i++) {
+          const t = i / ctx.sampleRate;
+          lp += 0.35 * ((Math.random() * 2 - 1) - lp);              // gentle low-pass: rooms are darker
+          d[i] = t < 0.004 ? 0 : lp * Math.exp(-6.91 * t / rt60);
+        }
+      }
+      return b;
+    },
+    apply() {
+      if (!this.ctx) return;
+      this.master.gain.value = Math.pow(10, S.volDb / 20);
+      this.wet.gain.value = S.room ? 0.09 : 0;                       // about -21 dB of room
+    },
+  };
+
+  // ------------------------------------------------------------------ Bank: the bird's real syllables
+  const Bank = {
+    phrases: window.BANK.phrases,
+    centre: window.BANK.bird_centre_cents,
+    all: [],
+    centres: {},
+    init() {
+      this.phrases.forEach((p) => p.syllables.forEach((s, i) => this.all.push({ syl: s, phrase: p.id, index: i })));
+      ["rule", "steady", "landing", "average"].forEach((r) => { this.centres[r] = median(this.all.map((x) => x.syl.anchors[r])); });
+    },
+    anchor(s) { return s.anchors[S.rule]; },
+    centreNow() { return this.centres[S.rule]; },
+  };
+  Bank.init();
+
+  // ------------------------------------------------------------------ Placement: where a syllable lands for a key
+  const Placement = {
+    // "own": the key's note name at the octave nearest the bird's natural height (mapping a).
+    // "follow": the key's own pitch 3 octaves up, so a melody keeps its shape (+ size transpose in both).
+    target(midi) {
+      if (S.octave === "follow") return (midi + 36 + S.transpose) * 100;
+      const pc = ((midi % 12) + 12) % 12, centre = Bank.centreNow() + 100 * S.transpose;
+      let best = null;
+      for (let m = pc; m < 140; m += 12) { const c = m * 100; if (best === null || Math.abs(c - centre) < Math.abs(best - centre)) best = c; }
+      return best;
+    },
+    // Shift in cents for one syllable: snap 0 keeps its natural height relative to the bird; snap 1 puts its note on the target.
+    shift(syl, target, snap) {
+      const k = snap === undefined ? S.snap : snap;
+      const a = Bank.anchor(syl), natural = a + (target - Bank.centreNow());
+      return (1 - k) * natural + k * target - a;
+    },
+  };
+
+  // ------------------------------------------------------------------ Voice: render one syllable to an AudioBuffer
+  const Voice = {
+    render(syl, shiftCents, gain) {
+      const ctx = Engine.ctx, sr = ctx.sampleRate;
+      const F = syl.f_hz, A = syl.a, m = F.length, k = Math.pow(2, shiftCents / 1200);
+      const n = Math.round(m / 1000 * sr), colour = S.voice === "colour";
+      const buf = ctx.createBuffer(1, n, sr), d = buf.getChannelData(0);
+      let ph = 0;
+      for (let i = 0; i < n; i++) {
+        const tms = i / sr * 1000;
+        let j = Math.floor(tms), fr = tms - j;
+        if (j >= m - 1) { j = m - 2; fr = 1; }
+        const f = Math.exp(Math.log(F[j]) * (1 - fr) + Math.log(F[j + 1]) * fr) * k;
+        const a = A[j] * (1 - fr) + A[j + 1] * fr;
+        ph += 2 * Math.PI * f / sr; if (ph > 2 * Math.PI) ph -= 2 * Math.PI;
+        let s = Math.sin(ph);
+        // the bird's own harmonics, at the level measured in 22938; breath was dropped (it hurt in COLOUR1 and COLOUR2)
+        if (colour) s += 0.0316 * Math.sin(2 * ph + 0.6) + 0.0224 * Math.sin(3 * ph + 0.9);
+        d[i] = gain * a * s;
+      }
+      return buf;
+    },
+  };
+
+  // ------------------------------------------------------------------ Orders: what comes next while a key is held
+  let phrasePointer = 0;   // shared, so each new key press starts the next real phrase
+  const Orders = {
+    real() {
+      const N = Bank.phrases.length;
+      const nextPhrase = () => (S.start === "random" ? Bank.phrases[Math.floor(Math.random() * N)] : Bank.phrases[phrasePointer++ % N]);
+      let p, i = 0;
+      if (S.start === "random") { const pick = Bank.all[Math.floor(Math.random() * Bank.all.length)]; p = Bank.phrases[pick.phrase]; i = pick.index; }
+      else p = nextPhrase();
+      return {
+        next(prevStart) {   // returns {syl, start} given the previous syllable's start (or null for the first)
+          if (prevStart === null) return { syl: p.syllables[i], start: 0, label: "phrase " + p.id };
+          const prev = p.syllables[i];
+          if (i + 1 < p.syllables.length) { i++; const s = p.syllables[i]; return { syl: s, start: prevStart + (s.t_ms - prev.t_ms) / 1000, label: "phrase " + p.id }; }
+          const end = prevStart + prev.f_hz.length / 1000;
+          p = nextPhrase(); i = 0;
+          return { syl: p.syllables[0], start: end + S.pause, label: "phrase " + p.id };
+        },
+      };
+    },
+    shuffled() {
+      let left = 0, last = null;
+      const pick = () => Bank.all[Math.floor(Math.random() * Bank.all.length)].syl;
+      return {
+        next(prevStart) {
+          const s = pick();
+          if (prevStart === null) { left = 4 + Math.floor(Math.random() * 6); last = s; return { syl: s, start: 0, label: "shuffled" }; }
+          const end = prevStart + last.f_hz.length / 1000;
+          let gap = 0.02 + Math.random() * 0.05;
+          if (--left <= 0) { left = 4 + Math.floor(Math.random() * 6); gap = S.pause; }
+          last = s;
+          return { syl: s, start: end + gap, label: "shuffled" };
+        },
+      };
+    },
+  };
+
+  // ------------------------------------------------------------------ Singer: playing mode A + B for one key
+  const AHEAD = 0.25;   // schedule the next syllable when the bird is within 250 ms of running out
+  class Singer {
+    constructor(midi, velocity) {
+      this.midi = midi; this.held = true; this.done = false;
+      this.target = Placement.target(midi);
+      this.gain = 0.12 + 0.28 * Math.pow(velocity, 1.5);
+      this.order = S.order === "real" ? Orders.real() : Orders.shuffled();
+      this.pan = Engine.ctx.createStereoPanner();
+      this.pan.pan.value = S.poly > 1 ? (Math.random() * 0.6 - 0.3) : 0;
+      this.pan.connect(Engine.bus);
+      this.sources = []; this.lastStart = null; this.endTime = 0; this.info = "";
+      this.t0 = Engine.ctx.currentTime + 0.01;
+      this.scheduleNext();              // A: the first syllable starts right away
+    }
+    scheduleNext() {
+      const ev = this.order.next(this.lastStart === null ? null : this.lastStart - this.t0);
+      const when = this.t0 + ev.start;
+      const first = this.lastStart === null;
+      const shift = Placement.shift(ev.syl, this.target, first && S.first === "note" ? 1 : S.snap);
+      const buf = Voice.render(ev.syl, shift, this.gain);
+      const src = Engine.ctx.createBufferSource();
+      src.buffer = buf; src.connect(this.pan); src.start(Math.max(when, Engine.ctx.currentTime + 0.002));
+      this.sources.push({ src, when, end: when + buf.duration, syl: ev.syl, label: ev.label, shift });
+      this.lastStart = when; this.endTime = when + buf.duration;
+    }
+    tick(now) {
+      if (this.done) return;
+      // B: while the key is held, keep scheduling the next syllable just in time
+      while (this.held && this.endTime - now < AHEAD) this.scheduleNext();
+      this.sources = this.sources.filter((s) => s.end > now - 0.05);
+      const cur = this.sources.find((s) => s.when <= now && s.end > now);
+      this.info = cur ? cur : null;
+      if (!this.held && this.sources.every((s) => s.end <= now)) this.finish();
+    }
+    release() {
+      if (!this.held) return;
+      this.held = false;
+      const now = Engine.ctx.currentTime;
+      // finish the syllable in progress; cancel anything not started yet (one syllable only if released early)
+      this.sources = this.sources.filter((s) => { if (s.when > now + 0.005) { try { s.src.stop(); } catch (e) { /* not started */ } return false; } return true; });
+      if (!this.sources.length) this.finish();
+    }
+    kill() { this.sources.forEach((s) => { try { s.src.stop(); } catch (e) { /* stopped */ } }); this.finish(); }
+    finish() { if (this.done) return; this.done = true; setTimeout(() => { try { this.pan.disconnect(); } catch (e) { /* gone */ } }, 1000); }
+  }
+
+  // ------------------------------------------------------------------ Performer: note events → singers
+  const Performer = {
+    singers: [], byNote: new Map(), sustain: false, sustained: new Set(),
+    noteOn(midi, velocity) {
+      Engine.init();
+      if (Engine.ctx.state === "suspended") Engine.ctx.resume();
+      const old = this.byNote.get(midi); if (old) old.release();
+      const live = this.singers.filter((s) => !s.done && s.held);
+      while (live.length >= S.poly) live.shift().release();
+      const singer = new Singer(midi, velocity);
+      this.singers.push(singer); this.byNote.set(midi, singer);
+      this.sustained.delete(midi);
+      Keyboard.mark(midi, true);
+    },
+    noteOff(midi) {
+      Keyboard.mark(midi, false);
+      if (this.sustain) { this.sustained.add(midi); return; }
+      const s = this.byNote.get(midi); if (s) { s.release(); this.byNote.delete(midi); }
+    },
+    setSustain(on) {
+      this.sustain = on;
+      if (!on) { this.sustained.forEach((m) => this.noteOff(m)); this.sustained.clear(); }
+    },
+    panic() { this.singers.forEach((s) => s.kill()); this.singers = []; this.byNote.clear(); this.sustained.clear(); Keyboard.clear(); },
+    tick() {
+      if (!Engine.ctx) return;
+      const now = Engine.ctx.currentTime;
+      this.singers.forEach((s) => s.tick(now));
+      this.singers = this.singers.filter((s) => !s.done);
+      Now.render(this.singers);
+    },
+  };
+  setInterval(() => Performer.tick(), 20);
+
+  // ------------------------------------------------------------------ "Now singing" readout
+  const Now = {
+    last: "",
+    render(singers) {
+      const parts = [];
+      singers.forEach((s) => {
+        if (!s.info) return;
+        const a = s.info.syl.anchors;
+        const note = NAMES[((s.midi % 12) + 12) % 12];
+        const used = S.rule === "rule" ? a.rule_used : S.rule;
+        parts.push(note + " · " + s.info.syl.label + " · " + s.info.label + " · note from " + used + " · " + Math.round(hz(Bank.anchor(s.info.syl) + s.info.shift)) + " Hz");
+      });
+      const html = parts.map((p) => '<span class="pill">' + p + "</span>").join("");
+      if (html !== this.last) { $("now").innerHTML = html; this.last = html; }
+    },
+  };
+
+  // ------------------------------------------------------------------ Inputs: on-screen keyboard (footer)
+  const Keyboard = {
+    low: 60, high: 84, els: new Map(),
+    build() {
+      const kb = $("kb"); kb.innerHTML = ""; this.els.clear();
+      const whites = []; for (let m = this.low; m <= this.high; m++) if (![1, 3, 6, 8, 10].includes(m % 12)) whites.push(m);
+      const w = 100 / whites.length;
+      whites.forEach((m, i) => {
+        const el = document.createElement("div"); el.className = "wk"; el.style.left = (i * w) + "%"; el.style.width = w + "%";
+        el.textContent = m % 12 === 0 ? "C" + (Math.floor(m / 12) - 1) : ""; el.dataset.m = m; kb.appendChild(el); this.els.set(m, el);
+      });
+      for (let m = this.low; m <= this.high; m++) {
+        if (![1, 3, 6, 8, 10].includes(m % 12)) continue;
+        const i = whites.indexOf(m - 1);
+        const el = document.createElement("div"); el.className = "bk"; el.style.left = ((i + 1) * w - w * 0.3) + "%"; el.style.width = (w * 0.6) + "%";
+        el.dataset.m = m; kb.appendChild(el); this.els.set(m, el);
+      }
+      let down = null;
+      const at = (e) => { const el = document.elementFromPoint(e.clientX, e.clientY); return el && el.dataset && el.dataset.m ? +el.dataset.m : null; };
+      kb.addEventListener("pointerdown", (e) => { e.preventDefault(); kb.setPointerCapture(e.pointerId); const m = at(e); if (m !== null) { down = m; Performer.noteOn(m, 0.8); } });
+      kb.addEventListener("pointermove", (e) => { if (down === null) return; const m = at(e); if (m !== null && m !== down) { Performer.noteOff(down); down = m; Performer.noteOn(m, 0.8); } });
+      const up = () => { if (down !== null) { Performer.noteOff(down); down = null; } };
+      kb.addEventListener("pointerup", up); kb.addEventListener("pointercancel", up);
+    },
+    mark(m, on) { const el = this.els.get(m); if (el) el.classList.toggle("on", on); },
+    clear() { this.els.forEach((el) => el.classList.remove("on")); },
+  };
+  Keyboard.build();
+
+  // ------------------------------------------------------------------ Inputs: computer keyboard (physical positions, any layout)
+  const CODES = ["KeyA", "KeyW", "KeyS", "KeyE", "KeyD", "KeyF", "KeyT", "KeyG", "KeyY", "KeyH", "KeyU", "KeyJ", "KeyK", "KeyO", "KeyL", "KeyP", "Semicolon"];
+  let baseOct = 60;
+  const heldCodes = new Map();
+  function kbInfo() { $("kbInfo").textContent = "Computer keys start at C" + (baseOct / 12 - 1); }
+  kbInfo();
+  document.addEventListener("keydown", (e) => {
+    if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") && e.target.type !== "range" && e.target.type !== "checkbox") return;
+    if (e.repeat) { if (CODES.includes(e.code) || e.code === "Space") e.preventDefault(); return; }
+    if (e.code === "Space") { e.preventDefault(); Performer.setSustain(true); return; }
+    if (e.code === "KeyZ") { baseOct = Math.max(24, baseOct - 12); kbInfo(); return; }
+    if (e.code === "KeyX") { baseOct = Math.min(96, baseOct + 12); kbInfo(); return; }
+    const i = CODES.indexOf(e.code);
+    if (i >= 0 && !e.metaKey && !e.ctrlKey) { e.preventDefault(); const m = baseOct + i; heldCodes.set(e.code, m); Performer.noteOn(m, 0.8); }
+  });
+  document.addEventListener("keyup", (e) => {
+    if (e.code === "Space") { Performer.setSustain(false); return; }
+    const m = heldCodes.get(e.code); if (m !== undefined) { heldCodes.delete(e.code); Performer.noteOff(m); }
+  });
+  window.addEventListener("blur", () => { heldCodes.forEach((m) => Performer.noteOff(m)); heldCodes.clear(); Performer.setSustain(false); });
+
+  // ------------------------------------------------------------------ Inputs: MIDI keyboard (Web MIDI: Chrome, Edge)
+  function midiSetup() {
+    if (!navigator.requestMIDIAccess) { $("midiStatus").textContent = "MIDI: not available in this browser (use Chrome for your keyboard)"; return; }
+    navigator.requestMIDIAccess({ sysex: false }).then((acc) => {
+      const bind = () => {
+        const names = [];
+        acc.inputs.forEach((inp) => { names.push(inp.name); inp.onmidimessage = onMidi; });
+        $("midiStatus").textContent = names.length ? "MIDI: " + names.join(", ") : "MIDI: no device connected";
+      };
+      bind(); acc.onstatechange = bind;
+    }, () => { $("midiStatus").textContent = "MIDI: permission refused"; });
+  }
+  function onMidi(ev) {
+    const [st, d1, d2] = ev.data, type = st & 0xf0;
+    if (type === 0x90 && d2 > 0) Performer.noteOn(d1, d2 / 127);
+    else if (type === 0x80 || (type === 0x90 && d2 === 0)) Performer.noteOff(d1);
+    else if (type === 0xb0 && d1 === 64) Performer.setSustain(d2 >= 64);
+    else if (type === 0xb0 && d1 === 1) { S.snap = d2 / 127; $("snap").value = String(Math.round(S.snap * 100)); refresh(); }
+  }
+  midiSetup();
+
+  // ------------------------------------------------------------------ Settings UI
+  function seg(id, key, items, after) {
+    const box = $(id);
+    items.forEach(([v, label]) => {
+      const b = document.createElement("button"); b.textContent = label; b.dataset.v = v;
+      b.addEventListener("click", () => { S[key] = typeof S[key] === "number" ? +v : v; b.blur(); refresh(); if (after) after(); });
+      box.appendChild(b);
+    });
+  }
+  const RULE_HINTS = {
+    rule: "Your rule: the longest steady part (pitch within ±50 c for at least 20 ms), otherwise the ending.",
+    steady: "Stability-weighted: where the pitch holds or turns.",
+    landing: "The ending: last quarter of the syllable.",
+    average: "Plain average of the whole syllable.",
+  };
+  seg("voice", "voice", [["whistle", "Pure whistle"], ["colour", "Whistle + bird harmonics"]]);
+  seg("rule", "rule", [["rule", "Longest steady part, else ending"], ["steady", "Steady parts"], ["landing", "Landing"], ["average", "Average"]]);
+  seg("order", "order", [["real", "Real phrases"], ["shuffled", "Shuffled syllables"]]);
+  seg("start", "start", [["random", "Start on a random syllable"], ["phrase", "Start at a phrase start"]]);
+  seg("first", "first", [["note", "First syllable on the note"], ["free", "First syllable free"]]);
+  seg("octave", "octave", [["own", "Own height"], ["follow", "Follow the keyboard"]]);
+  seg("poly", "poly", [["1", "1 voice"], ["2", "2"], ["4", "4"], ["6", "6"]]);
+  function refresh() {
+    document.querySelectorAll(".seg button").forEach((b) => {
+      const key = b.parentElement.id; b.setAttribute("aria-pressed", String(String(S[key]) === b.dataset.v));
+    });
+    S.snap = +$("snap").value / 100; S.pause = +$("pause").value; S.transpose = +$("transpose").value;
+    S.volDb = +$("vol").value; S.room = $("room").checked;
+    $("snapVal").textContent = Math.round(S.snap * 100) + " %";
+    $("pauseVal").textContent = S.pause.toFixed(2) + " s";
+    $("transVal").textContent = (S.transpose > 0 ? "+" : "") + S.transpose;
+    $("volVal").textContent = S.volDb + " dB";
+    $("ruleHint").textContent = RULE_HINTS[S.rule];
+    Engine.apply();
+  }
+  ["snap", "pause", "transpose", "vol", "room"].forEach((id) => $(id).addEventListener("input", refresh));
+  $("panic").addEventListener("click", (e) => { e.currentTarget.blur(); Performer.panic(); });
+  $("unlockBtn").addEventListener("click", () => { Engine.init(); Engine.ctx.resume(); $("unlock").remove(); });
+  refresh();
+  window.PROTO = { S, Engine, Bank, Placement, Voice, Orders, Singer, Performer };   // for debugging
+})();
+</script>
+</body>
+</html>
