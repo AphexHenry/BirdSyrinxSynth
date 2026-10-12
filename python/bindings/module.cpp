@@ -2,10 +2,12 @@
 #include "cuicui/control/inverse_map.hpp"
 #include "cuicui/control/score_player.hpp"
 #include "cuicui/control/side_switcher.hpp"
+#include "cuicui/control/syllable_engine.hpp"
 #include "cuicui/dsp/oversampling.hpp"
 #include "cuicui/io/gesture_score.hpp"
 #include "cuicui/io/offline_render.hpp"
 #include "cuicui/io/render_spec.hpp"
+#include "cuicui/io/syllable_bank_io.hpp"
 #include "cuicui/model/bilateral_source.hpp"
 #include "cuicui/model/bird_voice.hpp"
 #include "cuicui/model/labial_oscillator.hpp"
@@ -119,6 +121,58 @@ nb::dict telemetry_to_dict(const cuicui::VoiceTelemetry& t) {
     d["level_db"] = t.level_db;
     d["non_finite_resets"] = t.nonFiniteResets;
     return d;
+}
+
+/// Enum setting from a number (index) or a name from `names` (WP-R1 sing()).
+template <std::size_t N>
+int enum_setting(const nb::dict& d, const char* key, const std::array<const char*, N>& names, int def) {
+    if (!d.contains(key)) {
+        return def;
+    }
+    nb::handle v = d[key];
+    if (nb::isinstance<nb::str>(v)) {
+        const std::string name = nb::cast<std::string>(v);
+        for (std::size_t i = 0; i < N; ++i) {
+            if (name == names[i]) {
+                return static_cast<int>(i);
+            }
+        }
+        throw std::invalid_argument(std::string("sing: unknown value for ") + key + ": " + name);
+    }
+    return cuicui::enumIndexFromValue(nb::cast<double>(v), static_cast<int>(N));
+}
+
+cuicui::control::WhistleSettings whistle_settings_from_dict(const nb::dict& d) {
+    using namespace cuicui::control;
+    static const char* const kKnown[] = {"perf.note_rule", "perf.mapping", "perf.size_st", "perf.first_on_note",
+                                         "perf.snap", "perf.order", "perf.pause_s", "perf.polyphony",
+                                         "out.stereo_spread", "voice.harmonics", "out.room"};
+    for (nb::handle k : d.keys()) {
+        const std::string key = nb::cast<std::string>(k);
+        if (std::find_if(std::begin(kKnown), std::end(kKnown), [&](const char* x) { return key == x; }) ==
+            std::end(kKnown)) {
+            throw std::invalid_argument("sing: unknown setting " + key);
+        }
+    }
+    WhistleSettings s;
+    auto num = [&](const char* key, double def) {
+        const auto* spec = cuicui::findParam(key);
+        const double v = dict_d(d, key, def);
+        return spec != nullptr ? cuicui::clampParam(*spec, v) : v;
+    };
+    s.play.rule = static_cast<NoteRule>(enum_setting(d, "perf.note_rule", cuicui::kNoteRuleNames, 0));
+    s.play.mapping = enum_setting(d, "perf.mapping", cuicui::kMappingNames, 0) == 1 ? KeyMapping::Follow
+                                                                                     : KeyMapping::OwnHeight;
+    s.play.order = static_cast<OrderMode>(enum_setting(d, "perf.order", cuicui::kOrderNames, 0));
+    s.play.sizeSt = num("perf.size_st", 0.0);
+    s.play.firstOnNote = num("perf.first_on_note", 1.0) >= 0.5;
+    s.play.snap = num("perf.snap", 0.0);
+    s.play.pauseS = num("perf.pause_s", 0.5);
+    s.play.polyphony = static_cast<int>(std::lround(num("perf.polyphony", 4.0)));
+    s.play.spread = num("out.stereo_spread", 0.3);
+    s.harmonics = num("voice.harmonics", 1.0) >= 0.5;
+    s.room = num("out.room", 1.0) >= 0.5;
+    return s;
 }
 
 } // namespace
@@ -671,6 +725,112 @@ NB_MODULE(cuicui_core, m) {
         nb::arg("score"),
         nb::arg("sample_rate") = 48000.0,
         "Render a gesture-score dict to float32 mono audio. Releases the GIL.");
+
+    m.def(
+        "sing",
+        [](const std::string& bank_path, const nb::list& events, const nb::dict& settings, double sample_rate,
+           double duration_s, std::uint64_t seed, int block) {
+            using namespace cuicui::control;
+            if (sample_rate <= 0.0 || duration_s < 0.0 || block < 1) {
+                throw std::invalid_argument("sing: sample_rate > 0, duration_s >= 0 and block >= 1 required");
+            }
+            const SyllableBank bank = cuicui::io::loadSyllableBank(bank_path);
+            struct Timed {
+                long long sample;
+                PlayEvent e;
+            };
+            std::vector<Timed> evs;
+            for (nb::handle h : events) {
+                const auto t = nb::cast<nb::tuple>(h);
+                if (t.size() < 2) {
+                    throw std::invalid_argument("sing: events are (time_s, type[, note[, value]])");
+                }
+                const std::string type = nb::cast<std::string>(t[1]);
+                PlayEvent e;
+                e.note = t.size() > 2 ? nb::cast<int>(t[2]) : 60;
+                e.value = t.size() > 3 ? static_cast<float>(nb::cast<double>(t[3])) : 1.0f;
+                if (type == "on") {
+                    e.type = PlayEvent::Type::NoteOn;
+                } else if (type == "off") {
+                    e.type = PlayEvent::Type::NoteOff;
+                } else if (type == "sustain") {
+                    e.type = PlayEvent::Type::Sustain;
+                } else if (type == "wheel") {
+                    e.type = PlayEvent::Type::ModWheel;
+                } else if (type == "all_notes_off") {
+                    e.type = PlayEvent::Type::AllNotesOff;
+                } else if (type == "all_sound_off") {
+                    e.type = PlayEvent::Type::AllSoundOff;
+                } else {
+                    throw std::invalid_argument("sing: unknown event type " + type);
+                }
+                evs.push_back({std::llround(nb::cast<double>(t[0]) * sample_rate), e});
+            }
+            std::stable_sort(evs.begin(), evs.end(), [](const Timed& a, const Timed& b) { return a.sample < b.sample; });
+            const WhistleSettings ws = whistle_settings_from_dict(settings);
+            const auto n = static_cast<std::size_t>(std::llround(duration_s * sample_rate));
+            auto* heap = new std::vector<float>(n * 2u, 0.0f);
+            std::vector<SyllableLogEntry> log(1u << 16);
+            int logged = 0;
+            {
+                nb::gil_scoped_release release;
+                SyllableEngine eng;
+                eng.prepare(sample_rate);
+                eng.setBank(&bank);
+                eng.reset(seed);
+                eng.setLog(log.data(), static_cast<int>(log.size()));
+                std::vector<float> l(static_cast<std::size_t>(block)), r(static_cast<std::size_t>(block));
+                std::vector<PlayEvent> blk;
+                std::size_t ei = 0;
+                for (std::size_t pos = 0; pos < n; pos += static_cast<std::size_t>(block)) {
+                    const int m = static_cast<int>(std::min<std::size_t>(static_cast<std::size_t>(block), n - pos));
+                    blk.clear();
+                    while (ei < evs.size() && evs[ei].sample < static_cast<long long>(pos) + m) {
+                        PlayEvent e = evs[ei].e;
+                        e.offset = static_cast<int>(std::max<long long>(0, evs[ei].sample - static_cast<long long>(pos)));
+                        blk.push_back(e);
+                        ++ei;
+                    }
+                    eng.process(blk.data(), static_cast<int>(blk.size()), m, ws, l.data(), r.data());
+                    for (int i = 0; i < m; ++i) {
+                        (*heap)[(pos + static_cast<std::size_t>(i)) * 2u] = l[static_cast<std::size_t>(i)];
+                        (*heap)[(pos + static_cast<std::size_t>(i)) * 2u + 1u] = r[static_cast<std::size_t>(i)];
+                    }
+                }
+                logged = eng.logCount();
+            }
+            nb::list out;
+            for (int i = 0; i < logged; ++i) {
+                const auto& e = log[static_cast<std::size_t>(i)];
+                const auto& syl = bank.syllable(e.request.syllable);
+                nb::dict d;
+                d["sample"] = e.sample;
+                d["syllable"] = e.request.syllable;
+                d["phrase"] = syl.phrase;
+                d["index"] = syl.index;
+                d["label"] = bank.label(e.request.syllable);
+                d["shift_cents"] = e.request.shiftCents;
+                d["gain"] = e.request.gain;
+                d["pan"] = e.request.pan;
+                d["singer"] = e.request.singer;
+                d["first"] = e.request.first;
+                out.append(d);
+            }
+            nb::capsule owner(heap, [](void* p) noexcept { delete static_cast<std::vector<float>*>(p); });
+            auto audio = nb::ndarray<nb::numpy, float, nb::ndim<2>>(heap->data(), {n, 2}, owner);
+            return nb::make_tuple(audio, out);
+        },
+        nb::arg("bank_path"),
+        nb::arg("events"),
+        nb::arg("settings") = nb::dict(),
+        nb::arg("sample_rate") = 48000.0,
+        nb::arg("duration_s") = 5.0,
+        nb::arg("seed") = 1,
+        nb::arg("block") = 256,
+        "WP-R1 whistle path (core SyllableEngine: modes A + B, whistle voices, room). events: (time_s, type, "
+        "note, value) with type on/off/sustain/wheel/all_notes_off/all_sound_off and value = velocity or "
+        "controller 0-1. settings: R1 parameter ids (numbers or names). Returns (stereo float32 (n, 2), list of "
+        "syllable starts). No master gain, latency or limiter (those belong to the plugin). Releases the GIL.");
 
     nb::class_<cuicui::BirdVoice>(m, "Voice")
         .def(

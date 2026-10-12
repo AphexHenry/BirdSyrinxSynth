@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-10-11 — by: R0 closed (done, tag wp-R0); next WP = R1
+**Last updated:** 2026-10-12 — by: R1 session (R1 done, tag wp-R1; next WP = R4)
 
 ## Status legend
 
@@ -36,7 +36,7 @@
 | 14 | C4 | Archetype library + gesture score format & player | C3 | done | 2026-09-18 | wp-C4 | `work_packages/WP-C4_archetypes_gesture_score.md` |
 | 15 | C5 | Generative performance engine | C4 | optional | 2026-10-11 | | `work_packages/WP-C5_generative_engine.md` |
 | 15a | R0 | Approach review + understanding studies + web prototype (PITCH1/2, COLOUR1/2, ENGINE1, PROTO1) | C5 | done | 2026-10-11 | wp-R0 | `reviews/2026-10-11_approach_review.md` |
-| 15b | R1 | Real syllables + whistle voice + playing modes A/B in the plugin (modular) | R0 | todo | | | `work_packages/WP-R1_real_syllables_whistle_voice.md` |
+| 15b | R1 | Real syllables + whistle voice + playing modes A/B in the plugin (modular) | R0 | done | 2026-10-12 | wp-R1 | `work_packages/WP-R1_real_syllables_whistle_voice.md` |
 | 15c | R4 | Perform UI + presets (revised C6) | R1 | todo | | | `work_packages/WP-R4_perform_ui_presets.md` |
 | 15d | R3 | Variations within the bird's style (+ more recordings) | R1 | todo | | | `work_packages/WP-R3_variations_within_style.md` |
 | 15e | R2 | Anatomical engine as optional voice (click fix, colour, re-test) | R1 | optional | | | `work_packages/WP-R2_anatomical_voice_optional.md` |
@@ -55,10 +55,21 @@
 
 ## Current capabilities
 
-**2026-10-11 — direction changed (D-018…D-024).** The bird's identity comes from its **real syllables**. The default voice is the **whistle**: a sine following the real pitch and loudness, plus the bird's own harmonics. The anatomical engine is optional.
-- **Plugin (unchanged since C5):** VST3/AU/CLAP/Standalone, MIDI in tune (C3 path), C5 generator. The generator content is rejected; its plumbing is reused in R1.
-- **Web prototype** `listening/PROTO1/index.html` (`scripts/studies/proto1_make.py`): playable A + B with all 123 real syllables of 22938, whistle + bird harmonics, the human's note rule, own-height / follow-the-keyboard mapping, first syllable on the note, random start, MIDI (Chrome), computer keys, on-screen keyboard. **It is the executable spec for R1.**
-- **Studies with results:** PITCH1, PITCH2, COLOUR1, COLOUR2, ENGINE1 (`agent documents/studies/`). The real bird vs the whistle with real gestures was rated 98–100/100.
+**2026-10-12 — WP-R1: the plugin sings with the bird's real syllables** (done, tag wp-R1).
+- **Default voice: the whistle.** It is a sine on the real pitch and loudness curves, plus the bird's own harmonics (−30 / −33 dB), with a light room. All 123 real syllables of 22938 in their 12 real phrases are compiled in (`assets/voicebanks/zf_22938/bank.json`).
+- **Modes A + B:**
+  - tap a key → one real syllable (a random one by default), first syllable exactly on the note;
+  - hold → the bird keeps singing its real phrases around the note, with real timing and pauses;
+  - release → the current syllable finishes.
+- **Controls** (D-025): note rule, own height / follow, size, snap (also on the mod wheel), order (random start / phrase start / shuffled), phrase pause, polyphony (default 4), stereo spread, harmonics, room, master.
+- **Identical to the prototype:** on the same MIDI and seed, the plugin output equals a port of the PROTO1 prototype to −138 dB. The prototype page now uses the same bank file.
+- **Anatomical engine:** still available as the "Anatomical (experimental)" voice (`voice.type`), unchanged. That path keeps the C3 MIDI tuning and the C5 generator.
+- **Tools:**
+  - `plugin_render --syllable-log`;
+  - `cuicui_core.sing()` (the core whistle path from Python);
+  - `python -m cuicui.bank` (build a bank from any annotated recording);
+  - the blind test page `listening/R1/mushra/index.html`.
+- **Studies with results:** PITCH1, PITCH2, COLOUR1, COLOUR2, ENGINE1, R1CHECK (`agent documents/studies/`). R1CHECK: the plugin playing a real phrase was rated 100 / 100 against the real recording.
 
 ## Baselines
 
@@ -66,6 +77,10 @@
 |---|---|---|---|
 | CPU per voice @48 kHz (Release, Apple Silicon) | 2.72 % of one core (RT 0.027); 16 voices RT 0.43 — **above** 0.5 % / 0.1 targets | B6 | 2026-09-17 |
 | Plugin CPU @48 kHz / 256 (Release, Apple Silicon) | 2.70 % of one core (~1.0× B6 voice) | C1 | 2026-09-17 |
+| Whistle path CPU, 6 keys held, room on @48 kHz / 256 | ≈ 1.15 % of one core (whole plugin) | R1 | 2026-10-12 |
+| Tap → sound (whistle) | 36 samples first sample, 53 to > −80 dBFS (latency 35 = 0.73 ms) | R1 | 2026-10-12 |
+| Plugin vs prototype (same MIDI, seed) | events identical; pitch ≤ 1.3e-5 c; waveform −138 dB | R1 | 2026-10-12 |
+| Whistle clicks (LF at onsets / offsets) | −72.4 / −75.8 dB (real bird −61.0 / −61.8) | R1 | 2026-10-12 |
 | Generative density syl/s | 3.23 / 4.50 / 7.00 at Density 0.2 / 0.5 / 0.8 | C5 | 2026-09-18 |
 | Flock CPU (8 notes vs 1, generative) | 8.10× (limit 9.6×) | C5 | 2026-09-18 |
 | Syllable generate worst | 0.002 ms | C5 | 2026-09-18 |
@@ -104,6 +119,12 @@
   - Score/gesture renders cannot switch off tension noise: `ControlFrame.noise_beta_sigma` defaults to 0.005 in `ScorePlayer`.
 - **Pitch tracker** (`scripts/review/track.py`, dominant trace): it hops between the two voices on some syllables. `scripts/studies/voice2.py` tracks the second voice only partially (about 10 % of the time).
 - **Prototype pitch feel:** "questionable, maybe fine for now" (human). Pitch at 3–4 kHz is perceptually fuzzy (PITCH1/2); own-height mapping wraps octaves inside a scale (use follow mode for melodies).
+- **R1 whistle path:**
+  - With "first syllable on the note" (default), the first syllable moves onto the note while the rest of the phrase stays placed around the bird's centre, so it can sit up to an octave away from its natural place in the phrase (prototype behaviour).
+  - 28/123 bank syllables are flagged `hop` (> 300 c in 1 ms, tracker voice hops). They are kept.
+  - The voice uses D-022's −30 / −33 dB harmonics, while the bank measures −32.7 / −34.2 dB over all syllables.
+  - The editor is minimal (R4).
+  - The mod wheel adds to snap in the whistle voice (to Motion in the anatomical voice).
 - **Study scripts** in `scripts/review/` and `scripts/studies/` are research code outside the ruff gate. Some lint warnings remain (line length, `zip(strict=)`).
 
 ## Open questions for the human
@@ -181,3 +202,7 @@
 | 2026-10-11 | R0 | Claude Opus 5.5 | COLOUR1 / COLOUR2 (breath hurts; bird harmonics best) and ENGINE1 (click cause and fix; engine 100/52 vs whistle 100/100) done |
 | 2026-10-11 | R0 | Claude Opus 5.5 | human: switch to what works → whistle default voice (D-022); re-plan R1–R4 written; R0 awaiting approval |
 | 2026-10-11 | R0 | Claude Opus 5.5 | approved (content committed by the human in `f549ec2`); status done, tagged wp-R0 |
+| 2026-10-11 | R1 | Claude Opus 5.5 | started WP-R1 (real syllables, whistle voice, modes A + B in the plugin) |
+| 2026-10-12 | R1 | Claude Opus 5.5 | WP-R1 awaiting approval (listening page + blind test page built; criterion 8 waits for the human's blind test) |
+| 2026-10-12 | R1 | Claude Opus 5.5 | human: listening page "all sounds like a bird", follow keeps the tune; blind test plugin 100/100 → criterion 8 PASS; still awaiting approve |
+| 2026-10-12 | R1 | Claude Opus 5.5 | approved, committed and tagged wp-R1 (D-025…D-027 accepted) |

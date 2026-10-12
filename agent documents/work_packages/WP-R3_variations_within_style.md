@@ -15,3 +15,18 @@
 **Method.** Each option is checked with a short blind listening test against real phrases, as in COLOUR1/2 (MUSHRA page, pre-registered rule). Only options rated close to the real bird stay. Variation is exposed as one control: 0 = the bird's real syllables (R1), 1 = its natural spread.
 
 **Data.** Many more zebra finch recordings are available (human, 2026-10-11). Ingesting them (annotation, tracking, bank export) widens the repertoire and the variation statistics, and may come first. Ask the human where they are.
+
+## Notes from WP-R1
+
+- **Ingesting more recordings.** One command per recording, using its tseg annotation JSON. The recipe is species- and recording-agnostic (D-026):
+
+  ```bash
+  PYTHONPATH=python python/.venv/bin/python -m cuicui.bank --wav <rec>.wav --annotations <rec>.json --name <name> --species "<species>" --out assets/voicebanks/<name>/bank.json
+  ```
+
+  The plugin currently compiles in one factory bank (`plugin/CMakeLists.txt`, `juce_add_binary_data`). Several banks need a bank parameter, or loading from files, off the audio thread.
+- **Tracker hops.** 28 of 123 syllables of 22938 are flagged `hop`: a pitch step of more than 300 cents in 1 ms, probably the tracker jumping between the two voices. They are kept, as in the prototype. Variation work should not learn shapes from those steps (filter with `flags`).
+- **Harmonics.** The bank's `stats.measured_h2_db` / `measured_h3_db` give −32.7 / −34.2 dB over all syllables. The voice uses D-022's −30 / −33 dB.
+- **Where variation plugs in.** `PlayingMode` emits `SyllableRequest`s.
+  - Per-syllable variation (timing, transposition): perturb the requests, or wrap `PhraseOrder`.
+  - New shapes need a voice that takes contours rather than bank indices: extend `WhistleVoice::start()` with a contour pointer.

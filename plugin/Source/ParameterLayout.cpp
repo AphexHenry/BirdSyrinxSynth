@@ -2,6 +2,8 @@
 
 #include "cuicui/params.hpp"
 
+#include <cmath>
+
 juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout() {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
     params.reserve(static_cast<std::size_t>(cuicui::kParamCount));
@@ -51,7 +53,35 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout() {
             continue;
         }
         if (std::string_view(spec.id) == "perf.polyphony") {
-            params.push_back(std::make_unique<juce::AudioParameterInt>(pid, name, 1, 16, 1));
+            params.push_back(std::make_unique<juce::AudioParameterInt>(
+                pid, name, 1, 16, static_cast<int>(std::lround(spec.def))));
+            continue;
+        }
+        // WP-R1 (D-025): whistle voice, note rule, mapping, order; toggles as on/off switches.
+        if (std::string_view(spec.id) == "voice.type") {
+            params.push_back(std::make_unique<juce::AudioParameterChoice>(
+                pid, name, juce::StringArray{"Whistle", "Anatomical (experimental)"}, 0));
+            continue;
+        }
+        if (std::string_view(spec.id) == "perf.note_rule") {
+            params.push_back(std::make_unique<juce::AudioParameterChoice>(
+                pid, name, juce::StringArray{"Longest steady part, else ending", "Steady parts", "Landing", "Average"},
+                0));
+            continue;
+        }
+        if (std::string_view(spec.id) == "perf.mapping") {
+            params.push_back(std::make_unique<juce::AudioParameterChoice>(
+                pid, name, juce::StringArray{"Own height", "Follow the keyboard"}, 0));
+            continue;
+        }
+        if (std::string_view(spec.id) == "perf.order") {
+            params.push_back(std::make_unique<juce::AudioParameterChoice>(
+                pid, name, juce::StringArray{"Random start", "Phrase start", "Shuffled"}, 0));
+            continue;
+        }
+        if (std::string_view(spec.id) == "voice.harmonics" || std::string_view(spec.id) == "perf.first_on_note" ||
+            std::string_view(spec.id) == "out.room") {
+            params.push_back(std::make_unique<juce::AudioParameterBool>(pid, name, spec.def >= 0.5));
             continue;
         }
         if (std::string_view(spec.id) == "perf.seed") {
@@ -72,7 +102,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout() {
             },
         };
 
-        juce::AudioParameterFloatAttributes attrs;
+        // Readable values for hosts and the editor: 1–3 decimals depending on the size (WP-R1).
+        juce::AudioParameterFloatAttributes attrs = juce::AudioParameterFloatAttributes{}.withStringFromValueFunction(
+            [](float v, int) {
+                const float a = std::abs(v);
+                return juce::String(v, a >= 100.0f ? 1 : (a >= 1.0f ? 2 : 3));
+            });
         if (label.isNotEmpty()) {
             attrs = attrs.withLabel(label);
         }

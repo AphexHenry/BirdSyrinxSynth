@@ -4,6 +4,8 @@
 #include "SafetyLimiter.h"
 #include "VoiceAllocator.h"
 #include "cuicui/control/inverse_map.hpp"
+#include "cuicui/control/syllable_bank.hpp"
+#include "cuicui/control/syllable_engine.hpp"
 #include "cuicui/control/voice_controller.hpp"
 #include "cuicui/dsp/smoother.hpp"
 #include "cuicui/model/bird_voice.hpp"
@@ -70,6 +72,25 @@ public:
 
     [[nodiscard]] int voiceLatencySamples() const noexcept { return voice_.latencySamples(); }
 
+    /// WP-R1: is the whistle voice selected (voice.type = whistle, the default)?
+    [[nodiscard]] bool whistleSelected() const noexcept;
+    /// The bird's syllables (embedded factory bank zf_22938).
+    [[nodiscard]] const cuicui::control::SyllableBank& syllableBank() const noexcept { return bank_; }
+    /// Offline renderer / tests: log every syllable start into a caller-owned buffer (nullptr = off).
+    /// Samples are absolute since prepareToPlay, before the latency delay.
+    void setSyllableLog(cuicui::control::SyllableLogEntry* buffer, int capacity) noexcept {
+        whistle_.setLog(buffer, capacity);
+    }
+    [[nodiscard]] int syllableLogCount() const noexcept { return whistle_.logCount(); }
+
+    struct WhistleTelemetry {
+        int singers = 0;
+        int voices = 0;
+    };
+    [[nodiscard]] WhistleTelemetry whistleTelemetry() const noexcept {
+        return {telem_singers_.load(std::memory_order_relaxed), telem_voices_.load(std::memory_order_relaxed)};
+    }
+
 private:
     struct HeldNote {
         int note = 60;
@@ -77,6 +98,11 @@ private:
     };
 
     void processSubblocks(float* dest, int n, const juce::MidiBuffer& midi, int timeOffset) noexcept;
+    void processAnatomical(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi) noexcept;
+    void processWhistle(juce::AudioBuffer<float>& buffer, const juce::MidiBuffer& midi, bool add) noexcept;
+    void switchVoice(bool toWhistle) noexcept;
+    cuicui::control::WhistleSettings readWhistleSettings() const noexcept;
+    std::uint64_t whistleSeed() const noexcept;
     void cacheParamPointers();
     void handleMidi(const juce::MidiMessage& msg) noexcept;
     void applyPhysiologyNote(cuicui::ControlFrame& frame) noexcept;
@@ -94,6 +120,25 @@ private:
     void primeVoice() noexcept;
     void pushHeld(int note, int vel) noexcept;
     void popHeld(int note) noexcept;
+
+    cuicui::control::SyllableBank bank_;
+    cuicui::control::SyllableEngine whistle_;
+    std::vector<float> wl_, wr_;            // whistle render buffers
+    std::vector<float> delayL_, delayR_;    // whistle delayed by the anatomical latency (constant latency)
+    int delayPos_ = 0;
+    std::vector<float> fadeL_, fadeR_;      // anatomical path while it fades out after a voice switch
+    static constexpr int kMaxBlockEvents = 512;
+    std::array<cuicui::control::PlayEvent, kMaxBlockEvents> events_{};
+    cuicui::dsp::Smoother whistleMasterSm_;
+    juce::AudioParameterChoice* voiceParam_ = nullptr;
+    juce::AudioParameterChoice* ruleParam_ = nullptr;
+    juce::AudioParameterChoice* mappingParam_ = nullptr;
+    juce::AudioParameterChoice* orderParam_ = nullptr;
+    bool lastWhistle_ = true;
+    int anatomicalFadeLeft_ = 0;
+    int anatomicalFadeLen_ = 1;
+    std::atomic<int> telem_singers_{0};
+    std::atomic<int> telem_voices_{0};
 
     cuicui::BirdVoice voice_;
     cuicui::control::InverseMap map_;

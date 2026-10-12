@@ -7,6 +7,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include <memory>
+#include <string>
 #include <vector>
 
 class SyrinxAudioProcessorEditor : public juce::AudioProcessorEditor, private juce::Timer {
@@ -32,15 +33,19 @@ private:
         juce::GroupComponent box;
         juce::Component body;
     };
-    Group breath_, srcL_, srcR_, trachea_, oec_, noise_, body_, engine_, perform_;
+    Group bird_, breath_, srcL_, srcR_, trachea_, oec_, noise_, body_, engine_, perform_;
 
     struct Row {
         juce::Slider slider;
         juce::Label label;
         juce::ComboBox combo;
+        juce::ToggleButton toggle;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> sAttach;
         std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> cAttach;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> bAttach;
         bool isCombo = false;
+        bool isToggle = false;
+        std::string id;
     };
     std::vector<std::unique_ptr<Row>> rows_;
 

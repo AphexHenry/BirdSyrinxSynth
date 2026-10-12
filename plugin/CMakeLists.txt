@@ -25,6 +25,14 @@ set(SYRINX_JUCE_COMPILE_DEFINITIONS
     JUCE_STRICT_REFCOUNTEDPOINTER=1
 )
 
+# WP-R1: the factory syllable bank is compiled in (BinaryData::bank_json), so the plugin needs no files.
+juce_add_binary_data(SyrinxBinaryData
+    HEADER_NAME BinaryData.h
+    NAMESPACE BinaryData
+    SOURCES "${CMAKE_SOURCE_DIR}/assets/voicebanks/zf_22938/bank.json"
+)
+set_target_properties(SyrinxBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 juce_add_plugin(Syrinx
     VERSION 0.1.0
     COMPANY_NAME "Cuicui Instruments"
@@ -51,6 +59,7 @@ target_compile_definitions(Syrinx PUBLIC ${SYRINX_JUCE_COMPILE_DEFINITIONS})
 target_link_libraries(Syrinx
     PRIVATE
         cuicui_core
+        SyrinxBinaryData
         juce::juce_audio_utils
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
@@ -75,6 +84,7 @@ target_compile_definitions(plugin_render PUBLIC ${SYRINX_JUCE_COMPILE_DEFINITION
 target_link_libraries(plugin_render
     PRIVATE
         cuicui_core
+        SyrinxBinaryData
         juce::juce_audio_utils
         juce::juce_recommended_config_flags
 )
@@ -84,6 +94,7 @@ add_executable(syrinx_plugin_tests
     tests/test_processor.cpp
     tests/test_perform_mode.cpp
     tests/test_generative.cpp
+    tests/test_whistle_path.cpp
     ${SYRINX_PLUGIN_SOURCES}
 )
 target_include_directories(syrinx_plugin_tests PRIVATE
@@ -98,6 +109,7 @@ target_compile_definitions(syrinx_plugin_tests PRIVATE
 )
 target_link_libraries(syrinx_plugin_tests PRIVATE
     cuicui_core
+    SyrinxBinaryData
     Catch2::Catch2
     juce::juce_audio_utils
     juce::juce_recommended_config_flags

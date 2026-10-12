@@ -1,17 +1,10 @@
 #pragma once
 
+#include "alloc_count.hpp"
+
 #include <cstddef>
 #include <cstdlib>
 #include <new>
-
-namespace cuicui::test {
-
-inline int g_alloc_count = 0;
-
-inline void reset_alloc_count() noexcept { g_alloc_count = 0; }
-inline int alloc_count() noexcept { return g_alloc_count; }
-
-} // namespace cuicui::test
 
 // Replacement new/delete — include this header from exactly one translation unit.
 void* operator new(std::size_t n) {

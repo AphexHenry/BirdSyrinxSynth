@@ -149,3 +149,65 @@
   - C5 is committed as `partial` (commit `0822405`): its plumbing (allocator, polyphony, tempo, Leash blend) is reused; its generator content is replaced.
   - New order: **R0** (review and studies, awaiting approval) → **R1** (real syllables + whistle + modes A/B in the plugin) → **R4** (Perform UI and presets) → **R3** (variations).
   - R2 (anatomical voice) is optional.
+
+### D-025 — WP-R1 parameters for the whistle voice and modes A + B
+- **Status:** accepted · 2026-10-12 · WP-R1
+- **Context:** WP-R1 §3.4 lists the controls of the whistle path; new parameter IDs need a decision (`02_architecture.md` §7).
+- **Decision:**
+  - New IDs (all `sinceWP` "R1", layer Performance; JUCE version hint 8 for "R"):
+
+    | ID | Values | Default |
+    |---|---|---|
+    | `voice.type` | Whistle / Anatomical (experimental) | Whistle |
+    | `voice.harmonics` | on/off (bird's 2nd/3rd harmonics, −30/−33 dB) | on |
+    | `perf.note_rule` | longest steady part else ending / steady parts / landing / average | rule |
+    | `perf.mapping` | own height / follow the keyboard | own height |
+    | `perf.first_on_note` | on/off | on |
+    | `perf.order` | random start / phrase start / shuffled | random start |
+    | `perf.pause_s` | 0.1–2 s | 0.5 |
+    | `perf.size_st` | −12…+12 semitones | 0 |
+    | `out.room` | on/off | on |
+
+  - Reused IDs:
+    - `perf.snap` is the melody/snap control for the whistle; the mod wheel (CC1) adds to it.
+    - `perf.polyphony` counts the keys that sing at once; **its default changes from 1 to 4** (prototype default).
+    - `out.stereo_spread` sets the per-key pan range (±0.3 by default).
+    - `out.master_db` is the volume.
+    - `perf.seed`, or `engine.seed` when perf.seed = 0, seeds the random choices.
+  - Velocity → gain 0.12 + 0.28·v^1.5; CC64 sustain.
+  - On/off parameters are host booleans; float parameters display 1–3 decimals.
+- **Consequences:**
+  - The anatomical path keeps its parameters and is chosen with `voice.type`.
+  - Tests written for the anatomical engine now select it explicitly (`plugin/tests/test_helpers.h`).
+
+### D-026 — Syllable bank file format `cuicui.syllable_bank` v1
+- **Status:** accepted · 2026-10-12 · WP-R1
+- **Context:** R1 needs the bird's real syllables as an asset. The F2 voice-bank format (`02_architecture.md` §9.5) describes learned gesture models, not real syllables.
+- **Decision:**
+  - New format `cuicui.syllable_bank`, version 1 (`schemas/syllable_bank.schema.json`), stored at `assets/voicebanks/<name>/bank.json`. Contents:
+    - phrases of syllables with real onsets (`t_ms`);
+    - 1 ms `f_hz` / `a` curves;
+    - per-syllable anchors for the four note rules, plus the default rule's span;
+    - the bird's centre per rule;
+    - build settings, stats and a content hash.
+  - Built by `python -m cuicui.bank` (the PROTO1 recipe, species- and recording-agnostic).
+  - The factory bank `zf_22938` (0.204 MB, hash `09b16ee69ac8`) is compiled into the plugin (JUCE BinaryData). C++ loads banks with `io::parseSyllableBank` / `loadSyllableBank`, never on the audio thread.
+- **Consequences:**
+  - §9.5 stays for learned models (F2).
+  - More recordings (R3) only need their annotation files.
+
+### D-027 — WP-R1 additive APIs, tools and latency policy
+- **Status:** accepted · 2026-10-12 · WP-R1
+- **Decision:**
+  - **Core** (header-only, no JUCE):
+    - `control/` syllable_bank, placement, phrase_order, playing_mode (interface for modes C/D/E), mode_ab, syllable_engine;
+    - `model/whistle_voice`;
+    - `dsp/` fft, room;
+    - `io/syllable_bank_io`.
+  - **Python:**
+    - `cuicui_core.sing(bank_path, events, settings, sample_rate, duration_s, seed, block)` returns stereo audio and the syllable starts;
+    - packages `cuicui.bank` (build / validate) and `cuicui.reference.singing` (Python port of the prototype logic and voice);
+    - the R0 tracker moves to `cuicui.analysis.f0_track`; `scripts/review/track.py` re-exports it.
+  - **`plugin_render`:** new option `--syllable-log out.json`.
+  - **Latency:** the plugin keeps reporting the anatomical engine's latency (35 samples at 48 kHz) and delays the whistle by the same amount, so switching voices never changes the latency the host sees.
+- **Consequences:** none for existing callers (all additive).

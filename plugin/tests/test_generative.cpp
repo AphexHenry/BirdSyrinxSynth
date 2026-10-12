@@ -1,4 +1,5 @@
 #include "PluginProcessor.h"
+#include "test_helpers.h"
 #include "SafetyLimiter.h"
 
 #include <catch2/catch_test_macros.hpp>
@@ -60,6 +61,7 @@ TEST_CASE("generative: leash 0 two runs are bit-identical (C3 path)") {
     ev.push_back({0, juce::MidiMessage::noteOn(1, 96, static_cast<juce::uint8>(100))});
     auto one = [&]() {
         SyrinxAudioProcessor proc;
+        useAnatomicalVoice(proc);
         proc.setNonRealtime(true);
         baseParams(proc);
         proc.setParamPlain("perf.leash", 0.0f);
@@ -86,6 +88,7 @@ TEST_CASE("generative: perf.seed != 0 is deterministic") {
     ev.push_back({0, juce::MidiMessage::noteOn(1, 96, static_cast<juce::uint8>(100))});
     auto one = [&]() {
         SyrinxAudioProcessor proc;
+        useAnatomicalVoice(proc);
         proc.setNonRealtime(true);
         baseParams(proc);
         proc.setParamPlain("perf.leash", 1.0f);
@@ -110,6 +113,7 @@ TEST_CASE("generative: 8-note flock CPU within 8x * 1.2 of one voice") {
     const int n = static_cast<int>(1.0 * sr);
     auto timed = [&](int poly, int nNotes) {
         SyrinxAudioProcessor proc;
+        useAnatomicalVoice(proc);
         proc.setNonRealtime(true);
         baseParams(proc);
         proc.setParamPlain("perf.polyphony", static_cast<float>(poly));
@@ -132,6 +136,7 @@ TEST_CASE("generative: 8-note flock CPU within 8x * 1.2 of one voice") {
 
 TEST_CASE("generative: voice steal 5 ms fade, no click above -40 dBFS") {
     SyrinxAudioProcessor proc;
+    useAnatomicalVoice(proc);
     proc.setNonRealtime(true);
     baseParams(proc);
     proc.setParamPlain("perf.polyphony", 2.0f);

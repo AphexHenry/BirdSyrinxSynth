@@ -43,3 +43,10 @@
 
 
 
+- [R1] Per-bird harmonic levels. The bank stores the measured H2/H3 (22938: −32.7 / −34.2 dB over all syllables), but the voice uses D-022's −30 / −33 dB. When more birds arrive, let the voice take the bank's values, and check by listening.
+- [R1] 28/123 syllables carry a `hop` flag (> 300 c in 1 ms, probably tracker voice hops). Re-track them with a two-voice tracker, or let the user drop flagged syllables.
+- [R1] Room is on/off only. A room amount (or a different room per bird) would be a small R4 addition.
+- [R1] "Now singing" display: a lock-free request FIFO from the audio thread to the editor (label, note, Hz), like the prototype's pills.
+- [R1] One implementation for the web prototype and the plugin: compile the core `SyllableEngine` to WebAssembly so PROTO1 plays the C++ code itself.
+- [R1] Several banks: a bank parameter and/or user bank files, loaded off the audio thread and swapped atomically (`SyllableEngine::setBank` already silences the voices).
+- [R1] `.claude/launch.json` (a static server on `listening/`, for the in-app browser) was used during R1 and not committed. Add it if agents keep needing it.

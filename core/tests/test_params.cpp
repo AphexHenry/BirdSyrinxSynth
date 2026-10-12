@@ -58,7 +58,8 @@ TEST_CASE("version hint from sinceWP and oversampling choice map") {
     REQUIRE(cuicui::findParam("perf.variation") != nullptr);
     REQUIRE(cuicui::findParam("perf.density") != nullptr);
     REQUIRE(cuicui::findParam("perf.polyphony") != nullptr);
-    REQUIRE(cuicui::specOf(cuicui::ParamId::PerfPolyphony).def == Catch::Approx(1.0));
+    // D-025 (WP-R1): 4 keys sing at once by default, as in the PROTO1 prototype (C5 had 1).
+    REQUIRE(cuicui::specOf(cuicui::ParamId::PerfPolyphony).def == Catch::Approx(4.0));
     int div = -1;
     REQUIRE(cuicui::parsePerfSyncDivisionToken("1/16", div));
     REQUIRE(div == 2);
@@ -73,4 +74,28 @@ TEST_CASE("version hint from sinceWP and oversampling choice map") {
     int sc = -1;
     REQUIRE(cuicui::parsePerfScaleToken("pentatonic_minor", sc));
     REQUIRE(sc == 4);
+}
+
+TEST_CASE("WP-R1 parameters: ids, defaults, version hint") {
+    REQUIRE(cuicui::versionHintFromSinceWP("R1") == 8);
+    struct Expect {
+        const char* id;
+        double def, min, max;
+    };
+    for (const auto& e : {Expect{"voice.type", 0.0, 0.0, 1.0}, Expect{"voice.harmonics", 1.0, 0.0, 1.0},
+                          Expect{"perf.note_rule", 0.0, 0.0, 3.0}, Expect{"perf.mapping", 0.0, 0.0, 1.0},
+                          Expect{"perf.first_on_note", 1.0, 0.0, 1.0}, Expect{"perf.order", 0.0, 0.0, 2.0},
+                          Expect{"perf.pause_s", 0.5, 0.1, 2.0}, Expect{"perf.size_st", 0.0, -12.0, 12.0},
+                          Expect{"out.room", 1.0, 0.0, 1.0}}) {
+        const auto* p = cuicui::findParam(e.id);
+        REQUIRE(p != nullptr);
+        CHECK(p->def == Catch::Approx(e.def));
+        CHECK(p->min == Catch::Approx(e.min));
+        CHECK(p->max == Catch::Approx(e.max));
+        CHECK(std::string(p->sinceWP) == "R1");
+    }
+    CHECK(cuicui::kNoteRuleNames.size() == 4);
+    CHECK(cuicui::kOrderNames.size() == 3);
+    CHECK(cuicui::enumIndexFromValue(2.4, 3) == 2);
+    CHECK(cuicui::enumIndexFromValue(7.0, 3) == 2);
 }

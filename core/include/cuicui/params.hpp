@@ -149,6 +149,8 @@ enum class TestWaveform { Sine = 0, Saw = 1, Noise = 2 };
         return 6;
     case 'G':
         return 7;
+    case 'R':
+        return 8;
     default:
         return 1;
     }
@@ -297,6 +299,20 @@ inline constexpr std::array<const char*, 2> kPerfVoiceBankNames{{"archetypes", "
         return true;
     }
     return false;
+}
+
+/// voice.type: 0 = whistle (default, D-022), 1 = anatomical engine (experimental, WP-R2). WP-R1.
+inline constexpr std::array<const char*, 2> kVoiceTypeNames{{"whistle", "anatomical"}};
+/// perf.note_rule: which part of a syllable is its note (D-019). Same order as control::NoteRule.
+inline constexpr std::array<const char*, 4> kNoteRuleNames{{"rule", "steady", "landing", "average"}};
+/// perf.mapping: 0 = own height (default), 1 = follow the keyboard (D-020).
+inline constexpr std::array<const char*, 2> kMappingNames{{"own_height", "follow"}};
+/// perf.order: 0 = random start (default), 1 = phrase start, 2 = shuffled. Same order as control::OrderMode.
+inline constexpr std::array<const char*, 3> kOrderNames{{"random", "phrase", "shuffled"}};
+
+/// Choice index from a stored enum parameter value (rounded, clamped to [0, count − 1]).
+[[nodiscard]] inline int enumIndexFromValue(double v, int count) noexcept {
+    return std::clamp(static_cast<int>(std::lround(v)), 0, std::max(0, count - 1));
 }
 
 [[nodiscard]] inline bool parseOversamplingToken(std::string_view s, int& out) noexcept {

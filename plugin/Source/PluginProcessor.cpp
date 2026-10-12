@@ -1,6 +1,8 @@
 #include "PluginProcessor.h"
+#include "BinaryData.h"
 #include "PluginEditor.h"
 #include "cuicui/control/gesture_engine.hpp"
+#include "cuicui/io/syllable_bank_io.hpp"
 #include "cuicui/model/labial_oscillator.hpp"
 
 #include <algorithm>
@@ -40,6 +42,47 @@ float betaFromTargetHz(float fTarget) noexcept {
     return kBetaAtF0[i] + t * (kBetaAtF0[i + 1] - kBetaAtF0[i]);
 }
 
+/// MIDI → playing-mode event (WP-R1). Returns false for messages the whistle path ignores.
+bool toPlayEvent(const juce::MidiMessage& m, int offset, cuicui::control::PlayEvent& e) noexcept {
+    using Type = cuicui::control::PlayEvent::Type;
+    e.offset = std::max(0, offset);
+    e.note = 60;
+    e.value = 0.0f;
+    if (m.isNoteOn()) {
+        e.type = Type::NoteOn;
+        e.note = m.getNoteNumber();
+        e.value = m.getFloatVelocity();
+        return true;
+    }
+    if (m.isNoteOff()) {
+        e.type = Type::NoteOff;
+        e.note = m.getNoteNumber();
+        return true;
+    }
+    if (m.isAllNotesOff()) {
+        e.type = Type::AllNotesOff;
+        return true;
+    }
+    if (m.isAllSoundOff()) {
+        e.type = Type::AllSoundOff;
+        return true;
+    }
+    if (m.isController()) {
+        const float v = static_cast<float>(m.getControllerValue()) / 127.0f;
+        if (m.getControllerNumber() == 64) {
+            e.type = Type::Sustain;
+            e.value = v;
+            return true;
+        }
+        if (m.getControllerNumber() == 1) {
+            e.type = Type::ModWheel;
+            e.value = v;
+            return true;
+        }
+    }
+    return false;
+}
+
 float crudeBetaFromMidi(float note, float bendSt) noexcept {
     const float n = note + bendSt;
     const float f0 = kMidiC4Hz * std::pow(2.0f, (n - 60.0f) / 12.0f);
@@ -52,6 +95,12 @@ SyrinxAudioProcessor::SyrinxAudioProcessor()
     : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       apvts(*this, nullptr, "PARAMS", createParameterLayout()) {
     cacheParamPointers();
+    try {
+        bank_ = cuicui::io::parseSyllableBank(
+            std::string_view(BinaryData::bank_json, static_cast<std::size_t>(BinaryData::bank_jsonSize)));
+    } catch (const std::exception& e) {
+        juce::Logger::writeToLog(juce::String("Syrinx: the syllable bank did not load: ") + e.what());
+    }
 }
 
 SyrinxAudioProcessor::~SyrinxAudioProcessor() = default;
@@ -68,6 +117,36 @@ void SyrinxAudioProcessor::cacheParamPointers() {
     syncDivParam_ = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("perf.sync_division"));
     polyParam_ = dynamic_cast<juce::AudioParameterInt*>(apvts.getParameter("perf.polyphony"));
     perfSeedParam_ = dynamic_cast<juce::AudioParameterInt*>(apvts.getParameter("perf.seed"));
+    voiceParam_ = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("voice.type"));
+    ruleParam_ = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("perf.note_rule"));
+    mappingParam_ = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("perf.mapping"));
+    orderParam_ = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("perf.order"));
+}
+
+bool SyrinxAudioProcessor::whistleSelected() const noexcept {
+    return choiceIndex(voiceParam_) == 0;
+}
+
+std::uint64_t SyrinxAudioProcessor::whistleSeed() const noexcept {
+    const int perf = perfSeedParam_ != nullptr ? perfSeedParam_->get() : 0;
+    return perf > 0 ? static_cast<std::uint64_t>(perf) : readSeed();
+}
+
+cuicui::control::WhistleSettings SyrinxAudioProcessor::readWhistleSettings() const noexcept {
+    using namespace cuicui::control;
+    WhistleSettings s;
+    s.play.rule = static_cast<NoteRule>(std::clamp(choiceIndex(ruleParam_), 0, kNoteRuleCount - 1));
+    s.play.mapping = choiceIndex(mappingParam_) == 1 ? KeyMapping::Follow : KeyMapping::OwnHeight;
+    s.play.sizeSt = static_cast<double>(raw(cuicui::ParamId::PerfSizeSt));
+    s.play.firstOnNote = raw(cuicui::ParamId::PerfFirstOnNote) >= 0.5f;
+    s.play.snap = static_cast<double>(raw(cuicui::ParamId::PerfSnap));
+    s.play.order = static_cast<OrderMode>(std::clamp(choiceIndex(orderParam_), 0, 2));
+    s.play.pauseS = static_cast<double>(raw(cuicui::ParamId::PerfPauseS));
+    s.play.polyphony = polyParam_ != nullptr ? polyParam_->get() : 4;
+    s.play.spread = static_cast<double>(raw(cuicui::ParamId::OutStereoSpread));
+    s.harmonics = raw(cuicui::ParamId::VoiceHarmonics) >= 0.5f;
+    s.room = raw(cuicui::ParamId::OutRoom) >= 0.5f;
+    return s;
 }
 
 float SyrinxAudioProcessor::raw(cuicui::ParamId id) const noexcept {
@@ -136,6 +215,25 @@ void SyrinxAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     }
     masterSm_.snap(raw(cuicui::ParamId::OutMasterDb));
     setLatencySamples(voice_.latencySamples());
+
+    // WP-R1 whistle path. It is delayed by the anatomical latency so the plugin's latency never changes.
+    whistle_.prepare(sampleRate);
+    whistle_.setBank(&bank_);
+    whistle_.reset(whistleSeed());
+    wl_.assign(static_cast<std::size_t>(maxBlock), 0.0f);
+    wr_.assign(static_cast<std::size_t>(maxBlock), 0.0f);
+    fadeL_.assign(static_cast<std::size_t>(maxBlock), 0.0f);
+    fadeR_.assign(static_cast<std::size_t>(maxBlock), 0.0f);
+    const int lat = std::max(0, voice_.latencySamples());
+    delayL_.assign(static_cast<std::size_t>(lat), 0.0f);
+    delayR_.assign(static_cast<std::size_t>(lat), 0.0f);
+    delayPos_ = 0;
+    whistleMasterSm_.prepare(sampleRate);
+    whistleMasterSm_.setTimeConstantMs(cuicui::specOf(cuicui::ParamId::OutMasterDb).smoothingMs);
+    whistleMasterSm_.snap(raw(cuicui::ParamId::OutMasterDb));
+    lastWhistle_ = whistleSelected();
+    anatomicalFadeLeft_ = 0;
+    anatomicalFadeLen_ = std::max(1, static_cast<int>(std::lround(0.010 * sampleRate)));
 }
 
 void SyrinxAudioProcessor::primeVoice() noexcept {
@@ -394,6 +492,102 @@ void SyrinxAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
         return;
     }
 
+    const bool whistle = whistleSelected();
+    if (whistle != lastWhistle_) {
+        switchVoice(whistle);
+        lastWhistle_ = whistle;
+    }
+    if (whistle) {
+        processWhistle(buffer, midi, false);
+        if (anatomicalFadeLeft_ > 0) { // the anatomical voice fades out over 10 ms after a switch
+            const int m = std::min(n, static_cast<int>(fadeL_.size()));
+            float* ptrs[2] = {fadeL_.data(), fadeR_.data()};
+            juce::AudioBuffer<float> tail(ptrs, 2, m);
+            juce::MidiBuffer none;
+            processAnatomical(tail, none);
+            for (int i = 0; i < m; ++i) {
+                const float g = static_cast<float>(std::max(0, anatomicalFadeLeft_ - i)) /
+                                static_cast<float>(anatomicalFadeLen_);
+                for (int ch = 0; ch < nOut; ++ch) {
+                    auto* d = buffer.getWritePointer(ch);
+                    d[i] = SafetyLimiter::processSample(d[i] + g * (ch == 0 ? fadeL_ : fadeR_)[static_cast<std::size_t>(i)]);
+                }
+            }
+            anatomicalFadeLeft_ = std::max(0, anatomicalFadeLeft_ - m);
+        }
+    } else {
+        processAnatomical(buffer, midi);
+        if (whistle_.busy()) { // whistle syllables still sounding after a switch finish naturally
+            juce::MidiBuffer none;
+            processWhistle(buffer, none, true);
+        }
+    }
+    publishTelemetry();
+    midi.clear();
+}
+
+void SyrinxAudioProcessor::switchVoice(bool toWhistle) noexcept {
+    if (toWhistle) {
+        anatomicalFadeLeft_ = anatomicalFadeLen_;
+        allocator_.allNotesOff();
+        nHeld_ = 0;
+        sustain_ = false;
+        midiPressurePhys_ = 0.0f;
+        betaDriven_ = false;
+    } else {
+        whistle_.releaseAll();
+    }
+}
+
+void SyrinxAudioProcessor::processWhistle(juce::AudioBuffer<float>& buffer, const juce::MidiBuffer& midi,
+                                          bool add) noexcept {
+    const int n = buffer.getNumSamples();
+    const int nOut = buffer.getNumChannels();
+    const auto settings = readWhistleSettings();
+    whistleMasterSm_.setTarget(raw(cuicui::ParamId::OutMasterDb));
+    const int cap = static_cast<int>(wl_.size());
+    const int lat = static_cast<int>(delayL_.size());
+    auto it = midi.cbegin();
+    const auto end = midi.cend();
+    for (int offset = 0; offset < n;) {
+        const int chunk = std::min(n - offset, cap);
+        int ne = 0;
+        while (it != end && (*it).samplePosition < offset + chunk) {
+            const auto meta = *it;
+            if (ne < kMaxBlockEvents &&
+                toPlayEvent(meta.getMessage(), meta.samplePosition - offset, events_[static_cast<std::size_t>(ne)])) {
+                ++ne;
+            }
+            ++it;
+        }
+        whistle_.process(events_.data(), ne, chunk, settings, wl_.data(), wr_.data());
+        float* outL = buffer.getWritePointer(0) + offset;
+        float* outR = nOut > 1 ? buffer.getWritePointer(1) + offset : nullptr;
+        for (int i = 0; i < chunk; ++i) {
+            float l = wl_[static_cast<std::size_t>(i)];
+            float r = wr_[static_cast<std::size_t>(i)];
+            if (lat > 0) {
+                std::swap(l, delayL_[static_cast<std::size_t>(delayPos_)]);
+                std::swap(r, delayR_[static_cast<std::size_t>(delayPos_)]);
+                delayPos_ = delayPos_ + 1 == lat ? 0 : delayPos_ + 1;
+            }
+            const float g = juce::Decibels::decibelsToGain(whistleMasterSm_.next());
+            if (outR != nullptr) {
+                outL[i] = SafetyLimiter::processSample((add ? outL[i] : 0.0f) + l * g);
+                outR[i] = SafetyLimiter::processSample((add ? outR[i] : 0.0f) + r * g);
+            } else {
+                outL[i] = SafetyLimiter::processSample((add ? outL[i] : 0.0f) + (l + r) * 0.70710678f * g);
+            }
+        }
+        offset += chunk;
+    }
+    telem_singers_.store(whistle_.mode().activeSingers(), std::memory_order_relaxed);
+    telem_voices_.store(whistle_.activeVoices(), std::memory_order_relaxed);
+}
+
+void SyrinxAudioProcessor::processAnatomical(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi) noexcept {
+    const int n = buffer.getNumSamples();
+    const int nOut = buffer.getNumChannels();
     const auto t0 = std::chrono::steady_clock::now();
     readHostTempo();
     const int poly = polyParam_ != nullptr ? polyParam_->get() : 1;
@@ -427,9 +621,6 @@ void SyrinxAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::
     const double elapsed = std::chrono::duration<double>(t1 - t0).count();
     const double sr = getSampleRate() > 0.0 ? getSampleRate() : 48000.0;
     allocator_.notifyBlockTime(elapsed, static_cast<double>(n) / sr);
-
-    publishTelemetry();
-    midi.clear();
 }
 
 void SyrinxAudioProcessor::processSubblocks(float* dest, int n, const juce::MidiBuffer& midi,
@@ -560,6 +751,10 @@ bool SyrinxAudioProcessor::setParamPlain(std::string_view id, float value) {
     }
     if (auto* pi = dynamic_cast<juce::AudioParameterInt*>(p)) {
         *pi = static_cast<int>(std::lround(value));
+        return true;
+    }
+    if (auto* pb = dynamic_cast<juce::AudioParameterBool*>(p)) {
+        *pb = value >= 0.5f;
         return true;
     }
     if (auto* pc = dynamic_cast<juce::AudioParameterChoice*>(p)) {

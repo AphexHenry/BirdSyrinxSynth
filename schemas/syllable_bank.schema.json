@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cuicuiinstruments.com/schemas/syllable_bank.schema.json",
+  "title": "cuicui.syllable_bank",
+  "description": "A bird's real syllables (1 ms pitch and amplitude curves) grouped into its real phrases, with each syllable's note under four rules. Built by `python -m cuicui.bank`. WP-R1, decision D-026.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["format", "version", "name", "contour_rate_hz", "centres_cents", "phrases"],
+  "properties": {
+    "format": { "const": "cuicui.syllable_bank" },
+    "version": { "const": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "species": { "type": "string" },
+    "description": { "type": "string" },
+    "source": { "type": "object" },
+    "contour_rate_hz": { "const": 1000 },
+    "cents_reference": { "type": "string" },
+    "build": { "type": "object" },
+    "rules": { "type": "object", "additionalProperties": { "type": "string" } },
+    "centres_cents": { "$ref": "#/$defs/per_rule" },
+    "bird_centre_cents": { "type": "number" },
+    "stats": { "type": "object" },
+    "hash": { "type": "string" },
+    "phrases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "syllables"],
+        "properties": {
+          "id": { "type": "integer", "minimum": 0 },
+          "start_s": { "type": "number", "minimum": 0 },
+          "syllables": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/syllable" }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "per_rule": {
+      "type": "object",
+      "required": ["rule", "steady", "landing", "average"],
+      "properties": {
+        "rule": { "type": "number" },
+        "steady": { "type": "number" },
+        "landing": { "type": "number" },
+        "average": { "type": "number" }
+      }
+    },
+    "syllable": {
+      "type": "object",
+      "required": ["t_ms", "f_hz", "a", "anchors"],
+      "properties": {
+        "segment": { "type": "integer" },
+        "label": { "type": "string" },
+        "t_ms": { "type": "integer", "minimum": 0, "description": "onset relative to the phrase's first syllable" },
+        "f_hz": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "number", "exclusiveMinimum": 0 },
+          "description": "pitch every 1 ms"
+        },
+        "a": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "number", "minimum": 0 },
+          "description": "amplitude every 1 ms, normalised per phrase (max 1)"
+        },
+        "anchors": {
+          "allOf": [
+            { "$ref": "#/$defs/per_rule" },
+            {
+              "type": "object",
+              "properties": {
+                "rule_used": { "enum": ["steady part", "ending"] },
+                "steady_ms": { "type": "integer", "minimum": 0 },
+                "rule_span_ms": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": { "type": "integer", "minimum": 0 }
+                }
+              }
+            }
+          ]
+        },
+        "max_step_cents": { "type": "number", "minimum": 0 },
+        "flags": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

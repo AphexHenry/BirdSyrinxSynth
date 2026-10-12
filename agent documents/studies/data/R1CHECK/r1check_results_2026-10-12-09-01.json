@@ -1,0 +1,55 @@
+{
+ "study": "R1CHECK",
+ "version": 1,
+ "design_hash": "85a01b5ef034",
+ "started": "2026-10-11T22:50:30.602Z",
+ "idx": 2,
+ "results": [
+  {
+   "screen": 1,
+   "passage": "P1",
+   "ratings": {
+    "A": 31,
+    "B": 100,
+    "C": 100,
+    "D": 100,
+    "E": 100
+   },
+   "listens": {
+    "R": 2,
+    "A": 1,
+    "B": 1,
+    "C": 1,
+    "D": 1,
+    "E": 1
+   },
+   "ms": 30071,
+   "at": "2026-10-12T09:00:42.617Z"
+  },
+  {
+   "screen": 2,
+   "passage": "P3",
+   "ratings": {
+    "A": 100,
+    "B": 100,
+    "C": 100,
+    "D": 100,
+    "E": 11
+   },
+   "listens": {
+    "A": 2,
+    "R": 2,
+    "B": 1,
+    "C": 1,
+    "D": 1,
+    "E": 1
+   },
+   "ms": 34101,
+   "at": "2026-10-12T09:01:16.756Z"
+  }
+ ],
+ "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:157.0) Gecko/20100101 Firefox/157.0",
+ "finished": "2026-10-12T09:01:16.757Z",
+ "comment": "",
+ "sample_rate": 48000
+}

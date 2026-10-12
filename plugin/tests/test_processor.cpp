@@ -1,4 +1,5 @@
 #include "PluginProcessor.h"
+#include "test_helpers.h"
 #include "SafetyLimiter.h"
 #include "alloc_counter.hpp"
 #include "cuicui/io/offline_render.hpp"
@@ -115,6 +116,7 @@ TEST_CASE("SafetyLimiter is bit-transparent below -1 dBFS and never exceeds 0 dB
 
 TEST_CASE("note-on produces sound, note-off dies, latency matches BirdVoice") {
     SyrinxAudioProcessor proc;
+    useAnatomicalVoice(proc);
     proc.setNonRealtime(true);
     proc.setParamPlain("out.master_db", 0.0f);
     proc.setParamPlain("out.gain_db", 0.0f);
@@ -184,6 +186,7 @@ TEST_CASE("note-on produces sound, note-off dies, latency matches BirdVoice") {
 TEST_CASE("physiology MIDI: C and D differ, octave is near 2x") {
     auto hold = [](int note) {
         SyrinxAudioProcessor proc;
+        useAnatomicalVoice(proc);
         proc.setNonRealtime(true);
         proc.setParamPlain("perf.mode", 1.0f); // physiology: C1 empirical map
         proc.setParamPlain("out.master_db", 0.0f);
@@ -212,6 +215,7 @@ TEST_CASE("physiology MIDI: C and D differ, octave is near 2x") {
 
 TEST_CASE("state round trip of 10 random parameters") {
     SyrinxAudioProcessor a;
+    useAnatomicalVoice(a);
     std::mt19937 rng(42);
     std::uniform_int_distribution<int> pick(0, cuicui::kParamCount - 1);
     std::vector<cuicui::ParamId> ids;
@@ -236,6 +240,8 @@ TEST_CASE("state round trip of 10 random parameters") {
     REQUIRE(mb.getSize() > 0);
 
     SyrinxAudioProcessor b;
+
+    useAnatomicalVoice(b);
     b.setStateInformation(mb.getData(), static_cast<int>(mb.getSize()));
     for (std::size_t i = 0; i < ids.size(); ++i) {
         auto* pa = a.apvts.getParameter(cuicui::specOf(ids[i]).id);
@@ -248,6 +254,7 @@ TEST_CASE("state round trip of 10 random parameters") {
 
 TEST_CASE("zero allocations in processBlock over 10 s of MIDI and param changes") {
     SyrinxAudioProcessor proc;
+    useAnatomicalVoice(proc);
     proc.setNonRealtime(false);
     proc.setParamPlain("out.master_db", -6.0f);
     const double sr = 48000.0;
@@ -292,6 +299,7 @@ TEST_CASE("zero allocations in processBlock over 10 s of MIDI and param changes"
 
 TEST_CASE("zero allocations in generative processBlock (leash 1)") {
     SyrinxAudioProcessor proc;
+    useAnatomicalVoice(proc);
     proc.setNonRealtime(true);
     proc.setParamPlain("out.master_db", -6.0f);
     proc.setParamPlain("perf.leash", 1.0f);
@@ -319,6 +327,7 @@ TEST_CASE("zero allocations in generative processBlock (leash 1)") {
 
 TEST_CASE("limiter fuzz: output never exceeds 0 dBFS") {
     SyrinxAudioProcessor proc;
+    useAnatomicalVoice(proc);
     proc.setNonRealtime(true);
     proc.setParamPlain("out.master_db", 6.0f);
     proc.setParamPlain("out.gain_db", 12.0f);
@@ -351,6 +360,8 @@ TEST_CASE("processor matches BirdVoice render_offline within -60 dB (no MIDI)") 
     auto bird = cuicui::io::render_offline(spec, {});
 
     SyrinxAudioProcessor proc;
+
+    useAnatomicalVoice(proc);
     proc.setNonRealtime(true);
     proc.setParamPlain("engine.seed", 1.0f);
     proc.setParamPlain("engine.oversampling", 4.0f);
@@ -373,6 +384,7 @@ TEST_CASE("processor matches BirdVoice render_offline within -60 dB (no MIDI)") 
 TEST_CASE("block-size robustness 32/256/1024") {
     auto run = [](int block) {
         SyrinxAudioProcessor proc;
+        useAnatomicalVoice(proc);
         proc.setNonRealtime(true);
         proc.setParamPlain("out.master_db", 0.0f);
         proc.setParamPlain("out.gain_db", -6.0f);
@@ -426,6 +438,8 @@ TEST_CASE("CPU at 48 kHz / 256 <= 1.5x BirdVoice in-process") {
     const double voicePct = std::chrono::duration<double>(tVoice1 - tVoice0).count() / audioS * 100.0;
 
     SyrinxAudioProcessor proc;
+
+    useAnatomicalVoice(proc);
     proc.setNonRealtime(true);
     proc.setParamPlain("out.master_db", -6.0f);
     proc.prepareToPlay(sr, block);

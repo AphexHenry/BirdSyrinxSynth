@@ -61,7 +61,8 @@ void usage(const char* argv0) {
               << " [--midi phrase.mid] [--notes \"60:0.0:1.0:100,...\"]\n"
               << "              [--params params.json] [--automation automation.json]\n"
               << "              [--sr 48000] [--block 256] [--tail 1.5] [--duration 0]\n"
-              << "              [--seed 1] [--bpm 120] [--playing 0|1] [--screenshot editor.png] -o out.wav\n";
+              << "              [--seed 1] [--bpm 120] [--playing 0|1] [--screenshot editor.png]\n"
+              << "              [--syllable-log starts.json] -o out.wav\n";
 }
 
 std::vector<MidiEvt> parseNotes(const std::string& spec, double sr) {
@@ -163,7 +164,7 @@ public:
 int main(int argc, char** argv) {
     juce::ScopedJuceInitialiser_GUI juceInit;
     try {
-        std::filesystem::path midiPath, paramsPath, autoPath, outPath, screenshotPath;
+        std::filesystem::path midiPath, paramsPath, autoPath, outPath, screenshotPath, sylLogPath;
         std::string notes;
         double sr = 48000.0;
         int block = 256;
@@ -208,6 +209,8 @@ int main(int argc, char** argv) {
             } else if (a == "--seed") {
                 seed = static_cast<std::uint64_t>(std::stoll(need("--seed")));
                 seedSet = true;
+            } else if (a == "--syllable-log") {
+                sylLogPath = need("--syllable-log");
             } else if (a == "--screenshot") {
                 screenshotPath = need("--screenshot");
             } else if (a == "--bpm") {
@@ -293,6 +296,11 @@ int main(int argc, char** argv) {
                 throw std::runtime_error("unknown parameter: " + id);
             }
         }
+        std::vector<cuicui::control::SyllableLogEntry> sylLog;
+        if (!sylLogPath.empty()) {
+            sylLog.resize(1u << 18);
+            proc.setSyllableLog(sylLog.data(), static_cast<int>(sylLog.size()));
+        }
         proc.prepareToPlay(sr, block);
         RenderPlayHead playHead;
         playHead.sr = sr;
@@ -334,9 +342,40 @@ int main(int argc, char** argv) {
             }
             done += nThis;
         }
+        const int nLogged = proc.syllableLogCount();
+        const int latency = proc.getLatencySamples();
+        proc.setSyllableLog(nullptr, 0);
         proc.releaseResources();
 
         cuicui::io::write_wav(outPath, stereo, 2, static_cast<int>(std::lround(sr)));
+        if (!sylLogPath.empty()) { // WP-R1: every syllable the whistle path started
+            const auto& bank = proc.syllableBank();
+            nlohmann::json j;
+            j["format"] = "cuicui.syllable_log";
+            j["sample_rate"] = sr;
+            j["latency_samples"] = latency;
+            j["bank"] = bank.name();
+            j["bank_hash"] = bank.hash();
+            j["note"] = "sample = start before the plugin latency; audio onset = sample + latency_samples";
+            auto& arr = j["starts"] = nlohmann::json::array();
+            for (int i = 0; i < nLogged; ++i) {
+                const auto& e = sylLog[static_cast<std::size_t>(i)];
+                const auto& syl = bank.syllable(e.request.syllable);
+                arr.push_back({{"sample", e.sample},
+                               {"time_s", static_cast<double>(e.sample) / sr},
+                               {"syllable", e.request.syllable},
+                               {"phrase", syl.phrase},
+                               {"index", syl.index},
+                               {"label", bank.label(e.request.syllable)},
+                               {"length_ms", syl.lengthMs},
+                               {"shift_cents", e.request.shiftCents},
+                               {"gain", e.request.gain},
+                               {"pan", e.request.pan},
+                               {"singer", e.request.singer},
+                               {"first", e.request.first}});
+            }
+            std::ofstream(sylLogPath) << j.dump(1) << "\n";
+        }
         return 0;
     } catch (const std::exception& e) {
         std::cerr << "plugin_render: " << e.what() << '\n';

@@ -1,4 +1,5 @@
 #include "PluginProcessor.h"
+#include "test_helpers.h"
 #include "cuicui/control/voice_controller.hpp"
 
 #include <catch2/catch_test_macros.hpp>
@@ -157,6 +158,7 @@ std::vector<float> render(SyrinxAudioProcessor& proc, double sr, int block, int 
 
 std::vector<float> holdNote(int note, double seconds, float tone = 0.6f, float size = 1.0f, int vel = 100) {
     SyrinxAudioProcessor proc;
+    useAnatomicalVoice(proc);
     proc.setNonRealtime(true);
     silenceNoise(proc);
     proc.setParamPlain("perf.tone", tone);
@@ -213,6 +215,7 @@ TEST_CASE("perform mode: tone 0.2/1.0 and size 0.5/2 every 3rd semitone") {
 
 TEST_CASE("perform mode: pitch bend +2 st is +200 cents") {
     SyrinxAudioProcessor proc;
+    useAnatomicalVoice(proc);
     proc.setNonRealtime(true);
     silenceNoise(proc);
     const double sr = 48000.0;
@@ -258,6 +261,7 @@ TEST_CASE("perform mode: onset latency <= 20 ms at defaults") {
 
 TEST_CASE("perform mode: physics=1 breath swell stays in tune") {
     SyrinxAudioProcessor proc;
+    useAnatomicalVoice(proc);
     proc.setNonRealtime(true);
     silenceNoise(proc);
     proc.setParamPlain("perf.physics", 1.0f);
@@ -280,6 +284,7 @@ TEST_CASE("perform mode: physics=1 breath swell stays in tune") {
 
 TEST_CASE("perform mode: octave jump changes side, skips the glide") {
     SyrinxAudioProcessor proc;
+    useAnatomicalVoice(proc);
     proc.setNonRealtime(true);
     silenceNoise(proc);
     proc.setParamPlain("perf.glide_ms", 0.0f);

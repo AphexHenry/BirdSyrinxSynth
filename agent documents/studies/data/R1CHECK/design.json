@@ -1,0 +1,40 @@
+{
+ "study": "R1CHECK",
+ "design_hash": "85a01b5ef034",
+ "seed": 20261012,
+ "key": {
+  "P1": {
+   "span_s": [
+    15.4,
+    17.85
+   ],
+   "bank_phrase": 4,
+   "letters": {
+    "A": "anchor",
+    "B": "ref",
+    "C": "plugin_default",
+    "D": "plugin_natural",
+    "E": "whistle_r0"
+   }
+  },
+  "P3": {
+   "span_s": [
+    26.95,
+    29.5
+   ],
+   "bank_phrase": 7,
+   "letters": {
+    "A": "plugin_natural",
+    "B": "plugin_default",
+    "C": "whistle_r0",
+    "D": "ref",
+    "E": "anchor"
+   }
+  }
+ },
+ "screen_order": [
+  "P1",
+  "P3"
+ ],
+ "bank_hash": "09b16ee69ac8"
+}
