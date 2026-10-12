@@ -102,8 +102,8 @@ TEST_CASE("whistle A: a 30 ms tap sounds one syllable that starts within 5 ms of
                                {on + 1440, juce::MidiMessage::noteOff(1, 69)}});
         REQUIRE(r.log.size() == 1);
         CHECK(r.log[0].sample == on);
-        const auto reg = regions(r.left);
-        REQUIRE(reg.size() == 1);
+        const auto reg = regions(r.left); // one syllable (some have a short silence inside: several regions)
+        REQUIRE_FALSE(reg.empty());
         int firstNonZero = 0;
         while (r.left[static_cast<std::size_t>(firstNonZero)] == 0.0f) {
             ++firstNonZero;
@@ -117,14 +117,15 @@ TEST_CASE("whistle A: a 30 ms tap sounds one syllable that starts within 5 ms of
                              << "(latency " << r.latency << "), audible after " << startDelay << " samples");
         const auto& syl = p.syllableBank().syllable(r.log[0].request.syllable);
         const int len = static_cast<int>(std::llround(syl.lengthMs * 48.0));
-        CHECK(reg[0].second - reg[0].first <= len);
-        CHECK(reg[0].second - reg[0].first > len / 2);
+        CHECK(reg.back().second - reg.front().first <= len);
+        CHECK(reg.back().second - reg.front().first > len / 2);
     }
 }
 
 TEST_CASE("whistle B: hold 2 s → real order and gaps; release mid-syllable → it completes, nothing after") {
     SyrinxAudioProcessor p;
     dryPlugin(p);
+    p.setReleaseAlarm(false); // the R1 rule (a long press ending with the call: D-030, below)
     p.setParamPlain("perf.order", 1.0f); // phrase start: phrase 0, 1, … in the bank's order
     const int on = 2400;
     const int off = on + 96000;
@@ -160,6 +161,7 @@ TEST_CASE("whistle B: hold 2 s → real order and gaps; release mid-syllable →
 TEST_CASE("whistle B: a release during the phrase pause is silent") {
     SyrinxAudioProcessor p;
     dryPlugin(p);
+    p.setReleaseAlarm(false); // the R1 rule
     p.setParamPlain("perf.order", 1.0f);
     p.setParamPlain("perf.pause_s", 1.0f);
     const auto& b = p.syllableBank();
@@ -173,6 +175,44 @@ TEST_CASE("whistle B: a release during the phrase pause is silent") {
     const auto reg = regions(r.left);
     REQUIRE_FALSE(reg.empty());
     CHECK(reg.back().second <= phraseEnd + r.latency);
+}
+
+TEST_CASE("whistle: a long press ends with the bird's rising call; short presses never bring it (D-030)") {
+    SyrinxAudioProcessor p;
+    dryPlugin(p);
+    const auto& b = p.syllableBank();
+    // three short presses (0.1, 0.3, 0.55 s), then a 1.5 s hold; one key at a time
+    const int a = 4800;
+    const std::vector<std::pair<int, juce::MidiMessage>> ev{
+        {a, juce::MidiMessage::noteOn(1, 60, static_cast<juce::uint8>(100))},
+        {a + 4800, juce::MidiMessage::noteOff(1, 60)},
+        {a + 48000, juce::MidiMessage::noteOn(1, 62, static_cast<juce::uint8>(100))},
+        {a + 48000 + 14400, juce::MidiMessage::noteOff(1, 62)},
+        {a + 96000, juce::MidiMessage::noteOn(1, 64, static_cast<juce::uint8>(100))},
+        {a + 96000 + 26400, juce::MidiMessage::noteOff(1, 64)},
+        {a + 144000, juce::MidiMessage::noteOn(1, 69, static_cast<juce::uint8>(100))},
+        {a + 144000 + 72000, juce::MidiMessage::noteOff(1, 69)}};
+    const auto r = render(p, 256, a + 144000 + 72000 + 48000, ev);
+    int calls = 0;
+    for (const auto& e : r.log) {
+        const bool call = b.label(e.request.syllable).rfind("alarm", 0) == 0;
+        CHECK(call == e.request.releaseAlarm); // the call never appears in phrases or taps
+        if (e.request.releaseAlarm) {
+            ++calls;
+            CHECK(e.request.note == 69);
+            CHECK(e.sample >= a + 144000 + 72000); // only after the release
+        }
+    }
+    CHECK(calls == 1);
+    // and it is heard: the last sound is the call, to its end
+    const auto& last = r.log.back();
+    REQUIRE(last.request.releaseAlarm);
+    const int end = static_cast<int>(last.sample) + r.latency +
+                    static_cast<int>(std::llround(b.syllable(last.request.syllable).lengthMs * 48.0));
+    const auto reg = regions(r.left);
+    REQUIRE_FALSE(reg.empty());
+    CHECK(reg.back().second <= end);
+    CHECK(reg.back().second > end - 2400);
 }
 
 TEST_CASE("whistle: output is identical for host blocks of 32, 256 and 1024 samples") {

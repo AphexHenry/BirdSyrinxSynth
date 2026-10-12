@@ -1,276 +1,297 @@
 #include "PluginEditor.h"
 
-#include "cuicui/params.hpp"
+#include "StandaloneMidi.h"
+#include "ui/Theme.h"
 
 #include <algorithm>
+#include <cmath>
+
+using namespace syrinx::ui;
 
 namespace {
 
-/// WP-R1: the whistle voice's controls, shown first ("Bird").
-bool isBirdControl(std::string_view id) {
-    return id.rfind("voice.", 0) == 0 || id == "perf.note_rule" || id == "perf.mapping" ||
-           id == "perf.first_on_note" || id == "perf.snap" || id == "perf.order" || id == "perf.pause_s" ||
-           id == "perf.size_st" || id == "out.room" || id == "perf.polyphony" || id == "out.stereo_spread" ||
-           id == "out.master_db";
-}
+constexpr int kMargin = 16;
+const juce::Rectangle<int> kHeader{kMargin, 12, kWidth - 2 * kMargin, 44};
+const juce::Rectangle<int> kPage{kMargin, 66, kWidth - 2 * kMargin, 498};
+const juce::Rectangle<int> kHelp{kMargin, 568, kWidth - 2 * kMargin, 24};
+const juce::Rectangle<int> kKeys{kMargin, 598, kWidth - 2 * kMargin, 112};
 
-juce::GroupComponent* groupForId(std::string_view id,
-                                 juce::GroupComponent& bird,
-                                 juce::GroupComponent& breath,
-                                 juce::GroupComponent& srcL,
-                                 juce::GroupComponent& srcR,
-                                 juce::GroupComponent& trachea,
-                                 juce::GroupComponent& oec,
-                                 juce::GroupComponent& noise,
-                                 juce::GroupComponent& body,
-                                 juce::GroupComponent& engine,
-                                 juce::GroupComponent& perform) {
-    if (isBirdControl(id)) {
-        return &bird;
-    }
-    if (id.rfind("resp.", 0) == 0) {
-        return &breath;
-    }
-    if (id.rfind("src.L.", 0) == 0) {
-        return &srcL;
-    }
-    if (id.rfind("src.R.", 0) == 0) {
-        return &srcR;
-    }
-    if (id.rfind("trachea.", 0) == 0) {
-        return &trachea;
-    }
-    if (id.rfind("oec.", 0) == 0 || id.rfind("beak.", 0) == 0) {
-        return &oec;
-    }
-    if (id.rfind("noise.", 0) == 0) {
-        return &noise;
-    }
-    if (id.rfind("perf.", 0) == 0) {
-        return &perform;
-    }
-    if (id.rfind("engine.", 0) == 0 || id.rfind("test.", 0) == 0) {
-        return &engine;
-    }
-    return &body;
-}
-
-void layoutGroup(juce::GroupComponent& box, juce::Rectangle<int> r) {
-    box.setBounds(r);
-}
+const char* kDefaultHelp = "Tap a key: one real syllable. Hold it: the bird sings around your note; let go after "
+                           "0.6 s or more and it ends with its long rising call. Point at any control for help.";
 
 } // namespace
 
 SyrinxAudioProcessorEditor::SyrinxAudioProcessorEditor(SyrinxAudioProcessor& p)
-    : juce::AudioProcessorEditor(p),
-      proc_(p),
-      keyboard_(p.keyboardState, juce::MidiKeyboardComponent::horizontalKeyboard) {
-    setResizable(true, true);
-    setResizeLimits(720, 600, 1600, 1600);
-    setSize(980, 900);
+    : juce::AudioProcessorEditor(p), proc_(p),
+      tabs_(juce::StringArray{"Play", "Advanced"}, [this](int page) { showPage(page); }), presetBar_(p.presets()),
+      play_(p), advanced_(p),
+      keyboard_(p.keyboardState, [this](int note) { return play_.display().singerForNote(note); }) {
+    addAndMakeVisible(canvas_);
+    canvas_.setBounds(0, 0, kWidth, kHeight);
+    canvas_.setOpaque(true);
+    for (juce::Component* c : {static_cast<juce::Component*>(&tabs_), static_cast<juce::Component*>(&presetBar_),
+                               static_cast<juce::Component*>(&play_), static_cast<juce::Component*>(&advanced_),
+                               static_cast<juce::Component*>(&keyboard_), &midiZone_}) {
+        canvas_.addAndMakeVisible(c);
+    }
+    tabs_.setTextHeight(13.0f);
+    tabs_.setHelpText("Play: the instrument. Advanced: the anatomical voice's controls (experimental).");
+    midiZone_.setHelpText("Lights up when notes arrive from a MIDI keyboard or the host. In the Standalone app, MIDI "
+                          "inputs are chosen under Options > Audio/MIDI Settings.");
 
-    telem_.setJustificationType(juce::Justification::centredLeft);
-    telem_.setFont(juce::FontOptions(13.0f, juce::Font::plain));
-    addAndMakeVisible(telem_);
-
-    keyboard_.setAvailableRange(36, 108); // whistle: any key (own height); C4–C6 for "follow"
-    keyboard_.setLowestVisibleKey(60);
+    tabs_.setBounds(326, kHeader.getY() + 7, 180, 30);
+    presetBar_.setBounds(596, kHeader.getY() + 4, 404, 36);
+    midiZone_.setBounds(kHeader.getRight() - 56, kHeader.getY() + 6, 56, 32);
+    play_.setBounds(kPage);
+    advanced_.setBounds(kPage);
+    keyboard_.setBounds(kKeys);
+    keyboard_.setAvailableRange(36, 108); // C2–C8: own height takes any key; "follow" sings best from C4 to C6
     keyboard_.setOctaveForMiddleC(4);
     keyboard_.setVelocity(0.7f, true);
     keyboard_.setWantsKeyboardFocus(true);
-    addAndMakeVisible(keyboard_);
-
-    bird_.box.setText("Bird (whistle voice)");
-    breath_.box.setText("Breath");
-    srcL_.box.setText("Source L");
-    srcR_.box.setText("Source R");
-    trachea_.box.setText("Trachea");
-    oec_.box.setText("OEC & Beak");
-    noise_.box.setText("Noise");
-    body_.box.setText("Body & Output");
-    engine_.box.setText("Engine");
-    perform_.box.setText("Perform");
-
-    for (auto* g : {&bird_.box, &breath_.box, &srcL_.box, &srcR_.box, &trachea_.box, &oec_.box, &noise_.box, &body_.box,
-                    &engine_.box, &perform_.box}) {
-        content_.addAndMakeVisible(*g);
+    {
+        constexpr int kWhiteKeys = 22; // C4–C7 visible (the key width first: a range that fits resets the view)
+        keyboard_.setKeyWidth(static_cast<float>(kKeys.getWidth() - 40) / static_cast<float>(kWhiteKeys));
     }
+    keyboard_.setLowestVisibleKey(60);
+    buildLogo();
+    play_.display().setBackgroundPainter([this](juce::Graphics& g) { // the canvas, seen through the corners
+        const auto origin = canvas_.getLocalPoint(&play_.display(), juce::Point<int>());
+        g.addTransform(juce::AffineTransform::translation(static_cast<float>(-origin.x), static_cast<float>(-origin.y)));
+        canvas_.paintBackground(g);
+    });
 
-    for (const auto& spec : cuicui::kParamTable) {
-        addSlider(spec, content_);
+    const int page = juce::jlimit(0, 1, proc_.uiPage.load());
+    tabs_.setIndex(page, false);
+    showPage(page);
+
+    setResizable(true, false); // the host's (or the Standalone window's) own frame resizes; no corner grip
+    setResizeLimits(kWidth * 3 / 4, kHeight * 3 / 4, kWidth * 3 / 2, kHeight * 3 / 2);
+    if (auto* c = getConstrainer()) {
+        c->setFixedAspectRatio(static_cast<double>(kWidth) / static_cast<double>(kHeight));
     }
-
-    viewport_.setViewedComponent(&content_, false);
-    addAndMakeVisible(viewport_);
+    setSize(kWidth, kHeight);
+    canvas_.help = kDefaultHelp;
+    // Last: every child is attached now, so all of them (and their text boxes) take the Syrinx look.
+    setLookAndFeel(&lnf_);
     startTimerHz(30);
-    keyboard_.grabKeyboardFocus();
 }
 
 SyrinxAudioProcessorEditor::~SyrinxAudioProcessorEditor() {
     stopTimer();
+    setLookAndFeel(nullptr);
 }
 
-void SyrinxAudioProcessorEditor::addSlider(const cuicui::ParamSpec& spec, juce::Component&) {
-    auto row = std::make_unique<Row>();
-    row->id = spec.id;
-    row->label.setText(spec.name, juce::dontSendNotification);
-    row->label.setJustificationType(juce::Justification::centredLeft);
-
-    auto* box = groupForId(spec.id, bird_.box, breath_.box, srcL_.box, srcR_.box, trachea_.box, oec_.box,
-                           noise_.box, body_.box, engine_.box, perform_.box);
-    box->addAndMakeVisible(row->label);
-
-    const std::string_view id{spec.id};
-    auto* param = proc_.apvts.getParameter(spec.id);
-    if (auto* boolParam = dynamic_cast<juce::AudioParameterBool*>(param)) {
-        (void)boolParam;
-        row->isToggle = true;
-        row->toggle.setButtonText("on");
-        row->bAttach = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(proc_.apvts, spec.id,
-                                                                                              row->toggle);
-        box->addAndMakeVisible(row->toggle);
-    } else if (auto* choice = dynamic_cast<juce::AudioParameterChoice*>(param);
-               choice != nullptr && isBirdControl(id)) {
-        row->isCombo = true;
-        row->combo.addItemList(choice->choices, 1);
-        row->cAttach = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(proc_.apvts,
-                                                                                                spec.id, row->combo);
-        box->addAndMakeVisible(row->combo);
-    } else if (id == "engine.oversampling" || id == "test.waveform" || id == "perf.mode" || id == "perf.scale" ||
-        id == "perf.sync_division" || id == "perf.voice_bank") {
-        row->isCombo = true;
-        if (id == "engine.oversampling") {
-            row->combo.addItemList(juce::StringArray{"auto", "1", "2", "4", "8"}, 1);
-        } else if (id == "test.waveform") {
-            row->combo.addItemList(juce::StringArray{"sine", "saw", "noise"}, 1);
-        } else if (id == "perf.mode") {
-            row->combo.addItemList(juce::StringArray{"perform", "physiology"}, 1);
-        } else if (id == "perf.sync_division") {
-            row->combo.addItemList(juce::StringArray{"1/4", "1/8", "1/16", "1/32", "1/8T", "1/16T"}, 1);
-        } else if (id == "perf.voice_bank") {
-            row->combo.addItemList(juce::StringArray{"archetypes", "learned"}, 1);
-        } else {
-            row->combo.addItemList(juce::StringArray{"chromatic", "major", "minor", "pentatonic_major",
-                                                    "pentatonic_minor", "whole_tone"},
-                                   1);
-        }
-        row->cAttach = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(
-            proc_.apvts, spec.id, row->combo);
-        box->addAndMakeVisible(row->combo);
-    } else {
-        row->slider.setSliderStyle(juce::Slider::LinearHorizontal);
-        row->slider.setTextBoxStyle(juce::Slider::TextBoxRight, false, 72, 18);
-        row->slider.setNumDecimalPlacesToDisplay(2);
-        row->sAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-            proc_.apvts, spec.id, row->slider);
-        box->addAndMakeVisible(row->slider);
+void SyrinxAudioProcessorEditor::showPage(int page) {
+    tabs_.setIndex(page, false);
+    play_.setVisible(page == 0);
+    advanced_.setVisible(page == 1);
+    proc_.uiPage.store(page);
+    if (page == 1) {
+        advanced_.update();
     }
-    rows_.push_back(std::move(row));
 }
 
 void SyrinxAudioProcessorEditor::paint(juce::Graphics& g) {
-    g.fillAll(juce::Colour(0xff1c1c1e));
-    g.setColour(juce::Colour(0xfff2f2f7));
+    g.fillAll(colours::bgBottom);
 }
 
 void SyrinxAudioProcessorEditor::resized() {
-    auto r = getLocalBounds().reduced(8);
-    telem_.setBounds(r.removeFromTop(56));
-    keyboard_.setBounds(r.removeFromBottom(88));
-    {
-        constexpr int kWhiteKeysThreeOctaves = 22; // C4–C7 visible
-        const float kw =
-            static_cast<float>(std::max(1, keyboard_.getWidth())) / static_cast<float>(kWhiteKeysThreeOctaves);
-        keyboard_.setKeyWidth(kw);
-    }
-    r.removeFromBottom(6);
-    r.removeFromTop(4);
-    viewport_.setBounds(r);
+    const float s = static_cast<float>(getWidth()) / static_cast<float>(kWidth);
+    canvas_.setTransform(juce::AffineTransform::scale(s));
+}
 
-    const int colW = 460;
-    const int rowH = 28;
-    const int pad = 10;
-    const int header = 22;
-
-    auto placeRows = [&](juce::GroupComponent& box, const std::vector<Row*>& rows, int x, int y) {
-        const int h = header + pad + static_cast<int>(rows.size()) * rowH + pad;
-        box.setBounds(x, y, colW, h);
-        auto inner = box.getLocalBounds().reduced(8, 6);
-        inner.removeFromTop(header - 8);
-        for (auto* row : rows) {
-            auto line = inner.removeFromTop(rowH);
-            row->label.setBounds(line.removeFromLeft(140));
-            if (row->isCombo) {
-                row->combo.setBounds(line.reduced(2, 4));
-            } else if (row->isToggle) {
-                row->toggle.setBounds(line.reduced(2, 4));
-            } else {
-                row->slider.setBounds(line.reduced(2, 4));
+void SyrinxAudioProcessorEditor::buildLogo() {
+    // The mark is one of the bird's own syllables: the "swipe" with the widest sweep in the bank.
+    const auto& bank = proc_.syllableBank();
+    int best = -1;
+    double bestRange = 0.0;
+    for (int i = 0; i < bank.numSyllables(); ++i) {
+        if (bank.label(i).find("swipe") == std::string::npos) {
+            continue;
+        }
+        const auto& s = bank.syllable(i);
+        double lo = 1e9, hi = -1e9;
+        for (int k = 0; k < s.lengthMs; ++k) {
+            if (bank.amp()[s.offset + k] > 0.2f) {
+                lo = std::min(lo, bank.logHz()[s.offset + k]);
+                hi = std::max(hi, bank.logHz()[s.offset + k]);
             }
         }
-        return h + 8;
-    };
+        if (hi - lo > bestRange && s.lengthMs >= 40) {
+            bestRange = hi - lo;
+            best = i;
+        }
+    }
+    juce::Path p;
+    const juce::Rectangle<float> box(20.0f, 21.0f, 30.0f, 22.0f);
+    if (best >= 0) {
+        const auto& s = bank.syllable(best);
+        double lo = 1e9, hi = -1e9;
+        int k0 = -1, k1 = -1;
+        for (int k = 0; k < s.lengthMs; ++k) {
+            if (bank.amp()[s.offset + k] > 0.2f) {
+                k0 = k0 < 0 ? k : k0;
+                k1 = k;
+                lo = std::min(lo, bank.logHz()[s.offset + k]);
+                hi = std::max(hi, bank.logHz()[s.offset + k]);
+            }
+        }
+        auto smooth = [&](int k) { // 9 ms moving average: the bird's line, without the tracker's grain
+            double sum = 0.0;
+            int n = 0;
+            for (int j = std::max(k0, k - 4); j <= std::min(k1, k + 4); ++j, ++n) {
+                sum += bank.logHz()[s.offset + j];
+            }
+            return sum / std::max(1, n);
+        };
+        for (int k = k0; k <= k1; k = (k == k1 ? k1 + 1 : std::min(k1, k + 2))) {
+            const float x = box.getX() + box.getWidth() * static_cast<float>(k - k0) / static_cast<float>(std::max(1, k1 - k0));
+            const float y = box.getBottom() - box.getHeight() * static_cast<float>((smooth(k) - lo) / std::max(1e-6, hi - lo));
+            k == k0 ? p.startNewSubPath(x, y) : p.lineTo(x, y);
+        }
+    } else {
+        p.startNewSubPath(box.getX(), box.getBottom());
+        p.cubicTo(box.getX() + 8.0f, box.getY(), box.getX() + 18.0f, box.getBottom(), box.getRight(), box.getY());
+    }
+    canvas_.logo = p;
+}
 
-    std::array<juce::GroupComponent*, 10> boxes = {&bird_.box, &breath_.box, &srcL_.box,   &srcR_.box,
-                                                  &trachea_.box, &oec_.box, &noise_.box, &body_.box,
-                                                  &engine_.box, &perform_.box};
-    std::array<std::vector<Row*>, 10> grouped{};
-    for (auto& row : rows_) {
-        auto* parent = row->label.getParentComponent();
-        for (int i = 0; i < 10; ++i) {
-            if (parent == boxes[static_cast<std::size_t>(i)]) {
-                grouped[static_cast<std::size_t>(i)].push_back(row.get());
+void SyrinxAudioProcessorEditor::Canvas::paint(juce::Graphics& g) {
+    // The still background is an image at the screen's real resolution, so repainting (the live display
+    // above it scrolls 30 times a second) costs a copy, not gradients and text.
+    const float scale = std::max(1.0f, g.getInternalContext().getPhysicalPixelScaleFactor());
+    if (!background_.isValid() || std::abs(scale - backgroundScale_) > 1e-3f) {
+        background_ = juce::Image(juce::Image::RGB, juce::roundToInt(kWidth * scale), juce::roundToInt(kHeight * scale),
+                                  false);
+        juce::Graphics bg(background_);
+        bg.addTransform(juce::AffineTransform::scale(scale));
+        paintBackground(bg);
+        backgroundScale_ = scale;
+    }
+    g.drawImageTransformed(background_, juce::AffineTransform::scale(1.0f / scale));
+    paintLive(g);
+}
+
+void SyrinxAudioProcessorEditor::Canvas::paintBackground(juce::Graphics& g) const {
+    const auto all = getLocalBounds().toFloat();
+    g.setGradientFill(juce::ColourGradient(colours::bgTop, 0.0f, 0.0f, colours::bgBottom, 0.0f, all.getBottom(), false));
+    g.fillAll();
+    g.setGradientFill(juce::ColourGradient(colours::accent.withAlpha(0.07f), 120.0f, 0.0f,
+                                           colours::accent.withAlpha(0.0f), 520.0f, 260.0f, true));
+    g.fillRect(all.withHeight(320.0f));
+
+    // the mark and the name
+    g.setColour(colours::accent.withAlpha(0.22f));
+    g.strokePath(logo, juce::PathStrokeType(6.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    g.setColour(colours::accent);
+    g.strokePath(logo, juce::PathStrokeType(2.4f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    const auto nameFont = font(25.0f, Weight::demibold);
+    g.setFont(nameFont);
+    g.setColour(colours::text);
+    g.drawText("Syrinx", juce::Rectangle<float>(60.0f, 14.0f, 120.0f, 36.0f), juce::Justification::centredLeft, false);
+    const float nameW = textWidth(nameFont, "Syrinx");
+    g.setColour(colours::border.brighter(0.2f));
+    g.fillRect(juce::Rectangle<float>(60.0f + nameW + 12.0f, 24.0f, 1.0f, 17.0f));
+    g.setFont(titleFont(9.5f));
+    g.setColour(colours::text3);
+    g.drawText("CUICUI INSTRUMENTS", juce::Rectangle<float>(60.0f + nameW + 25.0f, 14.0f, 200.0f, 36.0f),
+               juce::Justification::centredLeft, false);
+}
+
+void SyrinxAudioProcessorEditor::Canvas::paintLive(juce::Graphics& g) const {
+    // MIDI light
+    const auto zone = ed_.midiZone_.getBounds().toFloat();
+    const auto dot = juce::Rectangle<float>(7.0f, 7.0f).withCentre({zone.getX() + 18.0f, zone.getCentreY()});
+    if (midiLit) {
+        g.setColour(colours::accent2.withAlpha(0.3f));
+        g.fillEllipse(dot.expanded(4.0f));
+    }
+    g.setColour(midiLit ? colours::accent2 : colours::track);
+    g.fillEllipse(dot);
+    g.setFont(titleFont(9.5f));
+    g.setColour(midiLit ? colours::text2 : colours::text3);
+    g.drawText("MIDI", zone.withTrimmedLeft(28.0f), juce::Justification::centredLeft, false);
+
+    // help line
+    const auto h = kHelp.toFloat();
+    const auto icon = juce::Rectangle<float>(14.0f, 14.0f).withCentre({h.getX() + 9.0f, h.getCentreY()});
+    g.setColour(colours::text3);
+    g.drawEllipse(icon, 1.0f);
+    g.setFont(font(10.0f, Weight::bold));
+    g.drawText("?", icon.translated(0.0f, 0.5f), juce::Justification::centred, false);
+    g.setFont(font(12.0f));
+    g.setColour(colours::text2);
+    g.drawFittedText(help, h.withTrimmedLeft(26.0f).toNearestInt(), juce::Justification::centredLeft, 1, 0.9f);
+}
+
+void SyrinxAudioProcessorEditor::updateHelp() {
+    juce::String text = kDefaultHelp;
+    if (auto* c = juce::Desktop::getInstance().getMainMouseSource().getComponentUnderMouse();
+        c != nullptr && (c == this || isParentOf(c))) {
+        for (auto* k = c; k != nullptr && k != this; k = k->getParentComponent()) {
+            if (k->getHelpText().isNotEmpty()) {
+                text = k->getHelpText();
                 break;
             }
         }
     }
-
-    { // the Bird group in playing order (WP-R1)
-        static const std::array<std::string_view, 13> kOrder{
-            {"voice.type", "voice.harmonics", "perf.note_rule", "perf.mapping", "perf.first_on_note", "perf.snap",
-             "perf.order", "perf.pause_s", "perf.size_st", "perf.polyphony", "out.room", "out.stereo_spread",
-             "out.master_db"}};
-        auto rank = [](const Row* r) {
-            for (std::size_t i = 0; i < kOrder.size(); ++i) {
-                if (r->id == kOrder[i]) {
-                    return static_cast<int>(i);
-                }
-            }
-            return static_cast<int>(kOrder.size());
-        };
-        std::stable_sort(grouped[0].begin(), grouped[0].end(),
-                         [&](const Row* a, const Row* b) { return rank(a) < rank(b); });
+    if (text != canvas_.help) {
+        canvas_.help = text;
+        canvas_.repaint(kHelp.expanded(2));
     }
-    int yL = 8, yR = 8;
-    for (int i = 0; i < 10; ++i) {
-        const bool left = (i % 2) == 0;
-        int& y = left ? yL : yR;
-        const int x = left ? 8 : 8 + colW + 8;
-        y += placeRows(*boxes[static_cast<std::size_t>(i)], grouped[static_cast<std::size_t>(i)], x, y);
-    }
-    content_.setSize(8 + colW + 8 + colW + 8, std::max(yL, yR) + 8);
 }
 
 void SyrinxAudioProcessorEditor::timerCallback() {
-    if (proc_.whistleSelected()) {
-        const auto w = proc_.whistleTelemetry();
-        const auto& b = proc_.syllableBank();
-        telem_.setText(juce::String::formatted("Whistle voice, bank %s (%d syllables, %d phrases)   keys singing %d   "
-                                               "syllables sounding %d",
-                                               b.name().c_str(), b.numSyllables(), b.numPhrases(), w.singers,
-                                               w.voices),
-                       juce::dontSendNotification);
-        return;
+    ++ticks_;
+    if (!focusDone_ && isShowing()) {
+        focusDone_ = true;
+        keyboard_.grabKeyboardFocus();
     }
-    const auto t = proc_.telemetrySnapshot();
-    telem_.setText(juce::String::formatted(
-                       "f0 %.1f Hz (target %.1f%s)   αL %.3f  βL %.3f   αR %.3f  βR %.3f   p %.3f   "
-                       "side %s   level %.1f dB   resets %u",
-                       static_cast<double>(t.f0_hz), static_cast<double>(t.target_hz),
-                       t.folded ? " folded" : "", static_cast<double>(t.alpha_L),
-                       static_cast<double>(t.beta_L), static_cast<double>(t.alpha_R),
-                       static_cast<double>(t.beta_R), static_cast<double>(t.pressure),
-                       t.active_side ? "R" : "L", static_cast<double>(t.level_db),
-                       static_cast<unsigned>(t.nonFiniteResets)),
-                   juce::dontSendNotification);
+    if (!midiChecked_) {
+        midiChecked_ = true;
+        syrinx::enableMidiInputsInStandalone();
+    }
+    if (play_.isVisible()) {
+        play_.update();
+    } else {
+        play_.display().update(); // keep reading the feed (the keyboard's colours)
+        advanced_.update();
+    }
+    if (ticks_ % 5 == 0) {
+        presetBar_.refresh();
+    }
+    updateHelp();
+
+    // MIDI light: notes from outside (a MIDI keyboard, the host)
+    const auto notes = proc_.feed().externalNotes();
+    const double now = juce::Time::getMillisecondCounterHiRes();
+    if (notes != lastNotes_) {
+        lastNotes_ = notes;
+        midiLitUntilMs_ = now + 180.0;
+    }
+    const bool lit = now < midiLitUntilMs_;
+    if (lit != canvas_.midiLit) {
+        canvas_.midiLit = lit;
+        canvas_.repaint(midiZone_.getBounds().expanded(6));
+    }
+    // the keyboard takes its birds' colours once their first syllable is known
+    int hash = 17;
+    for (int n = 36; n <= 108; ++n) {
+        if (proc_.keyboardState.isNoteOnForChannels(0xffff, n)) {
+            hash = hash * 31 + n * 7 + play_.display().singerForNote(n);
+        }
+    }
+    if (hash != keyHash_) {
+        keyHash_ = hash;
+        keyboard_.repaint();
+    }
+}
+
+void SyrinxAudioProcessorEditor::prepareSnapshot() {
+    play_.display().freezeAtClock(true);
+    play_.update();
+    advanced_.update();
+    presetBar_.refresh();
+    canvas_.help = kDefaultHelp;
 }

@@ -1,0 +1,10 @@
+{
+  "format": "cuicui.preset",
+  "version": 1,
+  "name": "Finch",
+  "category": "Finch",
+  "author": "Cuicui Instruments",
+  "description": "The default. The first syllable lands on your note, then the bird keeps its own melody around it.",
+  "voice_bank": "zf_22938",
+  "parameters": {}
+}

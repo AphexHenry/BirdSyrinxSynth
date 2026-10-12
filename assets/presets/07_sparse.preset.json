@@ -1,0 +1,12 @@
+{
+  "format": "cuicui.preset",
+  "version": 1,
+  "name": "Sparse",
+  "category": "Character",
+  "author": "Cuicui Instruments",
+  "description": "An occasional singer: long silences between phrases while you hold a key.",
+  "voice_bank": "zf_22938",
+  "parameters": {
+    "perf.pause_s": 2.0
+  }
+}

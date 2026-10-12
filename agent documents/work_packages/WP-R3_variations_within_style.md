@@ -30,3 +30,21 @@
 - **Where variation plugs in.** `PlayingMode` emits `SyllableRequest`s.
   - Per-syllable variation (timing, transposition): perturb the requests, or wrap `PhraseOrder`.
   - New shapes need a voice that takes contours rather than bank indices: extend `WhistleVoice::start()` with a contour pointer.
+
+## Notes from WP-R4
+
+**The Variation control.** The Song card (`plugin/Source/ui/PlayPage.cpp`) has room below Pause for a Variation knob or slider:
+- add the widget with `setHelp(*w, "perf.variation_or_new_id")`;
+- add the sentence to `plugin/Source/ParamHelp.h` (a test fails otherwise);
+- a new parameter needs a decision entry (registry contract).
+
+**More birds (banks).**
+- The header has room for a bird / bank selector next to the preset bar.
+- Presets already carry `voice_bank` (informative in v1, D-028). Once banks exist, a preset can choose its bird.
+- Bank switching must stay off the audio thread (`SyllableEngine::setBank` silences voices).
+
+**The display reads `SyllableFeed` events** (syllable index, shift, key, target).
+- New syllables made by variation need their contour reachable by the UI. Either keep them in a bank-like store the editor can read, or extend the feed with a contour pointer.
+- Without that, the display cannot draw them.
+
+**Recordings.** `recordings/` holds three "House Finch" MP3s (git-ignored, added 2026-10-12). The bank builder (`python -m cuicui.bank`) needs WAV + tseg annotation JSON.

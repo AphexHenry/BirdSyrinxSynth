@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cuicuiinstruments.com/schemas/preset.schema.json",
+  "title": "cuicui.preset",
+  "description": "A Syrinx preset: parameter values by registry ID. Loading a preset sets every listed parameter to its value and every other parameter to its default. Values are in the parameter's own units; choices may be given by name (preferred) or by index, switches by true/false or 0/1. Unknown parameter IDs are ignored. WP-R4, decision D-028.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["format", "version", "name", "parameters"],
+  "properties": {
+    "format": { "const": "cuicui.preset" },
+    "version": { "const": 1 },
+    "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "category": { "type": "string" },
+    "author": { "type": "string" },
+    "description": { "type": "string" },
+    "voice_bank": { "type": "string", "description": "Name of the syllable bank the preset was made with (e.g. zf_22938)." },
+    "parameters": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z]+(\\.[A-Za-z0-9_]+)+$" },
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "number" },
+          { "type": "boolean" },
+          { "type": "string", "minLength": 1 }
+        ]
+      }
+    }
+  }
+}

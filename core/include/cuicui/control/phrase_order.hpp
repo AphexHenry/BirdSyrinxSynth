@@ -32,24 +32,27 @@ struct OrderStep {
 };
 
 /// Per-singer order state. Times are seconds from the singer's note-on.
+/// `reserve` (D-030): leave the release syllables out (they end a long key press instead). A phrase then
+/// closes up over a skipped syllable: the next one starts as much earlier as the skipped one lasted, so the
+/// silences around it remain. With `reserve` false the order is the R1 / PROTO1 one, draw for draw.
 class PhraseOrder {
 public:
     /// First syllable (starts at 0 s). `phrasePointer` is shared by all singers (PhraseStart mode).
-    [[nodiscard]] OrderStep begin(const SyllableBank& bank, OrderMode mode, dsp::Rng& rng,
-                                  int& phrasePointer) noexcept {
+    [[nodiscard]] OrderStep begin(const SyllableBank& bank, OrderMode mode, dsp::Rng& rng, int& phrasePointer,
+                                  bool reserve = false) noexcept {
         mode_ = mode;
+        reserve_ = reserve && !bank.playableSyllables().empty();
         if (mode == OrderMode::Shuffled) {
-            last_ = uniformIndex(rng, bank.numSyllables());
+            last_ = pickSyllable(bank, rng);
             left_ = 4 + uniformIndex(rng, 6);
             return {last_, 0.0};
         }
         if (mode == OrderMode::RandomStart) {
-            const int pick = uniformIndex(rng, bank.numSyllables());
+            const int pick = pickSyllable(bank, rng);
             phrase_ = bank.syllable(pick).phrase;
             index_ = bank.syllable(pick).index;
         } else {
-            phrase_ = nextPhrase(bank, rng, phrasePointer);
-            index_ = 0;
+            enterNextPhrase(bank, rng, phrasePointer);
         }
         return {bank.syllableOf(phrase_, index_), 0.0};
     }
@@ -58,7 +61,7 @@ public:
     [[nodiscard]] OrderStep next(const SyllableBank& bank, double prevStartS, double pauseS, dsp::Rng& rng,
                                  int& phrasePointer) noexcept {
         if (mode_ == OrderMode::Shuffled) {
-            const int s = uniformIndex(rng, bank.numSyllables());
+            const int s = pickSyllable(bank, rng);
             const double end = prevStartS + static_cast<double>(bank.syllable(last_).lengthMs) / 1000.0;
             double gap = 0.02 + uniform01(rng) * 0.05;
             if (--left_ <= 0) {
@@ -69,20 +72,59 @@ public:
             return {s, end + gap};
         }
         const int prev = bank.syllableOf(phrase_, index_);
-        if (index_ + 1 < bank.phrase(phrase_).count) {
-            ++index_;
+        int j = index_ + 1;
+        double skippedS = 0.0;
+        while (reserve_ && j < bank.phrase(phrase_).count && bank.isReleaseSyllable(bank.syllableOf(phrase_, j))) {
+            skippedS += static_cast<double>(bank.syllable(bank.syllableOf(phrase_, j)).lengthMs) / 1000.0;
+            ++j;
+        }
+        if (j < bank.phrase(phrase_).count) {
+            index_ = j;
             const int s = bank.syllableOf(phrase_, index_);
-            return {s, prevStartS + static_cast<double>(bank.syllable(s).tMs - bank.syllable(prev).tMs) / 1000.0};
+            return {s, prevStartS + static_cast<double>(bank.syllable(s).tMs - bank.syllable(prev).tMs) / 1000.0 -
+                           skippedS};
         }
         const double end = prevStartS + static_cast<double>(bank.syllable(prev).lengthMs) / 1000.0;
-        phrase_ = nextPhrase(bank, rng, phrasePointer);
-        index_ = 0;
-        return {bank.syllableOf(phrase_, 0), end + pauseS};
+        enterNextPhrase(bank, rng, phrasePointer);
+        return {bank.syllableOf(phrase_, index_), end + pauseS};
     }
 
     [[nodiscard]] OrderMode mode() const noexcept { return mode_; }
 
 private:
+    /// A syllable to start from, uniformly: any (R1), or only the playable ones (reserve).
+    int pickSyllable(const SyllableBank& bank, dsp::Rng& rng) const noexcept {
+        if (!reserve_) {
+            return uniformIndex(rng, bank.numSyllables());
+        }
+        const auto& ok = bank.playableSyllables();
+        return ok[static_cast<std::size_t>(uniformIndex(rng, static_cast<int>(ok.size())))];
+    }
+
+    /// Next phrase, entered at its first syllable that may be sung (with reserve, a phrase made only of
+    /// release syllables is passed over).
+    void enterNextPhrase(const SyllableBank& bank, dsp::Rng& rng, int& phrasePointer) noexcept {
+        for (int tries = 0;; ++tries) {
+            phrase_ = nextPhrase(bank, rng, phrasePointer);
+            index_ = 0;
+            if (!reserve_) {
+                return;
+            }
+            while (index_ < bank.phrase(phrase_).count && bank.isReleaseSyllable(bank.syllableOf(phrase_, index_))) {
+                ++index_;
+            }
+            if (index_ < bank.phrase(phrase_).count) {
+                return;
+            }
+            if (tries >= 4 * bank.numPhrases()) { // cannot happen while a playable syllable exists; stay safe
+                const int s = bank.playableSyllables().front();
+                phrase_ = bank.syllable(s).phrase;
+                index_ = bank.syllable(s).index;
+                return;
+            }
+        }
+    }
+
     int nextPhrase(const SyllableBank& bank, dsp::Rng& rng, int& phrasePointer) const noexcept {
         const int n = bank.numPhrases();
         if (mode_ == OrderMode::RandomStart) {
@@ -94,6 +136,7 @@ private:
     }
 
     OrderMode mode_ = OrderMode::RandomStart;
+    bool reserve_ = false;
     int phrase_ = 0;
     int index_ = 0;
     int last_ = 0;

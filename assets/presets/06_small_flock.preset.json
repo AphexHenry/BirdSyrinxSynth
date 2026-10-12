@@ -1,0 +1,13 @@
+{
+  "format": "cuicui.preset",
+  "version": 1,
+  "name": "Small flock",
+  "category": "Flock",
+  "author": "Cuicui Instruments",
+  "description": "Hold several keys: up to six birds, each in its own place left to right.",
+  "voice_bank": "zf_22938",
+  "parameters": {
+    "perf.polyphony": 6,
+    "out.stereo_spread": 0.6
+  }
+}

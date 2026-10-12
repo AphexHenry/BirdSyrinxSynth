@@ -1,0 +1,13 @@
+{
+  "format": "cuicui.preset",
+  "version": 1,
+  "name": "Chatty",
+  "category": "Character",
+  "author": "Cuicui Instruments",
+  "description": "A busy bird: hardly any pause, and the syllables in shuffled order.",
+  "voice_bank": "zf_22938",
+  "parameters": {
+    "perf.pause_s": 0.1,
+    "perf.order": "Shuffled"
+  }
+}

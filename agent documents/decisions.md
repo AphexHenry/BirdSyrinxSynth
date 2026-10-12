@@ -211,3 +211,61 @@
   - **`plugin_render`:** new option `--syllable-log out.json`.
   - **Latency:** the plugin keeps reporting the anatomical engine's latency (35 samples at 48 kHz) and delays the whistle by the same amount, so switching voices never changes the latency the host sees.
 - **Consequences:** none for existing callers (all additive).
+
+### D-028 — Preset file format `cuicui.preset` v1, factory and user presets
+- **Status:** accepted · 2026-10-12 · WP-R4
+- **Context:** `02_architecture.md` §9.7 names the preset format (from C6) without details. R4 needs factory presets, presets saved by the user and a plugin state that remembers the preset.
+- **Decision:**
+  - Format `cuicui.preset`, version 1 (`schemas/preset.schema.json`): `name` (required), `category`, `author`, `description`, `voice_bank`, `parameters` {registry ID: value}.
+  - Values are in the parameter's own units. Choices are written by name (index also accepted); switches as true/false (0/1 accepted). Unknown IDs are ignored.
+  - **Loading a preset sets every parameter:** listed ones to their value, all others to their default. A preset made before a parameter existed keeps its sound.
+  - Factory presets: `assets/presets/NN_name.preset.json`, compiled in (JUCE BinaryData), listed in file order. `01_finch` equals the defaults and is the name of a new instance.
+  - User presets: one file each in `~/Library/Application Support/Cuicui Instruments/Syrinx/Presets/` (created when the first one is saved). Saving writes every parameter.
+  - Presets are read, parsed and applied on the message thread only (`PresetManager`); the audio thread sees parameter changes, as with automation.
+  - Plugin state: new XML attributes `presetName`, `presetUser` and `uiPage` on the state root (additive; older sessions load as "Untitled").
+- **Consequences:** §9.7 gains these details. The voice bank stays fixed (one bank) until R3 adds a bank choice; `voice_bank` is informative in v1.
+
+### D-029 — WP-R4 additive APIs, editor architecture and tooling
+- **Status:** accepted · 2026-10-12 · WP-R4
+- **Decision:**
+  - **Core:** `SyllableRequest` gains `note` (the MIDI key) and `targetCents` (that key's target pitch), filled by `ModeAB`. Additive; the R1 reference comparison is unchanged.
+  - **Plugin:**
+    - `SyllableFeed`: a lock-free FIFO of syllable starts plus the whistle clock and live values (mod wheel, pedal, external MIDI notes). Audio thread → editor; drops when full, never blocks.
+    - `processWhistle` forwards the engine's per-call log to the feed and to `setSyllableLog` (whose behaviour is unchanged).
+    - `PresetManager` (D-028); `uiPage` in the state.
+  - **Editor:**
+    - a fixed 1080 × 720 design, scaled as a whole (aspect locked, 0.75–1.5×);
+    - pages Play and Advanced (the R1 rows of the anatomical controls, as they were);
+    - one `SyrinxLookAndFeel`, vector only;
+    - fonts: Avenir Next (built into macOS; other systems use their default sans-serif).
+  - **Standalone:** on the first open, if no MIDI input is enabled, every MIDI input is switched on. `StandalonePluginHolder` is used only in the Standalone build.
+  - **Display names in the UI** differ from three host parameter names:
+    - "Snap to note" (`perf.snap`, host name "Snap");
+    - "Birds" (`perf.polyphony`);
+    - "Volume" (`out.master_db`).
+    The registry is unchanged.
+  - **Tools:**
+    - `plugin_render --preset <name|file>`, `--screenshot-page play|advanced`, `--screenshot-scale <f>`. A `--screenshot` taken with `-o` now shows the end of the render.
+    - Syllable logs gain `key` and `target_cents`.
+    - `scripts/validate_plugin.sh [strictness] [--gui]` also runs pluginval's editor tests.
+- **Consequences:** none for existing callers. Renaming the host parameter names to match the UI is a separate, later contract change (backlog).
+
+### D-030 — The bird's long rising call ends a long key press, and only that
+- **Status:** accepted · 2026-10-12 · the rule: human; the details: WP-R4 (feedback), approved with the commit
+- **Context:**
+  - In 22938 the "alarm" syllables (4 × "alarm", 1 × "alarm_grillon") are 4–5× longer than the others (0.42–0.52 s), and every one glides up about a third (≈ 3.2 → 3.9–4.1 kHz).
+  - 4 of the 5 are followed by a pause, so to the ear they end phrases.
+  - The human: "this alarm, i want it to be played only if the key has been pressed more than 600ms, and only on key release. it should not be triggered with a short press."
+- **Decision:**
+  - **Rule (human):** the call never starts or continues a phrase and never answers a tap or a short press. When a key that sang at least 0.6 s is released, the bird ends with one call.
+  - **Details (proposed):**
+    - Which syllables: labels starting with "alarm" (`kReleaseLabelPrefix`), one chosen at random per release from the key's own random stream.
+    - When: after the syllable still sounding, plus the bird's own lead-in silence (the median gap before its calls, 60 ms in 22938, `SyllableBank::releaseGapMs`), or at once if the bird was between phrases.
+    - Placed like a following syllable (snap to note + mod wheel), with the key's loudness and stereo place.
+    - Pedal: the press lasts until the pedal is lifted.
+    - Pressing the same key again before the call starts cancels it. Keys released by the polyphony limit, all-notes-off or a voice switch never call.
+    - Phrases close up over a skipped call: the next syllable starts as much earlier as the call lasted, so the silences around it remain.
+    - On by default; `PlayContext::releaseAlarm = false` (`plugin_render --no-release-alarm`, `sing(..., {"release_alarm": 0})`) gives the R1 / PROTO1 playing for the reference comparisons. Not a host parameter.
+- **Consequences:**
+  - The plugin no longer plays exactly as the PROTO1 web prototype, which keeps the calls inside phrases. The R1 equivalence tests now run with the rule off.
+  - The 0.6 s threshold is fixed (a control is in the backlog).

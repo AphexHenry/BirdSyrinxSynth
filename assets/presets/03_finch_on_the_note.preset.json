@@ -1,0 +1,13 @@
+{
+  "format": "cuicui.preset",
+  "version": 1,
+  "name": "Finch, on the note",
+  "category": "Finch",
+  "author": "Cuicui Instruments",
+  "description": "Every syllable lands on your key's note: the most tonal setting.",
+  "voice_bank": "zf_22938",
+  "parameters": {
+    "perf.first_on_note": true,
+    "perf.snap": 1.0
+  }
+}

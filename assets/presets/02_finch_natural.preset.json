@@ -1,0 +1,13 @@
+{
+  "format": "cuicui.preset",
+  "version": 1,
+  "name": "Finch, natural",
+  "category": "Finch",
+  "author": "Cuicui Instruments",
+  "description": "The bird's own melody around your key, even for the first syllable: the closest to the real recording.",
+  "voice_bank": "zf_22938",
+  "parameters": {
+    "perf.first_on_note": false,
+    "perf.snap": 0.0
+  }
+}

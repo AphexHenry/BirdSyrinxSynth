@@ -27,6 +27,9 @@ struct SyllableRequest {
     int singer = 0;          ///< who asked (slot index of the mode)
     std::uint32_t serial = 0; ///< running count of requests since reset (logs, tests)
     bool first = false;      ///< first syllable of a key press
+    int note = -1;           ///< MIDI note of the key that asked (−1 = none); displays (WP-R4)
+    double targetCents = 0.0; ///< that key's target pitch, MIDI cents (placementTarget); displays (WP-R4)
+    bool releaseAlarm = false; ///< the call that ends a long key press (D-030)
 };
 
 /// Live settings a playing mode reads every block (parameters of the plugin, WP-R1 §3.4).
@@ -40,6 +43,12 @@ struct PlayContext {
     double pauseS = 0.5; ///< pause between phrases while a key is held
     int polyphony = 4;   ///< held keys that sing at once; over the limit the oldest is released
     double spread = 0.3; ///< stereo spread of the singers (0 = centre)
+    /// D-030 (human, 2026-10-12): the bird's long rising call (the "alarm" syllables) is kept for the end
+    /// of a long key press. It never starts or continues a phrase; when a key that sang at least
+    /// `releaseAlarmHoldS` is released, the bird ends with one, after the syllable still sounding.
+    /// false = the R1 / PROTO1 behaviour (reference comparisons).
+    bool releaseAlarm = true;
+    double releaseAlarmHoldS = 0.6;
 };
 
 /// Input → syllable requests. Modes A + B (ModeAB) today; C (conductor/flock), D (drawn gestures) and

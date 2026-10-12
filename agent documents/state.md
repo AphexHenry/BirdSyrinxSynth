@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-10-12 — by: R1 session (R1 done, tag wp-R1; next WP = R4)
+**Last updated:** 2026-10-12 — by: R4 session (R4 done, tag wp-R4; next WP = R3)
 
 ## Status legend
 
@@ -37,7 +37,7 @@
 | 15 | C5 | Generative performance engine | C4 | optional | 2026-10-11 | | `work_packages/WP-C5_generative_engine.md` |
 | 15a | R0 | Approach review + understanding studies + web prototype (PITCH1/2, COLOUR1/2, ENGINE1, PROTO1) | C5 | done | 2026-10-11 | wp-R0 | `reviews/2026-10-11_approach_review.md` |
 | 15b | R1 | Real syllables + whistle voice + playing modes A/B in the plugin (modular) | R0 | done | 2026-10-12 | wp-R1 | `work_packages/WP-R1_real_syllables_whistle_voice.md` |
-| 15c | R4 | Perform UI + presets (revised C6) | R1 | todo | | | `work_packages/WP-R4_perform_ui_presets.md` |
+| 15c | R4 | Perform UI + presets (revised C6) | R1 | done | 2026-10-12 | wp-R4 | `work_packages/WP-R4_perform_ui_presets.md` |
 | 15d | R3 | Variations within the bird's style (+ more recordings) | R1 | todo | | | `work_packages/WP-R3_variations_within_style.md` |
 | 15e | R2 | Anatomical engine as optional voice (click fix, colour, re-test) | R1 | optional | | | `work_packages/WP-R2_anatomical_voice_optional.md` |
 | 16 | C6 | Perform UI, Physiology page, presets v1 | C5 | optional | | | `work_packages/WP-C6_perform_ui_presets.md` |
@@ -54,6 +54,22 @@
 | 27 | G3 | Differentiable twin & amortised inference | E3 | optional | | | `work_packages/WP-G3_differentiable_amortized.md` |
 
 ## Current capabilities
+
+**2026-10-12 — WP-R4: the instrument window** (done, tag wp-R4).
+- **Play page:**
+  - a live display shows each syllable's real pitch curve as the bird sings, one colour per bird, over a piano roll; also the held keys' notes and chips naming what sounds now;
+  - five cards: Melody (snap to note, first syllable on the note, a syllable's note), Height (size, own height / follow keys), Song (pause, how each key starts), Flock (birds, spread) and Sound (volume, whistle / anatomical, bird harmonics, room).
+- **Advanced page:** the anatomical engine's controls, as they were.
+- **Keyboard:** a drawn keyboard; a pressed key lights in its bird's colour.
+- **Help line:** a sentence for whatever the mouse points at.
+- **Presets:** 10 factory presets (Finch, Finch natural / on the note / follow the keyboard, Solo bird, Small flock, Sparse, Chatty, Big bird, Dry). Browse them with the preset bar, save your own (`~/Library/Application Support/Cuicui Instruments/Syrinx/Presets/`). The plugin state remembers the preset and the page.
+- **Look:** a designed dark look with the beak's orange as accent; Avenir Next; the window scales 0.75–1.5×.
+- **The release call (D-030, the human's rule):** the bird's long rising "alarm" call is kept for the end of a long key press.
+  - It never appears in taps or phrases.
+  - Letting go of a key that sang at least 0.6 s ends with one call, after the sounding syllable and the bird's own 60 ms silence (at once if between phrases).
+  - Otherwise the sound is R1's (the default preset equals no preset, sample for sample).
+- **Standalone:** switches MIDI inputs on at first open if none is chosen.
+- **Tools:** `plugin_render --preset`, `--screenshot-page`, `--screenshot-scale`; `scripts/validate_plugin.sh 5 --gui`.
 
 **2026-10-12 — WP-R1: the plugin sings with the bird's real syllables** (done, tag wp-R1).
 - **Default voice: the whistle.** It is a sine on the real pitch and loudness curves, plus the bird's own harmonics (−30 / −33 dB), with a light room. All 123 real syllables of 22938 in their 12 real phrases are compiled in (`assets/voicebanks/zf_22938/bank.json`).
@@ -81,6 +97,8 @@
 | Tap → sound (whistle) | 36 samples first sample, 53 to > −80 dBFS (latency 35 = 0.73 ms) | R1 | 2026-10-12 |
 | Plugin vs prototype (same MIDI, seed) | events identical; pitch ≤ 1.3e-5 c; waveform −138 dB | R1 | 2026-10-12 |
 | Whistle clicks (LF at onsets / offsets) | −72.4 / −75.8 dB (real bird −61.0 / −61.8) | R1 | 2026-10-12 |
+| Editor CPU, message thread (Retina) | 2.0–2.3 % at rest; 8–10 % while four birds sing (30 fps) | R4 | 2026-10-12 |
+| Audio with the editor open + preset switching | 0 allocations; worst block 0.09–0.10 ms of 5.33 ms | R4 | 2026-10-12 |
 | Generative density syl/s | 3.23 / 4.50 / 7.00 at Density 0.2 / 0.5 / 0.8 | C5 | 2026-09-18 |
 | Flock CPU (8 notes vs 1, generative) | 8.10× (limit 9.6×) | C5 | 2026-09-18 |
 | Syllable generate worst | 0.002 ms | C5 | 2026-09-18 |
@@ -123,8 +141,14 @@
   - With "first syllable on the note" (default), the first syllable moves onto the note while the rest of the phrase stays placed around the bird's centre, so it can sit up to an octave away from its natural place in the phrase (prototype behaviour).
   - 28/123 bank syllables are flagged `hop` (> 300 c in 1 ms, tracker voice hops). They are kept.
   - The voice uses D-022's −30 / −33 dB harmonics, while the bank measures −32.7 / −34.2 dB over all syllables.
-  - The editor is minimal (R4).
   - The mod wheel adds to snap in the whistle voice (to Motion in the anatomical voice).
+- **R4 editor:**
+  - The live display uses 8–10 % of a core while four birds sing (backlog: scrolling-image renderer).
+  - Three host parameter names differ from the UI labels ("Snap" / "Snap to note", "Polyphony" / "Birds", "Master" / "Volume"). D-029, backlog.
+  - The Standalone's MIDI switch-on was not tried with a MIDI device.
+  - D-030:
+    - The 0.6 s threshold is fixed (not a control), and a chord let go together gives one call per bird.
+    - The PROTO1 web prototype and the Python reference keep the calls inside phrases; reference tests run with D-030 off.
 - **Study scripts** in `scripts/review/` and `scripts/studies/` are research code outside the ruff gate. Some lint warnings remain (line length, `zip(strict=)`).
 
 ## Open questions for the human
@@ -135,6 +159,8 @@
 - M3 feel: Motion default 0.3, onset, tuning on a real keyboard. Snap useful? Keyboard range D6–C8 OK?
 - C4 approved with a colour caveat: hand-designed gestures do not yet resemble real birds. D1 is still parked; resemblance work starts there.
 - **Where are the other zebra finch recordings** (and their annotations)? Needed for R3. The human said many are available.
+- **`recordings/`** (added 2026-10-12): three MP3s named "… - House Finch" (22937, 44967, 56843). They are for R3 and git-ignored (D-011). Their names say house finch, and 22937 is next to our bank's 22938, which D-023 calls a zebra finch. Which species is 22938, and do these files have annotations (tseg JSON)?
+- **R4 play test:** `agent documents/studies/R4PLAY_play_test.md` (Standalone, ~15 min). R4 was approved before it; your answers are still welcome and would feed a polish round (presets, look, wording).
 - **Prototype feel:** the human tried it and reported on pitch and fast playing; changes were made (random start, first on note, follow mapping). A further impression is welcome before R1 fixes defaults.
 - C5: Leash / Density / Variation defaults; is tempo sync useful in a DAW; should Leash ship mapped to the mod wheel in C6? (superseded by the re-plan)
 
@@ -206,3 +232,7 @@
 | 2026-10-12 | R1 | Claude Opus 5.5 | WP-R1 awaiting approval (listening page + blind test page built; criterion 8 waits for the human's blind test) |
 | 2026-10-12 | R1 | Claude Opus 5.5 | human: listening page "all sounds like a bird", follow keeps the tune; blind test plugin 100/100 → criterion 8 PASS; still awaiting approve |
 | 2026-10-12 | R1 | Claude Opus 5.5 | approved, committed and tagged wp-R1 (D-025…D-027 accepted) |
+| 2026-10-12 | R4 | Claude Opus 5.5 | started WP-R4 (Perform UI + presets). Scope agreed: anatomical controls on an Advanced tab, 4 presets + a few + user presets, no MIDI learn, designed look, Standalone first, no mock-up |
+| 2026-10-12 | R4 | Claude Opus 5.5 | WP-R4 awaiting approval (criteria 1–8 PASS; listening page built; play test R4PLAY waits for the human; D-028, D-029 proposed) |
+| 2026-10-12 | R4 | Claude Opus 5.5 | feedback: the long rising "alarm" only on the release of a ≥ 0.6 s press (D-030); core playing mode + tests; real alarms + demos on the listening page; still awaiting approval |
+| 2026-10-12 | R4 | Claude Opus 5.5 | approved, committed and tagged wp-R4 (D-028…D-030 accepted; play test R4PLAY not run before approval) |

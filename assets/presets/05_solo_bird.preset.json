@@ -1,0 +1,13 @@
+{
+  "format": "cuicui.preset",
+  "version": 1,
+  "name": "Solo bird",
+  "category": "Flock",
+  "author": "Cuicui Instruments",
+  "description": "One bird in the middle: each new key takes over from the last. For melodies.",
+  "voice_bank": "zf_22938",
+  "parameters": {
+    "perf.polyphony": 1,
+    "out.stereo_spread": 0.0
+  }
+}

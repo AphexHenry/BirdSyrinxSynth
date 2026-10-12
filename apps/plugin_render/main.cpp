@@ -61,8 +61,13 @@ void usage(const char* argv0) {
               << " [--midi phrase.mid] [--notes \"60:0.0:1.0:100,...\"]\n"
               << "              [--params params.json] [--automation automation.json]\n"
               << "              [--sr 48000] [--block 256] [--tail 1.5] [--duration 0]\n"
-              << "              [--seed 1] [--bpm 120] [--playing 0|1] [--screenshot editor.png]\n"
-              << "              [--syllable-log starts.json] -o out.wav\n";
+              << "              [--seed 1] [--bpm 120] [--playing 0|1] [--preset \"Finch, natural\" | file.preset.json]\n"
+              << "              [--screenshot editor.png] [--screenshot-page play|advanced] [--screenshot-scale 2]\n"
+              << "              [--syllable-log starts.json] [--no-release-alarm] -o out.wav\n"
+              << "  --preset applies a factory preset (by name) or a preset file before --seed and --params.\n"
+              << "  --screenshot without -o draws the editor at rest; with -o, after the render (the display\n"
+              << "  then shows the last seconds of the render).\n"
+              << "  --no-release-alarm plays as R1 / the PROTO1 prototype did (D-030 off; reference tests).\n";
 }
 
 std::vector<MidiEvt> parseNotes(const std::string& spec, double sr) {
@@ -159,13 +164,69 @@ public:
     juce::int64 samples = 0;
 };
 
+/// WP-R4: a factory preset by name, or a preset file.
+void applyPreset(SyrinxAudioProcessor& proc, const std::string& arg) {
+    auto& pm = proc.presets();
+    if (const auto* p = pm.findFactory(juce::String(arg))) {
+        pm.load(*p);
+        return;
+    }
+    std::ifstream in(arg);
+    if (!in) {
+        throw std::runtime_error("no factory preset or file called: " + arg);
+    }
+    std::stringstream ss;
+    ss << in.rdbuf();
+    Preset p;
+    juce::String error;
+    if (!pm.fromJson(ss.str(), p, error)) {
+        throw std::runtime_error("bad preset " + arg + ": " + error.toStdString());
+    }
+    pm.load(p);
+}
+
+void writeScreenshot(juce::AudioProcessorEditor& ed, const std::filesystem::path& path, float scale) {
+    const int w = std::max(1, ed.getWidth());
+    const int h = std::max(1, ed.getHeight());
+    juce::Image img(juce::Image::RGB, std::max(1, juce::roundToInt(static_cast<float>(w) * scale)),
+                    std::max(1, juce::roundToInt(static_cast<float>(h) * scale)), true);
+    juce::Graphics g(img);
+    g.addTransform(juce::AffineTransform::scale(scale));
+    ed.paintEntireComponent(g, true);
+    juce::File f(path.string());
+    f.getParentDirectory().createDirectory();
+    if (f.existsAsFile()) {
+        f.deleteFile();
+    }
+    juce::FileOutputStream os(f);
+    if (os.failedToOpen()) {
+        throw std::runtime_error("cannot write screenshot: " + path.string());
+    }
+    juce::PNGImageFormat fmt;
+    if (!fmt.writeImageToStream(img, os)) {
+        throw std::runtime_error("PNG encode failed");
+    }
+}
+
+std::unique_ptr<SyrinxAudioProcessorEditor> makeEditor(SyrinxAudioProcessor& proc, int page) {
+    std::unique_ptr<SyrinxAudioProcessorEditor> ed(dynamic_cast<SyrinxAudioProcessorEditor*>(proc.createEditor()));
+    if (ed == nullptr) {
+        throw std::runtime_error("no editor");
+    }
+    ed->showPage(page);
+    return ed;
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
     juce::ScopedJuceInitialiser_GUI juceInit;
     try {
         std::filesystem::path midiPath, paramsPath, autoPath, outPath, screenshotPath, sylLogPath;
-        std::string notes;
+        std::string notes, presetArg;
+        bool releaseAlarm = true;
+        int screenshotPage = 0;
+        float screenshotScale = 1.0f;
         double sr = 48000.0;
         int block = 256;
         double tail = 1.5;
@@ -213,6 +274,14 @@ int main(int argc, char** argv) {
                 sylLogPath = need("--syllable-log");
             } else if (a == "--screenshot") {
                 screenshotPath = need("--screenshot");
+            } else if (a == "--screenshot-page") {
+                screenshotPage = need("--screenshot-page") == "advanced" ? 1 : 0;
+            } else if (a == "--screenshot-scale") {
+                screenshotScale = std::clamp(std::stof(need("--screenshot-scale")), 0.25f, 4.0f);
+            } else if (a == "--preset") {
+                presetArg = need("--preset");
+            } else if (a == "--no-release-alarm") {
+                releaseAlarm = false;
             } else if (a == "--bpm") {
                 bpm = std::stod(need("--bpm"));
                 bpmSet = true;
@@ -224,31 +293,20 @@ int main(int argc, char** argv) {
                 return 1;
             }
         }
-        if (!screenshotPath.empty()) {
+        if (!screenshotPath.empty() && outPath.empty()) { // the editor at rest
             SyrinxAudioProcessor proc;
-            std::unique_ptr<juce::AudioProcessorEditor> ed(proc.createEditor());
-            const int w = std::max(1, ed->getWidth());
-            const int h = std::max(1, ed->getHeight());
-            ed->resized();
-            juce::Image img(juce::Image::RGB, w, h, true);
-            juce::Graphics g(img);
-            ed->paintEntireComponent(g, true);
-            juce::File f(screenshotPath.string());
-            f.getParentDirectory().createDirectory();
-            if (f.existsAsFile()) {
-                f.deleteFile();
+            if (!presetArg.empty()) {
+                applyPreset(proc, presetArg);
             }
-            juce::FileOutputStream os(f);
-            if (os.failedToOpen()) {
-                throw std::runtime_error("cannot write screenshot: " + screenshotPath.string());
+            if (!paramsPath.empty()) {
+                for (const auto& [id, v] : loadParams(paramsPath)) {
+                    proc.setParamPlain(id, v);
+                }
             }
-            juce::PNGImageFormat fmt;
-            if (!fmt.writeImageToStream(img, os)) {
-                throw std::runtime_error("PNG encode failed");
-            }
-            if (outPath.empty()) {
-                return 0;
-            }
+            auto ed = makeEditor(proc, screenshotPage);
+            ed->prepareSnapshot();
+            writeScreenshot(*ed, screenshotPath, screenshotScale);
+            return 0;
         }
         if (outPath.empty() || sr <= 0.0 || block < 1) {
             usage(argv[0]);
@@ -288,6 +346,10 @@ int main(int argc, char** argv) {
 
         SyrinxAudioProcessor proc;
         proc.setNonRealtime(true);
+        proc.setReleaseAlarm(releaseAlarm);
+        if (!presetArg.empty()) {
+            applyPreset(proc, presetArg);
+        }
         if (seedSet) {
             proc.setParamPlain("engine.seed", static_cast<float>(seed));
         }
@@ -312,6 +374,12 @@ int main(int argc, char** argv) {
             proc.setPlayHead(&playHead);
         } else {
             proc.setPlayHead(nullptr);
+        }
+
+        // With --screenshot, the editor reads the syllable feed during the render, as it would live.
+        std::unique_ptr<SyrinxAudioProcessorEditor> shotEditor;
+        if (!screenshotPath.empty()) {
+            shotEditor = makeEditor(proc, screenshotPage);
         }
 
         std::vector<float> stereo(static_cast<std::size_t>(n) * 2u, 0.0f);
@@ -341,6 +409,14 @@ int main(int argc, char** argv) {
                 stereo[static_cast<std::size_t>((done + i) * 2 + 1)] = buf.getSample(1, i);
             }
             done += nThis;
+            if (shotEditor != nullptr) {
+                shotEditor->prepareSnapshot();
+            }
+        }
+        if (shotEditor != nullptr) {
+            shotEditor->prepareSnapshot();
+            writeScreenshot(*shotEditor, screenshotPath, screenshotScale);
+            shotEditor.reset();
         }
         const int nLogged = proc.syllableLogCount();
         const int latency = proc.getLatencySamples();
@@ -372,7 +448,10 @@ int main(int argc, char** argv) {
                                {"gain", e.request.gain},
                                {"pan", e.request.pan},
                                {"singer", e.request.singer},
-                               {"first", e.request.first}});
+                               {"first", e.request.first},
+                               {"key", e.request.note},
+                               {"target_cents", e.request.targetCents},
+                               {"release_alarm", e.request.releaseAlarm}});
             }
             std::ofstream(sylLogPath) << j.dump(1) << "\n";
         }

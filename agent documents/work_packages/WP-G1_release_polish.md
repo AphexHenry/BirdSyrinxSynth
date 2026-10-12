@@ -93,3 +93,18 @@ Windows/Linux installers, AUv3, new features (backlog).
 
 - Parameter ID or AU/VST3 code changes after this point break users' sessions — double-check before tagging the RC.
 - Notarisation requires hardened runtime settings in the JUCE project; test early with an ad-hoc signature.
+
+## Notes from WP-R4
+
+**Presets.** Format `cuicui.preset` v1 (D-028):
+- factory presets in `assets/presets/` (compiled in);
+- user presets in `~/Library/Application Support/Cuicui Instruments/Syrinx/Presets/`;
+- 10 factory presets exist and expect a voicing round with the human.
+
+**Host parameter names differ from the UI labels** for `perf.snap` ("Snap to note"), `perf.polyphony` ("Birds") and `out.master_db` ("Volume"). Align them before a DAW release (registry contract, D-029).
+
+**Validation.** `scripts/validate_plugin.sh 5 --gui` runs pluginval's editor tests too (VST3 + AU pass at R4).
+
+**Editor CPU** while birds sing: 8–10 % of a core (backlog: scrolling-image display).
+
+**Fonts.** The UI uses Avenir Next, a macOS system font, not embedded. A Windows build falls back to the default sans-serif: check its look, or embed an OFL font.

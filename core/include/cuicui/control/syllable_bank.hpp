@@ -1,13 +1,20 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
 namespace cuicui::control {
+
+/// Labels of the syllables kept for the end of a long key press (D-030): the bird's long rising call
+/// ("alarm", "alarm_grillon" in the human's annotations). They never start or continue a phrase; a key
+/// held long enough ends with one when it is released.
+inline constexpr std::string_view kReleaseLabelPrefix = "alarm";
 
 /// Which part of a syllable is its "note" (D-019). Index into the anchor/centre arrays.
 /// Rule = longest steady part (±50 c, ≥ 20 ms), else the ending (default).
@@ -65,6 +72,16 @@ public:
     [[nodiscard]] const std::string& hash() const noexcept { return hash_; }
     [[nodiscard]] int totalContourMs() const noexcept { return static_cast<int>(amp_.size()); }
 
+    /// D-030: a syllable kept for the end of a long key press (see kReleaseLabelPrefix).
+    [[nodiscard]] bool isReleaseSyllable(int syl) const noexcept {
+        return releaseFlag_[static_cast<std::size_t>(syl)] != 0;
+    }
+    /// The release syllables, and all the others ("playable": what phrases, taps and shuffles may use).
+    [[nodiscard]] const std::vector<int>& releaseSyllables() const noexcept { return release_; }
+    [[nodiscard]] const std::vector<int>& playableSyllables() const noexcept { return playable_; }
+    /// Median silence the bird leaves before a release syllable inside its phrases (ms); 60 if unknown.
+    [[nodiscard]] double releaseGapMs() const noexcept { return releaseGapMs_; }
+
 private:
     friend struct SyllableBankBuilder;
     std::vector<double> logHz_;
@@ -72,6 +89,10 @@ private:
     std::vector<BankSyllable> syllables_;
     std::vector<BankPhrase> phrases_;
     std::vector<std::string> labels_;
+    std::vector<unsigned char> releaseFlag_;
+    std::vector<int> release_, playable_;
+    std::vector<double> releaseGaps_;
+    double releaseGapMs_ = 60.0;
     std::array<double, kNoteRuleCount> centreCents_{};
     std::string name_, species_, hash_;
 };
@@ -110,6 +131,18 @@ struct SyllableBankBuilder {
             bank.logHz_.push_back(std::log(hz[i]));
             bank.amp_.push_back(amp[i]);
         }
+        const bool release = std::string_view(label).substr(0, kReleaseLabelPrefix.size()) == kReleaseLabelPrefix;
+        const int index = static_cast<int>(bank.syllables_.size());
+        if (release && p.count > 0) { // the silence before it, after the previous syllable of its phrase
+            const auto& prev = bank.syllables_.back();
+            bank.releaseGaps_.push_back(static_cast<double>(tMs - (prev.tMs + prev.lengthMs)));
+            auto sorted = bank.releaseGaps_;
+            std::sort(sorted.begin(), sorted.end());
+            const std::size_t m = sorted.size();
+            bank.releaseGapMs_ = std::max(0.0, m % 2 == 1 ? sorted[m / 2] : 0.5 * (sorted[m / 2 - 1] + sorted[m / 2]));
+        }
+        (release ? bank.release_ : bank.playable_).push_back(index);
+        bank.releaseFlag_.push_back(release ? 1 : 0);
         bank.syllables_.push_back(s);
         bank.labels_.push_back(std::move(label));
         ++p.count;

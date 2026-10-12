@@ -111,7 +111,9 @@ def _settings(d: dict) -> ref.Settings:
 @pytest.mark.parametrize("name", list(SCENARIOS))
 def test_cpp_core_plays_exactly_the_reference_syllables(bank, name):
     events, settings, dur = SCENARIOS[name]
-    _, log = cc.sing(str(BANK_PATH), events, {**settings, "out.room": 0}, SR, dur, 20261011, 256)
+    # the reference is the PROTO1 prototype: play as it did (no release alarm, D-030)
+    prototype = {**settings, "out.room": 0, "release_alarm": 0}
+    _, log = cc.sing(str(BANK_PATH), events, prototype, SR, dur, 20261011, 256)
     expect = ref.perform(bank, events, _settings(settings), SR, dur, 20261011)
     assert len(log) == len(expect) > 0
     for got, exp in zip(log, expect, strict=True):
@@ -126,7 +128,8 @@ def test_cpp_core_plays_exactly_the_reference_syllables(bank, name):
 @pytest.mark.parametrize("name", ["taps_random", "chord_shuffled_follow"])
 def test_cpp_core_audio_matches_the_reference_voice(bank, name):
     events, settings, dur = SCENARIOS[name]
-    audio, log = cc.sing(str(BANK_PATH), events, {**settings, "out.room": 0}, SR, dur, 7, 256)
+    prototype = {**settings, "out.room": 0, "release_alarm": 0}  # as PROTO1 played (D-030 off)
+    audio, log = cc.sing(str(BANK_PATH), events, prototype, SR, dur, 7, 256)
     expect = ref.render(bank, log, SR, len(audio))
     err = np.max(np.abs(audio - expect))
     assert np.max(np.abs(expect)) > 0.05
@@ -176,7 +179,7 @@ def test_plugin_pitch_curve_matches_the_prototype_algorithm(bank, tmp_path):
     wav, logp = tmp_path / "out.wav", tmp_path / "log.json"
     subprocess.run([str(PLUGIN_RENDER), "--notes", spec, "--params", str(tmp_path / "params.json"),
                     "--seed", "20261012", "--duration", "8.5", "--syllable-log", str(logp),
-                    "-o", str(wav)], check=True, capture_output=True)
+                    "--no-release-alarm", "-o", str(wav)], check=True, capture_output=True)
     import soundfile as sf
 
     y, sr = sf.read(str(wav), always_2d=True)
@@ -215,3 +218,17 @@ def test_plugin_pitch_curve_matches_the_prototype_algorithm(bank, tmp_path):
     # sample level: the plugin is the prototype voice, delayed by its latency
     seg = slice(lat, len(mono))
     assert np.max(np.abs(mono[seg] - ref_audio[: len(mono) - lat])) < 1e-5
+
+
+def test_release_alarm_ends_long_presses_only(bank):
+    """D-030: the long rising call ends presses of 0.6 s or more; never short ones or phrases."""
+    events = [(0.10, "on", 64, 0.8), (0.40, "off", 64, 0.0),   # 0.3 s: no call
+              (1.00, "on", 67, 0.8), (1.59, "off", 67, 0.0),   # 0.59 s: no call
+              (2.50, "on", 69, 0.8), (4.50, "off", 69, 0.0)]   # 2 s: a call after the release
+    _, log = cc.sing(str(BANK_PATH), events, {"out.room": 0}, SR, 6.0, 4, 256)
+    calls = [e for e in log if e["release_alarm"]]
+    assert len(calls) == 1
+    assert calls[0]["key"] == 69 and calls[0]["sample"] >= int(4.5 * SR)
+    assert bank.syllables[calls[0]["syllable"]].label.startswith("alarm")
+    assert all(not bank.syllables[e["syllable"]].label.startswith("alarm")
+               for e in log if not e["release_alarm"])

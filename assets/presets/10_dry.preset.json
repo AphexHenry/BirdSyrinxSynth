@@ -1,0 +1,12 @@
+{
+  "format": "cuicui.preset",
+  "version": 1,
+  "name": "Dry",
+  "category": "Studio",
+  "author": "Cuicui Instruments",
+  "description": "No room: the bare whistle, for your own reverb.",
+  "voice_bank": "zf_22938",
+  "parameters": {
+    "out.room": false
+  }
+}

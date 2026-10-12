@@ -146,7 +146,8 @@ cuicui::control::WhistleSettings whistle_settings_from_dict(const nb::dict& d) {
     using namespace cuicui::control;
     static const char* const kKnown[] = {"perf.note_rule", "perf.mapping", "perf.size_st", "perf.first_on_note",
                                          "perf.snap", "perf.order", "perf.pause_s", "perf.polyphony",
-                                         "out.stereo_spread", "voice.harmonics", "out.room"};
+                                         "out.stereo_spread", "voice.harmonics", "out.room", "release_alarm",
+                                         "release_alarm_hold_s"};
     for (nb::handle k : d.keys()) {
         const std::string key = nb::cast<std::string>(k);
         if (std::find_if(std::begin(kKnown), std::end(kKnown), [&](const char* x) { return key == x; }) ==
@@ -170,6 +171,8 @@ cuicui::control::WhistleSettings whistle_settings_from_dict(const nb::dict& d) {
     s.play.pauseS = num("perf.pause_s", 0.5);
     s.play.polyphony = static_cast<int>(std::lround(num("perf.polyphony", 4.0)));
     s.play.spread = num("out.stereo_spread", 0.3);
+    s.play.releaseAlarm = num("release_alarm", 1.0) >= 0.5;    // D-030; 0 = R1 / PROTO1 behaviour
+    s.play.releaseAlarmHoldS = num("release_alarm_hold_s", 0.6);
     s.harmonics = num("voice.harmonics", 1.0) >= 0.5;
     s.room = num("out.room", 1.0) >= 0.5;
     return s;
@@ -814,6 +817,9 @@ NB_MODULE(cuicui_core, m) {
                 d["pan"] = e.request.pan;
                 d["singer"] = e.request.singer;
                 d["first"] = e.request.first;
+                d["key"] = e.request.note;
+                d["target_cents"] = e.request.targetCents;
+                d["release_alarm"] = e.request.releaseAlarm;
                 out.append(d);
             }
             nb::capsule owner(heap, [](void* p) noexcept { delete static_cast<std::vector<float>*>(p); });

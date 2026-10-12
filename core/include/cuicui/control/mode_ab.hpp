@@ -21,9 +21,17 @@ namespace cuicui::control {
 /// A new press of the same key releases the old singer; over the polyphony limit the oldest held key is
 /// released. CC64 holds released keys; the mod wheel adds to snap.
 ///
+/// The release alarm (D-030, `PlayContext::releaseAlarm`): the bird's long rising call is kept for the end
+/// of a long key press. Taps and phrases never use it. When a key that sang at least
+/// `releaseAlarmHoldS` is released (or its pedal is lifted), the bird ends with one: after the syllable
+/// still sounding and the bird's own lead-in silence (`SyllableBank::releaseGapMs`), or at once if it was
+/// between phrases. Its pitch is placed like any following syllable (snap + mod wheel), with the key's
+/// loudness and place. Pressing the same key again before it starts cancels it; keys released by the
+/// polyphony limit, all-notes-off or a voice switch never call.
+///
 /// Randomness: one master stream seeded by reset(); each key press draws a 64-bit seed from it, and the
-/// singer then uses only its own stream (pan, start, order). Results therefore do not depend on the
-/// host block size. Real-time safe: no allocation after construction.
+/// singer then uses only its own stream (pan, start, order, which alarm). Results therefore do not depend
+/// on the host block size. Real-time safe: no allocation after construction.
 class ModeAB final : public PlayingMode {
 public:
     static constexpr int kMaxSingers = 16;
@@ -34,6 +42,9 @@ public:
         master_.setSeed(seed == 0 ? 1ULL : seed);
         for (auto& s : singers_) {
             s = Singer{};
+        }
+        for (auto& f : finals_) {
+            f = Final{};
         }
         phrasePointer_ = 0;
         sustain_ = false;
@@ -65,6 +76,14 @@ public:
                     si = i;
                 }
             }
+            int fi = -1;
+            for (int i = 0; i < kMaxSingers; ++i) {
+                const auto& f = finals_[static_cast<std::size_t>(i)];
+                if (f.pending && f.at < blockEnd && f.at < ts) {
+                    ts = f.at;
+                    fi = i;
+                }
+            }
             if (ei < numEvents) {
                 const auto& ev = events[ei];
                 const std::int64_t te = now_ + std::clamp(ev.offset, 0, lastOffset);
@@ -73,6 +92,10 @@ public:
                     ++ei;
                     continue;
                 }
+            }
+            if (fi >= 0) {
+                emitFinal(fi, ts, ctx, em);
+                continue;
             }
             if (si < 0) {
                 break;
@@ -86,6 +109,9 @@ public:
     void releaseAll() noexcept override {
         for (auto& s : singers_) {
             release(s);
+        }
+        for (auto& f : finals_) { // a voice switch, a new bank, all-notes-off: no closing call
+            f.pending = false;
         }
     }
 
@@ -101,6 +127,14 @@ public:
     [[nodiscard]] double modWheel() const noexcept { return modWheel_; }
     /// Absolute sample position of the next block (samples processed since reset).
     [[nodiscard]] std::int64_t now() const noexcept { return now_; }
+    /// Release alarms scheduled and not started yet (tests).
+    [[nodiscard]] int pendingReleaseAlarms() const noexcept {
+        int n = 0;
+        for (const auto& f : finals_) {
+            n += f.pending ? 1 : 0;
+        }
+        return n;
+    }
 
 private:
     struct Singer {
@@ -118,6 +152,19 @@ private:
         int nextSyl = 0;
         double nextStartS = 0.0;
         std::int64_t nextSample = 0;
+        std::int64_t lastEnd = 0; ///< where its last syllable ends (absolute sample)
+    };
+
+    /// A release alarm waiting for its sample (D-030).
+    struct Final {
+        bool pending = false;
+        std::int64_t at = 0;
+        int syllable = 0;
+        int note = -1;
+        int singer = 0;
+        float gain = 0.3f;
+        float pan = 0.0f;
+        double target = 0.0;
     };
 
     struct Emit {
@@ -139,11 +186,13 @@ private:
             noteOn(ev.note, static_cast<double>(ev.value), te, ctx, em);
             break;
         case PlayEvent::Type::NoteOff:
-            for (auto& s : singers_) {
+            for (int i = 0; i < kMaxSingers; ++i) {
+                auto& s = singers_[static_cast<std::size_t>(i)];
                 if (s.active && !s.sustained && s.note == ev.note) {
                     if (sustain_) {
                         s.sustained = true;
                     } else {
+                        scheduleFinal(i, te, ctx);
                         release(s);
                     }
                 }
@@ -152,8 +201,10 @@ private:
         case PlayEvent::Type::Sustain:
             sustain_ = ev.value >= 0.5f;
             if (!sustain_) {
-                for (auto& s : singers_) {
+                for (int i = 0; i < kMaxSingers; ++i) {
+                    auto& s = singers_[static_cast<std::size_t>(i)];
                     if (s.active && s.sustained) {
+                        scheduleFinal(i, te, ctx);
                         release(s);
                     }
                 }
@@ -179,8 +230,13 @@ private:
                 release(s);
             }
         }
+        for (auto& f : finals_) { // ... and the call it was about to end with is not sung
+            if (f.pending && f.note == note) {
+                f.pending = false;
+            }
+        }
         const int poly = std::clamp(ctx.polyphony, 1, kMaxSingers);
-        while (activeSingers() >= poly) { // over the limit: release the oldest held key
+        while (activeSingers() >= poly) { // over the limit: release the oldest held key (no closing call)
             Singer* oldest = nullptr;
             for (auto& s : singers_) {
                 if (s.active && (oldest == nullptr || s.age < oldest->age)) {
@@ -199,6 +255,7 @@ private:
         s.note = note;
         s.age = ageCounter_++;
         s.t0 = te;
+        s.lastEnd = te;
         const std::uint64_t hi = master_.next();
         const std::uint64_t lo = master_.next();
         s.rng.setSeed((hi << 32) | lo);
@@ -206,7 +263,7 @@ private:
         s.pan = poly > 1 ? static_cast<float>((2.0 * u - 1.0) * std::clamp(ctx.spread, 0.0, 1.0)) : 0.0f;
         s.gain = static_cast<float>(velocityGain(velocity));
         s.target = placementTarget(note, bank_->centreCents(ctx.rule), ctx.mapping, ctx.sizeSt);
-        const OrderStep first = s.order.begin(*bank_, ctx.order, s.rng, phrasePointer_);
+        const OrderStep first = s.order.begin(*bank_, ctx.order, s.rng, phrasePointer_, ctx.releaseAlarm);
         s.nextSyl = first.syllable;
         s.nextStartS = 0.0;
         s.hasNext = true;
@@ -228,8 +285,12 @@ private:
             r.singer = si;
             r.serial = serial_;
             r.first = first;
+            r.note = s.note;
+            r.targetCents = s.target;
+            r.releaseAlarm = false;
         }
         ++serial_;
+        s.lastEnd = ts + std::llround(static_cast<double>(bank_->syllable(syl).lengthMs) * 0.001 * sr_);
         const OrderStep st = s.order.next(*bank_, s.nextStartS, ctx.pauseS, s.rng, phrasePointer_);
         s.nextSyl = st.syllable;
         s.nextStartS = st.startS;
@@ -237,7 +298,62 @@ private:
         s.hasNext = true;
     }
 
+    /// A released key that sang long enough ends with the bird's long rising call (D-030).
+    void scheduleFinal(int si, std::int64_t te, const PlayContext& ctx) noexcept {
+        auto& s = singers_[static_cast<std::size_t>(si)];
+        if (!ctx.releaseAlarm || bank_ == nullptr || bank_->releaseSyllables().empty()) {
+            return;
+        }
+        const double heldS = static_cast<double>(te - s.t0) / sr_;
+        if (heldS + 1e-9 < ctx.releaseAlarmHoldS) {
+            return; // a short press: never the call
+        }
+        Final* f = nullptr;
+        for (auto& c : finals_) {
+            if (!c.pending) {
+                f = &c;
+                break;
+            }
+        }
+        if (f == nullptr) {
+            return;
+        }
+        const auto& calls = bank_->releaseSyllables();
+        const auto lead = static_cast<std::int64_t>(std::llround(bank_->releaseGapMs() * 0.001 * sr_));
+        f->pending = true;
+        f->at = std::max(te, s.lastEnd + lead);
+        f->syllable = calls[static_cast<std::size_t>(uniformIndex(s.rng, static_cast<int>(calls.size())))];
+        f->note = s.note;
+        f->singer = si;
+        f->gain = s.gain;
+        f->pan = s.pan;
+        f->target = s.target;
+    }
+
+    void emitFinal(int fi, std::int64_t ts, const PlayContext& ctx, Emit& em) noexcept {
+        auto& f = finals_[static_cast<std::size_t>(fi)];
+        f.pending = false;
+        const double k = std::clamp(ctx.snap + modWheel_, 0.0, 1.0); // placed like a following syllable
+        if (em.count < em.maxOut) {
+            SyllableRequest& r = em.out[em.count++];
+            r.syllable = f.syllable;
+            r.offset = static_cast<int>(std::max<std::int64_t>(0, ts - em.blockStart));
+            r.shiftCents =
+                placementShift(bank_->anchorCents(f.syllable, ctx.rule), f.target, bank_->centreCents(ctx.rule), k);
+            r.gain = f.gain;
+            r.pan = f.pan;
+            r.singer = f.singer;
+            r.serial = serial_;
+            r.first = false;
+            r.note = f.note;
+            r.targetCents = f.target;
+            r.releaseAlarm = true;
+        }
+        ++serial_;
+    }
+
     std::array<Singer, kMaxSingers> singers_{};
+    std::array<Final, kMaxSingers> finals_{};
     const SyllableBank* bank_ = nullptr;
     dsp::Rng master_{1};
     double sr_ = 48000.0;

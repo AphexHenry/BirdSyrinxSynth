@@ -14,6 +14,27 @@ set(SYRINX_PLUGIN_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/VoiceAllocator.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/PluginEditor.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/PluginEditor.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/SyllableFeed.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/Presets.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/Presets.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ParamHelp.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/StandaloneMidi.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/StandaloneMidi.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ui/Theme.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ui/LookAndFeel.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ui/LookAndFeel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ui/Widgets.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ui/Widgets.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ui/SongDisplay.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ui/SongDisplay.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ui/BirdKeyboard.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ui/BirdKeyboard.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ui/PresetBar.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ui/PresetBar.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ui/PlayPage.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ui/PlayPage.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ui/AdvancedPage.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Source/ui/AdvancedPage.cpp"
 )
 
 set(SYRINX_JUCE_COMPILE_DEFINITIONS
@@ -26,10 +47,12 @@ set(SYRINX_JUCE_COMPILE_DEFINITIONS
 )
 
 # WP-R1: the factory syllable bank is compiled in (BinaryData::bank_json), so the plugin needs no files.
+# WP-R4: so are the factory presets (assets/presets/*.preset.json, D-028).
+file(GLOB SYRINX_FACTORY_PRESETS CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/assets/presets/*.preset.json")
 juce_add_binary_data(SyrinxBinaryData
     HEADER_NAME BinaryData.h
     NAMESPACE BinaryData
-    SOURCES "${CMAKE_SOURCE_DIR}/assets/voicebanks/zf_22938/bank.json"
+    SOURCES "${CMAKE_SOURCE_DIR}/assets/voicebanks/zf_22938/bank.json" ${SYRINX_FACTORY_PRESETS}
 )
 set_target_properties(SyrinxBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
@@ -95,6 +118,8 @@ add_executable(syrinx_plugin_tests
     tests/test_perform_mode.cpp
     tests/test_generative.cpp
     tests/test_whistle_path.cpp
+    tests/test_presets.cpp
+    tests/test_editor.cpp
     ${SYRINX_PLUGIN_SOURCES}
 )
 target_include_directories(syrinx_plugin_tests PRIVATE

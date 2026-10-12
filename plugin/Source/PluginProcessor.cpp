@@ -101,6 +101,8 @@ SyrinxAudioProcessor::SyrinxAudioProcessor()
     } catch (const std::exception& e) {
         juce::Logger::writeToLog(juce::String("Syrinx: the syllable bank did not load: ") + e.what());
     }
+    presets_ = std::make_unique<PresetManager>(apvts);
+    presets_->setVoiceBankName(juce::String(bank_.name()));
 }
 
 SyrinxAudioProcessor::~SyrinxAudioProcessor() = default;
@@ -144,6 +146,7 @@ cuicui::control::WhistleSettings SyrinxAudioProcessor::readWhistleSettings() con
     s.play.pauseS = static_cast<double>(raw(cuicui::ParamId::PerfPauseS));
     s.play.polyphony = polyParam_ != nullptr ? polyParam_->get() : 4;
     s.play.spread = static_cast<double>(raw(cuicui::ParamId::OutStereoSpread));
+    s.play.releaseAlarm = releaseAlarm_.load(std::memory_order_relaxed);
     s.harmonics = raw(cuicui::ParamId::VoiceHarmonics) >= 0.5f;
     s.room = raw(cuicui::ParamId::OutRoom) >= 0.5f;
     return s;
@@ -220,6 +223,12 @@ void SyrinxAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     whistle_.prepare(sampleRate);
     whistle_.setBank(&bank_);
     whistle_.reset(whistleSeed());
+    { // every syllable a process() call can start fits: kMaxRequests per internal chunk
+        const int chunks = (maxBlock + cuicui::control::SyllableEngine::kChunk - 1) / cuicui::control::SyllableEngine::kChunk;
+        blockLog_.assign(static_cast<std::size_t>(chunks * cuicui::control::SyllableEngine::kMaxRequests), {});
+    }
+    extLogCount_ = 0;
+    feed_.reset();
     wl_.assign(static_cast<std::size_t>(maxBlock), 0.0f);
     wr_.assign(static_cast<std::size_t>(maxBlock), 0.0f);
     fadeL_.assign(static_cast<std::size_t>(maxBlock), 0.0f);
@@ -482,6 +491,13 @@ void SyrinxAudioProcessor::readHostTempo() noexcept {
 void SyrinxAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi) {
     juce::ScopedNoDenormals noDenormals;
     const int n = buffer.getNumSamples();
+    if (!midi.isEmpty()) { // MIDI from outside (before the on-screen keyboard adds its own): editor's MIDI light
+        int ons = 0;
+        for (const auto meta : midi) { // raw bytes: no MidiMessage copy on the audio thread
+            ons += (meta.numBytes >= 3 && (meta.data[0] & 0xf0) == 0x90 && meta.data[2] > 0) ? 1 : 0;
+        }
+        feed_.countExternalNotes(ons);
+    }
     keyboardState.processNextMidiBuffer(midi, 0, std::max(0, n), true);
     const int nOut = buffer.getNumChannels();
     for (int ch = 0; ch < nOut; ++ch) {
@@ -560,7 +576,15 @@ void SyrinxAudioProcessor::processWhistle(juce::AudioBuffer<float>& buffer, cons
             }
             ++it;
         }
+        whistle_.setLog(blockLog_.data(), static_cast<int>(blockLog_.size()));
         whistle_.process(events_.data(), ne, chunk, settings, wl_.data(), wr_.data());
+        for (int k = 0, nl = whistle_.logCount(); k < nl; ++k) { // syllable starts → offline log + editor
+            const auto& entry = blockLog_[static_cast<std::size_t>(k)];
+            if (extLog_ != nullptr && extLogCount_ < extLogCap_) {
+                extLog_[extLogCount_++] = entry;
+            }
+            feed_.push(entry);
+        }
         float* outL = buffer.getWritePointer(0) + offset;
         float* outR = nOut > 1 ? buffer.getWritePointer(1) + offset : nullptr;
         for (int i = 0; i < chunk; ++i) {
@@ -583,6 +607,8 @@ void SyrinxAudioProcessor::processWhistle(juce::AudioBuffer<float>& buffer, cons
     }
     telem_singers_.store(whistle_.mode().activeSingers(), std::memory_order_relaxed);
     telem_voices_.store(whistle_.activeVoices(), std::memory_order_relaxed);
+    feed_.publish(whistle_.samplesProcessed(), getSampleRate(), static_cast<float>(whistle_.modeAB().modWheel()),
+                  whistle_.modeAB().sustainDown());
 }
 
 void SyrinxAudioProcessor::processAnatomical(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi) noexcept {
@@ -772,6 +798,8 @@ void SyrinxAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
     auto xml = apvts.copyState().createXml();
     if (xml != nullptr) {
         xml->setAttribute("stateVersion", kStateVersion);
+        presets_->writeState(*xml);
+        xml->setAttribute("uiPage", uiPage.load());
         copyXmlToBinary(*xml, destData);
     }
 }
@@ -785,6 +813,8 @@ void SyrinxAudioProcessor::setStateInformation(const void* data, int sizeInBytes
     if (tree.isValid()) {
         apvts.replaceState(tree);
     }
+    presets_->readState(*xml);
+    uiPage.store(std::clamp(xml->getIntAttribute("uiPage", 0), 0, 1));
 }
 
 juce::AudioProcessorEditor* SyrinxAudioProcessor::createEditor() {

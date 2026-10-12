@@ -1,0 +1,12 @@
+{
+  "format": "cuicui.preset",
+  "version": 1,
+  "name": "Big bird",
+  "category": "Character",
+  "author": "Cuicui Instruments",
+  "description": "The same finch a fifth lower, as if it were a bigger bird.",
+  "voice_bank": "zf_22938",
+  "parameters": {
+    "perf.size_st": -7.0
+  }
+}

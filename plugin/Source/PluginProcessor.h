@@ -1,7 +1,9 @@
 #pragma once
 
 #include "ParameterLayout.h"
+#include "Presets.h"
 #include "SafetyLimiter.h"
+#include "SyllableFeed.h"
 #include "VoiceAllocator.h"
 #include "cuicui/control/inverse_map.hpp"
 #include "cuicui/control/syllable_bank.hpp"
@@ -15,6 +17,7 @@
 
 #include <array>
 #include <atomic>
+#include <memory>
 #include <cstdint>
 #include <vector>
 
@@ -79,9 +82,22 @@ public:
     /// Offline renderer / tests: log every syllable start into a caller-owned buffer (nullptr = off).
     /// Samples are absolute since prepareToPlay, before the latency delay.
     void setSyllableLog(cuicui::control::SyllableLogEntry* buffer, int capacity) noexcept {
-        whistle_.setLog(buffer, capacity);
+        extLog_ = buffer;
+        extLogCap_ = buffer != nullptr ? std::max(0, capacity) : 0;
+        extLogCount_ = 0;
     }
-    [[nodiscard]] int syllableLogCount() const noexcept { return whistle_.logCount(); }
+    [[nodiscard]] int syllableLogCount() const noexcept { return extLogCount_; }
+
+    /// D-030: a long key press ends with the bird's rising call (on by default). Off = R1 / PROTO1 playing,
+    /// for the reference comparisons (plugin_render --no-release-alarm). Not a host parameter.
+    void setReleaseAlarm(bool on) noexcept { releaseAlarm_.store(on, std::memory_order_relaxed); }
+
+    /// WP-R4: syllable starts and live values for the editor (audio thread → message thread).
+    [[nodiscard]] SyllableFeed& feed() noexcept { return feed_; }
+    /// WP-R4: factory and user presets (message thread only).
+    [[nodiscard]] PresetManager& presets() noexcept { return *presets_; }
+    /// WP-R4: editor page shown last (0 = Play, 1 = Advanced), kept in the plugin state.
+    std::atomic<int> uiPage{0};
 
     struct WhistleTelemetry {
         int singers = 0;
@@ -123,6 +139,13 @@ private:
 
     cuicui::control::SyllableBank bank_;
     cuicui::control::SyllableEngine whistle_;
+    SyllableFeed feed_;
+    std::unique_ptr<PresetManager> presets_;
+    std::atomic<bool> releaseAlarm_{true};
+    std::vector<cuicui::control::SyllableLogEntry> blockLog_; // the engine logs here; forwarded each call
+    cuicui::control::SyllableLogEntry* extLog_ = nullptr;      // setSyllableLog (offline renders, tests)
+    int extLogCap_ = 0;
+    int extLogCount_ = 0;
     std::vector<float> wl_, wr_;            // whistle render buffers
     std::vector<float> delayL_, delayR_;    // whistle delayed by the anatomical latency (constant latency)
     int delayPos_ = 0;

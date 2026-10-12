@@ -50,3 +50,13 @@
 - [R1] One implementation for the web prototype and the plugin: compile the core `SyllableEngine` to WebAssembly so PROTO1 plays the C++ code itself.
 - [R1] Several banks: a bank parameter and/or user bank files, loaded off the audio thread and swapped atomically (`SyllableEngine::setBank` already silences the voices).
 - [R1] `.claude/launch.json` (a static server on `listening/`, for the in-app browser) was used during R1 and not committed. Add it if agents keep needing it.
+- [R4] Host parameter names to match the UI ("Snap" → "Snap to note", "Polyphony" → "Birds", "Master" → "Volume"): a registry contract change; worth doing before a DAW-focused release (G1).
+- [R4] The live display costs about 8–10 % of one core on the message thread while four birds sing (2 % at rest; Apple Silicon, Retina, 30 fps). Drawing the song into a scrolling image (only the newest few ms per frame) would cut most of it.
+- [R4] Mark the "follow" sweet range (C4–C6) on the on-screen keyboard when Follow keys is chosen.
+- [R4] Preset menu: show each preset's description in the menu; rename and delete your own presets from the plugin (today: in the Finder, "Show the presets folder").
+- [R4] When R3 adds banks: a bird (bank) selector in the header, and a Variation knob in the Song card (the layout leaves room).
+- [R4] MIDI learn (C6) was left out by the human (DAWs map controllers); the mod wheel drives "Snap to note".
+- [R4] Editor timer: 30 Hz even at rest (2 % of a core). Dropping to ~10 Hz when nothing sings would halve it.
+- [R4] The Standalone's automatic MIDI switch-on was not tried with a real MIDI device in the session (none connected); check it on first use, fallback Options > Audio/MIDI Settings.
+- [R4] D-030 release call: a switch and a "call after" time on the Play page (today always on, 0.6 s fixed). A chord released together gives one call per bird; a "one call per release" option may be wanted.
+- [R4] The PROTO1 web prototype and the Python reference (`cuicui.reference.singing`) do not have the D-030 release call; the reference comparisons run with it off. Port it if the prototype is used again.

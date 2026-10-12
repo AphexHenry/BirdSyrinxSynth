@@ -218,6 +218,7 @@ TEST_CASE("mode B: holding 2 s follows the real phrase from the start syllable w
     m.reset(42);
     m.setBank(&b);
     PlayContext ctx;
+    ctx.releaseAlarm = false; // the R1 rule: every syllable of a phrase (D-030 is tested below)
     ctx.pauseS = 0.5;
     const long long on = 1000;
     const auto run = drive(m, {{on, noteOn(64)}, {on + 96000, noteOff(64)}}, 200000, 256, ctx);
@@ -244,6 +245,7 @@ TEST_CASE("mode B: holding 2 s follows the real phrase from the start syllable w
 TEST_CASE("mode B: release mid-syllable stops the phrase; release in a phrase pause is silent") {
     const auto& b = realBank();
     PlayContext ctx;
+    ctx.releaseAlarm = false;           // the R1 rule (with D-030 a long press ends with the call, below)
     ctx.order = OrderMode::PhraseStart; // phrase 0: 3 syllables, then a 0.5 s pause
     ctx.pauseS = 0.5;
     const long long on = 480;
@@ -368,4 +370,276 @@ TEST_CASE("mode A+B: the mod wheel adds to snap for the following syllables") {
         }
     }
     CHECK(checked > 3);
+}
+
+
+// ------------------------------------------------------------------ D-030: the release alarm
+namespace {
+
+bool isCall(const SyllableBank& b, int syl) {
+    return b.label(syl).rfind("alarm", 0) == 0;
+}
+
+PlayEvent pedal(bool down) {
+    PlayEvent e;
+    e.type = PlayEvent::Type::Sustain;
+    e.value = down ? 1.0f : 0.0f;
+    return e;
+}
+
+long long endOf(const SyllableBank& b, const Run& run, std::size_t i) {
+    return run.samples[i] + static_cast<long long>(std::llround(b.syllable(run.reqs[i].syllable).lengthMs * 48.0));
+}
+
+} // namespace
+
+TEST_CASE("release alarm: the bank knows its calls and the bird's lead-in silence before them") {
+    const auto& b = realBank();
+    REQUIRE(b.releaseSyllables().size() == 5); // 4 "alarm" + 1 "alarm_grillon" in 22938
+    for (int s : b.releaseSyllables()) {
+        CHECK(isCall(b, s));
+        CHECK(b.isReleaseSyllable(s));
+    }
+    CHECK(static_cast<int>(b.playableSyllables().size() + b.releaseSyllables().size()) == b.numSyllables());
+    CHECK(b.releaseGapMs() >= 47.0); // the real gaps before the calls are 47-67 ms
+    CHECK(b.releaseGapMs() <= 67.0);
+}
+
+TEST_CASE("release alarm: never in taps, phrases or shuffles; only after a long press, once") {
+    const auto& b = realBank();
+    for (auto order : {OrderMode::RandomStart, OrderMode::PhraseStart, OrderMode::Shuffled}) {
+        PlayContext ctx;
+        ctx.order = order;
+        ModeAB m;
+        m.prepare(kSr);
+        m.reset(1000 + static_cast<int>(order));
+        m.setBank(&b);
+        std::vector<std::pair<long long, PlayEvent>> ev;
+        long long t = 480;
+        int longPresses = 0;
+        cuicui::dsp::Rng r(31);
+        for (int k = 0; k < 60; ++k) { // taps of 30-590 ms, and holds of 0.6-6 s
+            const int note = 57 + (k * 7) % 24;
+            const bool hold = k % 3 == 0;
+            const long long len = hold ? 28800 + static_cast<long long>(r.uniform() * 259200.0f)
+                                       : 1440 + static_cast<long long>(r.uniform() * 26800.0f);
+            ev.push_back({t, noteOn(note)});
+            ev.push_back({t + len, noteOff(note)});
+            longPresses += hold ? 1 : 0;
+            t += len + 24000;
+        }
+        const auto run = drive(m, ev, t + 96000, 256, ctx);
+        int calls = 0;
+        for (std::size_t i = 0; i < run.reqs.size(); ++i) {
+            const auto& q = run.reqs[i];
+            CHECK(isCall(b, q.syllable) == q.releaseAlarm); // a call only as the release alarm
+            if (q.releaseAlarm) {
+                ++calls;
+                CHECK_FALSE(q.first);
+            }
+        }
+        INFO("order " << static_cast<int>(order));
+        CHECK(calls == longPresses); // one per long press, none for the taps
+    }
+}
+
+TEST_CASE("release alarm: 0.6 s is the threshold; the call follows the sounding syllable and the lead-in") {
+    const auto& b = realBank();
+    const long long lead = std::llround(b.releaseGapMs() * 48.0);
+    for (long long held : {28700LL, 28800LL, 48000LL, 96000LL}) { // 0.598 s, 0.6 s, 1 s, 2 s
+        PlayContext ctx;
+        ModeAB m;
+        m.prepare(kSr);
+        m.reset(77);
+        m.setBank(&b);
+        const long long on = 960;
+        const long long off = on + held;
+        const auto run = drive(m, {{on, noteOn(66)}, {off, noteOff(66)}}, off + 96000, 128, ctx);
+        REQUIRE_FALSE(run.reqs.empty());
+        const auto& last = run.reqs.back();
+        INFO("held " << held / 48.0 << " ms");
+        if (held < 28800) {
+            CHECK_FALSE(last.releaseAlarm);
+            continue;
+        }
+        REQUIRE(last.releaseAlarm);
+        REQUIRE(run.reqs.size() >= 2);
+        const std::size_t before = run.reqs.size() - 2; // the last syllable started before the release
+        CHECK(run.samples[before] < off);
+        CHECK(run.samples.back() == std::max(off, endOf(b, run, before) + lead));
+        CHECK(last.note == 66);
+        CHECK(last.gain == run.reqs[before].gain); // the key's loudness and place
+        CHECK(last.pan == run.reqs[before].pan);
+    }
+}
+
+TEST_CASE("release alarm: after a release in a phrase pause it starts at once") {
+    const auto& b = realBank();
+    PlayContext ctx;
+    ctx.order = OrderMode::PhraseStart; // phrase 0 (3 syllables), then a 1 s pause
+    ctx.pauseS = 1.0;
+    const auto& s2 = b.syllable(2);
+    ModeAB m;
+    m.prepare(kSr);
+    m.reset(5);
+    m.setBank(&b);
+    const long long on = 480;
+    const long long rel = on + (s2.tMs + s2.lengthMs) * 48 + 24000; // 0.5 s into the pause
+    REQUIRE(rel - on >= 28800);
+    const auto run = drive(m, {{on, noteOn(70)}, {rel, noteOff(70)}}, rel + 96000, 64, ctx);
+    REQUIRE(run.reqs.size() == 4);
+    CHECK(run.reqs[3].releaseAlarm);
+    CHECK(run.samples[3] == rel);
+}
+
+TEST_CASE("release alarm: with the pedal, the press lasts until the pedal is lifted") {
+    const auto& b = realBank();
+    PlayContext ctx;
+    { // a 0.2 s tap held on by the pedal for 1.5 s: the bird sang long enough, it ends with the call
+        ModeAB m;
+        m.prepare(kSr);
+        m.reset(9);
+        m.setBank(&b);
+        const auto run = drive(m, {{100, pedal(true)}, {480, noteOn(61)}, {480 + 9600, noteOff(61)}, {72480, pedal(false)}},
+                               200000, 256, ctx);
+        REQUIRE_FALSE(run.reqs.empty());
+        CHECK(run.reqs.back().releaseAlarm);
+        CHECK(run.samples.back() >= 72480);
+    }
+    { // tap and pedal both short (0.4 s in all): no call
+        ModeAB m;
+        m.prepare(kSr);
+        m.reset(9);
+        m.setBank(&b);
+        const auto run = drive(m, {{100, pedal(true)}, {480, noteOn(61)}, {480 + 4800, noteOff(61)}, {19680, pedal(false)}},
+                               200000, 256, ctx);
+        for (const auto& q : run.reqs) {
+            CHECK_FALSE(q.releaseAlarm);
+        }
+    }
+}
+
+TEST_CASE("release alarm: pressing the key again cancels it; the polyphony limit and all-notes-off never call") {
+    const auto& b = realBank();
+    PlayContext ctx;
+    { // long press, released 10 ms into a syllable (the call waits for its end), the same key again: no call
+        ModeAB m;
+        m.prepare(kSr);
+        m.reset(12);
+        m.setBank(&b);
+        std::vector<SyllableRequest> out(64);
+        PlayEvent on = noteOn(64);
+        m.process(&on, 1, 1, ctx, out.data(), 64);
+        long long now = 1;
+        long long startAfterHold = -1;
+        while (startAfterHold < 0 && now < 10 * 48000) { // the first syllable to start after 0.7 s
+            const int k = m.process(nullptr, 0, 1, ctx, out.data(), 64);
+            if (k > 0 && now >= 33600) {
+                startAfterHold = now;
+            }
+            ++now;
+        }
+        REQUIRE(startAfterHold > 0);
+        for (int i = 0; i < 479; ++i) { // 10 ms into that syllable
+            m.process(nullptr, 0, 1, ctx, out.data(), 64);
+        }
+        PlayEvent off = noteOff(64);
+        m.process(&off, 1, 1, ctx, out.data(), 64);
+        REQUIRE(m.pendingReleaseAlarms() == 1);
+        PlayEvent again = noteOn(64);
+        m.process(&again, 1, 1, ctx, out.data(), 64);
+        CHECK(m.pendingReleaseAlarms() == 0);
+        for (int k = 0; k < 48000 / 64; ++k) {
+            const int n = m.process(nullptr, 0, 64, ctx, out.data(), 64);
+            for (int i = 0; i < n; ++i) {
+                CHECK_FALSE(out[static_cast<std::size_t>(i)].releaseAlarm);
+            }
+        }
+    }
+    { // polyphony 1: a second key takes over after 1 s; the first key's bird does not call
+        ModeAB m;
+        m.prepare(kSr);
+        m.reset(13);
+        m.setBank(&b);
+        PlayContext mono = ctx;
+        mono.polyphony = 1;
+        const auto run = drive(m, {{480, noteOn(60)}, {48480, noteOn(67)}, {48480 + 2400, noteOff(67)}, {96000, noteOff(60)}},
+                               200000, 256, mono);
+        for (const auto& q : run.reqs) {
+            CHECK_FALSE(q.releaseAlarm); // 67 was a short press; 60 was taken over before its release
+        }
+    }
+    { // all-notes-off after a long press: no call
+        ModeAB m;
+        m.prepare(kSr);
+        m.reset(14);
+        m.setBank(&b);
+        PlayEvent all;
+        all.type = PlayEvent::Type::AllNotesOff;
+        const auto run = drive(m, {{480, noteOn(62)}, {72480, all}}, 200000, 256, ctx);
+        for (const auto& q : run.reqs) {
+            CHECK_FALSE(q.releaseAlarm);
+        }
+    }
+}
+
+TEST_CASE("release alarm: a phrase closes up over a skipped call, keeping the silences around it") {
+    const auto& b = realBank();
+    // phrase 7: ... Lpeep (index 9), alarm (index 10), swipe (index 11) ...
+    const int p7 = 7;
+    REQUIRE(isCall(b, b.syllableOf(p7, 10)));
+    PhraseOrder order;
+    cuicui::dsp::Rng rng(1);
+    int pointer = p7;
+    OrderStep st = order.begin(b, OrderMode::PhraseStart, rng, pointer, true);
+    REQUIRE(st.syllable == b.syllableOf(p7, 0));
+    for (int i = 1; i <= 9; ++i) {
+        st = order.next(b, st.startS, 0.5, rng, pointer);
+        REQUIRE(st.syllable == b.syllableOf(p7, i));
+    }
+    const double at9 = st.startS;
+    st = order.next(b, st.startS, 0.5, rng, pointer);
+    CHECK(st.syllable == b.syllableOf(p7, 11));
+    const auto& s9 = b.syllable(b.syllableOf(p7, 9));
+    const auto& s10 = b.syllable(b.syllableOf(p7, 10));
+    const auto& s11 = b.syllable(b.syllableOf(p7, 11));
+    CHECK_THAT(st.startS - at9, WithinAbs((s11.tMs - s9.tMs - s10.lengthMs) / 1000.0, 1e-12));
+    // ... and with reserve off, the R1 order sings the call in place
+    PhraseOrder r1;
+    int pointer1 = p7;
+    OrderStep q = r1.begin(b, OrderMode::PhraseStart, rng, pointer1, false);
+    for (int i = 1; i <= 10; ++i) {
+        q = r1.next(b, q.startS, 0.5, rng, pointer1);
+    }
+    CHECK(q.syllable == b.syllableOf(p7, 10));
+}
+
+TEST_CASE("release alarm: results do not depend on the host block size") {
+    const auto& b = realBank();
+    PlayContext ctx;
+    std::vector<std::pair<long long, PlayEvent>> ev{
+        {480, noteOn(60)}, {9000, noteOn(64)}, {12000, noteOff(64)}, {60000, noteOff(60)},
+        {70000, pedal(true)}, {71000, noteOn(67)}, {72000, noteOff(67)}, {130000, pedal(false)},
+        {140000, noteOn(69)}, {200000, noteOff(69)}};
+    std::vector<Run> runs;
+    for (int block : {1, 64, 511, 4096}) {
+        ModeAB m;
+        m.prepare(kSr);
+        m.reset(21);
+        m.setBank(&b);
+        runs.push_back(drive(m, ev, 320000, block, ctx));
+    }
+    int calls = 0;
+    for (const auto& q : runs[0].reqs) {
+        calls += q.releaseAlarm ? 1 : 0;
+    }
+    CHECK(calls == 3); // 60 (1.2 s), 67 (pedal, 1.2 s), 69 (1.25 s); not 64 (62 ms)
+    for (std::size_t k = 1; k < runs.size(); ++k) {
+        REQUIRE(runs[k].reqs.size() == runs[0].reqs.size());
+        for (std::size_t i = 0; i < runs[0].reqs.size(); ++i) {
+            CHECK(runs[k].samples[i] == runs[0].samples[i]);
+            CHECK(runs[k].reqs[i].syllable == runs[0].reqs[i].syllable);
+            CHECK(runs[k].reqs[i].releaseAlarm == runs[0].reqs[i].releaseAlarm);
+        }
+    }
 }
