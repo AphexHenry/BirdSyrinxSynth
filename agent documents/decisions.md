@@ -269,3 +269,27 @@
 - **Consequences:**
   - The plugin no longer plays exactly as the PROTO1 web prototype, which keeps the calls inside phrases. The R1 equivalence tests now run with the rule off.
   - The 0.6 s threshold is fixed (a control is in the backlog).
+
+### D-031 — Tunes: re-open the note of a glide (D-019); WP-R5 before R3
+- **Status:**
+  - the order: accepted (human: "adapt the plan so I can call the next agent", 2026-10-12);
+  - the rule: open, decided by MELODY2 in WP-R5.
+- **Context** (MELODY1, `studies/MELODY1_tapped_melody.md`):
+  - R1's tapped Frère Jacques was recognisable. With other random syllables, or with held keys, it was not.
+  - With the melody on a plain tone beside it, the human heard that its last notes "go up".
+  - Analysis: the D-019 rule sets a syllable without a steady part at the plain mean of the last quarter of its curve. For a falling glide that is the quiet bottom. The ear hears the loud part, 3–6 semitones higher, so the bird shifts the syllable up.
+  - Across the bank, 25 % of playable syllables are more than 2 semitones off.
+  - The pitch tracker follows the recording; only frames quieter than about −20 dB are unreliable.
+  - Held keys add the bird's own melody unless Snap to note is 100 % (which made held-key tunes recognisable).
+- **Decision:**
+  - WP-R5 comes before R3.
+  - It chooses a note rule by a pre-registered blind test (MELODY2: candidates A today, B loud ending, C steady else loudness-weighted mean, D steady parts, E loudness-weighted mean; frames below −20 dB ignored).
+  - It rebuilds the bank (same syllables, new note values).
+  - The human then chooses how held keys and the release call behave in tunes:
+    - (a) phrase only after a hold threshold;
+    - (b) no call when the next key follows at once;
+    - (c) a "Finch, melody" preset;
+    - (d) nothing.
+- **Consequences:**
+  - D-019's default changes if MELODY2 says so. The four note-rule choices stay available.
+  - R3 starts from the rebuilt bank.

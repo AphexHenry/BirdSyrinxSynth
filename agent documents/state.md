@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-10-12 — by: R4 session (R4 done, tag wp-R4; next WP = R3)
+**Last updated:** 2026-10-12 — by: R4 session (R4 done, tag wp-R4; MELODY1 check; re-plan: next WP = R5, then R3)
 
 ## Status legend
 
@@ -38,8 +38,9 @@
 | 15a | R0 | Approach review + understanding studies + web prototype (PITCH1/2, COLOUR1/2, ENGINE1, PROTO1) | C5 | done | 2026-10-11 | wp-R0 | `reviews/2026-10-11_approach_review.md` |
 | 15b | R1 | Real syllables + whistle voice + playing modes A/B in the plugin (modular) | R0 | done | 2026-10-12 | wp-R1 | `work_packages/WP-R1_real_syllables_whistle_voice.md` |
 | 15c | R4 | Perform UI + presets (revised C6) | R1 | done | 2026-10-12 | wp-R4 | `work_packages/WP-R4_perform_ui_presets.md` |
-| 15d | R3 | Variations within the bird's style (+ more recordings) | R1 | todo | | | `work_packages/WP-R3_variations_within_style.md` |
-| 15e | R2 | Anatomical engine as optional voice (click fix, colour, re-test) | R1 | optional | | | `work_packages/WP-R2_anatomical_voice_optional.md` |
+| 15d | R5 | Melodies that sound right: syllable notes (MELODY2) + held keys | R4 | todo | | | `work_packages/WP-R5_melodies.md` |
+| 15e | R3 | Variations within the bird's style (+ more recordings) | R1, R5 | todo | | | `work_packages/WP-R3_variations_within_style.md` |
+| 15f | R2 | Anatomical engine as optional voice (click fix, colour, re-test) | R1 | optional | | | `work_packages/WP-R2_anatomical_voice_optional.md` |
 | 16 | C6 | Perform UI, Physiology page, presets v1 | C5 | optional | | | `work_packages/WP-C6_perform_ui_presets.md` |
 | 17 | E1 | Fitting framework, losses, identifiability benchmark | D2, B6, C2, C4 | optional | | | `work_packages/WP-E1_fitting_framework.md` |
 | 18 | E2 | Voice atlas + Viterbi initial path | E1, C2 | optional | | | `work_packages/WP-E2_voice_atlas_viterbi.md` |
@@ -149,6 +150,11 @@
   - D-030:
     - The 0.6 s threshold is fixed (not a control), and a chord let go together gives one call per bird.
     - The PROTO1 web prototype and the Python reference keep the calls inside phrases; reference tests run with D-030 off.
+- **Tunes (MELODY1, 2026-10-12):**
+  - The default note rule (D-019) sets a glide's note at its quiet bottom (the plain mean of its last quarter). The bird then shifts such syllables up by 3–6 semitones, and tapped tunes come out wrong (the end of Frère Jacques "goes up").
+  - 25 % of playable syllables have a note more than 2 semitones from their loud part.
+  - Held keys add 2–3 off-note syllables per key unless Snap to note is 100 %.
+  - Fix: WP-R5. Study: `agent documents/studies/MELODY1_tapped_melody.md`.
 - **Study scripts** in `scripts/review/` and `scripts/studies/` are research code outside the ruff gate. Some lint warnings remain (line length, `zip(strict=)`).
 
 ## Open questions for the human
@@ -236,3 +242,4 @@
 | 2026-10-12 | R4 | Claude Opus 5.5 | WP-R4 awaiting approval (criteria 1–8 PASS; listening page built; play test R4PLAY waits for the human; D-028, D-029 proposed) |
 | 2026-10-12 | R4 | Claude Opus 5.5 | feedback: the long rising "alarm" only on the release of a ≥ 0.6 s press (D-030); core playing mode + tests; real alarms + demos on the listening page; still awaiting approval |
 | 2026-10-12 | R4 | Claude Opus 5.5 | approved, committed and tagged wp-R4 (D-028…D-030 accepted; play test R4PLAY not run before approval) |
+| 2026-10-12 | – | Claude Opus 5.5 | MELODY1 (why R1's tapped tune was clear and live playing is not): human listening + analysis. Re-plan (D-031): WP-R5 "melodies" before R3 |

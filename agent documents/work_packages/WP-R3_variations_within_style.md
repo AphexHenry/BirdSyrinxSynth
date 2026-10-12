@@ -48,3 +48,10 @@
 - Without that, the display cannot draw them.
 
 **Recordings.** `recordings/` holds three "House Finch" MP3s (git-ignored, added 2026-10-12). The bank builder (`python -m cuicui.bank`) needs WAV + tseg annotation JSON.
+
+## Notes from MELODY1 (2026-10-12)
+
+- **WP-R5 comes first** (D-031). It changes the syllables' note values (anchors) and rebuilds the bank `zf_22938`; the syllables, their order and their contours stay the same.
+  - Anything in R3 that depends on a syllable's note (transposition ranges, variation placement) must use the new anchors.
+  - Do not build on the old D-019 "ending" values.
+- **Notes for new banks.** New recordings must get their notes with R5's rule: `python -m cuicui.bank` will carry it.
