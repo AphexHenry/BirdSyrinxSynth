@@ -342,3 +342,18 @@
   - The default sound and the other presets are unchanged.
   - Tapped tunes (one random syllable per key) are still recognised only on some draws (MELODY3, WP-R5 criterion 3). The human accepted this for now: "i need to move on to improve the performing part". Tap strategies are in the backlog.
 
+### D-034 — Plan: a playing-feel step (WP-R6) after R3
+- **Status:** accepted · 2026-10-13 · human
+- **Context:** after WP-R5 the human said: "i need to move on to improve the performing part." Then: "it will be important in the plan to add a step to simply give to the user a better feeling of performance. what we aim for is to keep the bird natural but still match the keyboard expressivity. it should organically follow different mode of playing: pizzicato, long notes, give a feeling of control while keeping the organic nature of birds. that's a very tricky challenge that we need to tackle with care, understanding and out of the box fresh ideas."
+- **Decision:**
+  - New **WP-R6, "Playing feel: the bird follows how you play"** (`work_packages/WP-R6_playing_feel.md`).
+  - **Order:** after R3. The human: "definitely not before 'Variations within the bird's style' since it can affect it".
+  - **R6 works in three stages**, each ending with the human:
+    - understand: scoping questions, the human's own MIDI sketches, the player's and the bird's vocabularies;
+    - try fresh ideas as playable prototypes, rendered on those sketches;
+    - build the chosen behaviours as a playing mode (D-021).
+  - Acceptance: the human's play test, birdness kept (blind, ≥ 90 against the recording), and the first syllable on key-down.
+- **Consequences:**
+  - The order is now R3 → R6; G1 (release polish) stays after them in the table.
+  - R3 should keep its variation controls and syllable families usable from a playing mode (note in WP-R3).
+

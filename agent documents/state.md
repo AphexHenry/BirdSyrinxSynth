@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-10-13 — by: R5 session (R5 done, tag wp-R5; next WP in line: R3; the human wants to improve the performing part next)
+**Last updated:** 2026-10-13 — by: R5 session (R5 done, tag wp-R5; plan: WP-R6 playing feel added after R3, D-034; next WP in line: R3)
 
 ## Status legend
 
@@ -40,7 +40,8 @@
 | 15c | R4 | Perform UI + presets (revised C6) | R1 | done | 2026-10-12 | wp-R4 | `work_packages/WP-R4_perform_ui_presets.md` |
 | 15d | R5 | Melodies that sound right: syllable notes (MELODY2) + held keys | R4 | done | 2026-10-13 | wp-R5 | `work_packages/WP-R5_melodies.md` |
 | 15e | R3 | Variations within the bird's style (+ more recordings) | R1, R5 | todo | | | `work_packages/WP-R3_variations_within_style.md` |
-| 15f | R2 | Anatomical engine as optional voice (click fix, colour, re-test) | R1 | optional | | | `work_packages/WP-R2_anatomical_voice_optional.md` |
+| 15f | R6 | Playing feel: the bird follows how you play (pizzicato, long notes, control, organic) | R3, R5 | todo | | | `work_packages/WP-R6_playing_feel.md` |
+| 15g | R2 | Anatomical engine as optional voice (click fix, colour, re-test) | R1 | optional | | | `work_packages/WP-R2_anatomical_voice_optional.md` |
 | 16 | C6 | Perform UI, Physiology page, presets v1 | C5 | optional | | | `work_packages/WP-C6_perform_ui_presets.md` |
 | 17 | E1 | Fitting framework, losses, identifiability benchmark | D2, B6, C2, C4 | optional | | | `work_packages/WP-E1_fitting_framework.md` |
 | 18 | E2 | Voice atlas + Viterbi initial path | E1, C2 | optional | | | `work_packages/WP-E2_voice_atlas_viterbi.md` |
@@ -181,7 +182,7 @@
 
 ## Open questions for the human
 
-- **Next focus (the human, 2026-10-13):** "i need to move on to improve the performing part". The next WP in the table is R3 (variations + more recordings). Whether a performing-focused WP comes first is the human's call (protocol §3.5 / §8).
+- **Playing feel (the human, 2026-10-13):** "i need to move on to improve the performing part". Planned as **WP-R6, after R3** (D-034): "definitely not before 'Variations within the bird's style' since it can affect it". R6 starts with scoping questions and the human's own playing sketches.
 - D1 is parked (`optional`) until after Phase B. Recordings live at `/Users/baptistebohelay/Dev/research/birds synth/data/annotations/` (`22938.wav` + `22938.json`; custom tseg JSON schema 1.2). When D1 starts: bird identity, label meanings (`peep`, `swipe`, `peep_grillon`, …), and whether to copy into `data/raw/zebra_finch/`.
 - JUCE licence choice before any public release (see `decisions.md` D-003).
 - B6 CPU: accept ~3 % per voice, or spend a WP on optimisation (skip gated-off RK4, UVT dirty-flag)? Recommendation: accept for now, revisit if the plugin feels heavy.
@@ -270,3 +271,4 @@
 | 2026-10-13 | R5 | Claude Opus 5.5 | MELODY2 (no pre-registered winner; human chose rule E), TUNE1 (11 notes by ear, E matches the ear 97.6 %), bank rebuilt `9e0e08577e5a`, MELODY3 (new bank beats old 5/5; wide-sweep avoidance not adopted; criterion 3 FAIL), held keys: human chose (c) → preset "Finch, melody"; D-032, D-033 proposed |
 | 2026-10-13 | R5 | Claude Opus 5.5 | WP-R5 awaiting approval (criteria 1, 2, 4–7 PASS; criterion 3 FAIL, decision pending; listening page opened) |
 | 2026-10-13 | R5 | Claude Opus 5.5 | human: new notes "much better", 14/15 "sound the same", criterion 3 FAIL accepted ("i need to move on to improve the performing part"); D-031…D-033 accepted; committed and tagged wp-R5 |
+| 2026-10-13 | – | Claude Opus 5.5 | plan (human): WP-R6 "playing feel" (keep the bird natural, follow the keyboard's expressivity: pizzicato, long notes, control) added after R3 (D-034) |

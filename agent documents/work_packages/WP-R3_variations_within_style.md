@@ -62,3 +62,10 @@
 - **Checking a new bank's notes by ear:** the TUNE1 page (`scripts/studies/tune1_make.py` + `tune1_page.html`) places every syllable on one note and records corrections. It writes a `cuicui.note_corrections` file through `tune1_analyze.py`. To reuse it, point it at the new bank and choose a reference note near that bank's centre.
 - **Keeping a syllable from starting a key press:** add the flag `no_tap` (or `no_note`) in the bank. The core honours it (D-032).
 - **Tapped tunes** with random syllables are hit-and-miss (WP-R5 criterion 3, MELODY3). If variations change how syllables are chosen, a tap strategy for tunes is in the backlog. Examples: keep the syllable along a line of taps; use narrow syllables only.
+
+## Notes from the plan (2026-10-13, D-034)
+
+- **WP-R6 "Playing feel" comes right after R3 and builds on it.** It maps the player's gestures (short or long notes, velocity, tempo, legato, repeats, controllers) onto the bird's behaviour, with real material only. Help it:
+  - keep the variation amount drivable **per request** from a playing mode, not only as a global knob (R6 may scale it by velocity, tempo or a "tame ↔ wild" control);
+  - keep syllable families and their lengths easy to query (peep / swipe / long call…; e.g. "a short syllable that sweeps up");
+  - if R3 makes new shapes (morphs, a shape model), keep their length or rate adjustable within the bird's range: R6 may need a trill or a held note.
