@@ -14,9 +14,13 @@ bird's real phrases with their real onset times, plus each syllable's "note" und
 4. Pitch in MIDI cents (6900 = A4 = 440 Hz), median-filtered over 5 ms. Amplitude = the tracker's
    level, smoothed over 3 ms with a 3-point half-Hann taper at both ends, normalised per phrase
    (natural loudness ratios inside a phrase are kept).
-5. Anchors (a syllable's note): `rule` = mean of the longest steady part (within ± 50 cents for at
-   least 20 ms), else the ending (last quarter); `steady` = stability-weighted mean; `landing` =
-   last quarter; `average` = plain mean. All computed on the voiced frames only.
+5. Anchors (a syllable's note), on the voiced frames within 20 dB of the syllable's loudest frame
+   (the tracker is unreliable below that): `rule` = the loudness-weighted mean (WP-R5, rule E chosen
+   after MELODY2); `steady` = stability-weighted mean; `landing` = last quarter; `average` = plain
+   mean. `BuildSettings(note_rule="A")` rebuilds the R1 bank (D-019: longest steady part, else the
+   ending, every voiced frame); B-D are the other MELODY2 candidates (`note_candidates`).
+6. Notes set by ear (WP-R5, TUNE1; `cuicui.note_corrections`, `apply_corrections`) override every
+   rule for the syllables they name; "no clear note" syllables are flagged `no_note`.
 
 Nothing here is specific to one bird or species: more recordings only need their own annotation
 file.
@@ -38,12 +42,14 @@ from cuicui.analysis import f0_track
 FORMAT = "cuicui.syllable_bank"
 VERSION = 1
 NOTE_RULES = ("rule", "steady", "landing", "average")
-RULE_TEXT = {
+RULE_TEXT = {  # the R1 bank (note_rule "A")
     "rule": "longest steady part (±50 c, ≥ 20 ms), else ending",
     "steady": "stability-weighted (PITCH1/2)",
     "landing": "last quarter",
     "average": "plain mean",
 }
+FLOOR_TEXT = " (frames within 20 dB of the syllable's peak)"
+CORRECTIONS_FORMAT = "cuicui.note_corrections"
 
 
 @dataclass(frozen=True)
@@ -60,6 +66,25 @@ class BuildSettings:
     steady_min_ms: int = 20  # shorter steady parts don't count: use the ending instead
     stability_v0: float = 2000.0  # cents/s, weight scale of the "steady" rule
     hop_threshold_cents: float = 300.0  # a 1 ms pitch step above this is flagged "hop"
+    # WP-R5: which MELODY2 candidate sets the `rule` anchor: "E" (default since MELODY2);
+    # "A" = D-019 and the R1 bank exactly. With B-E every anchor ignores the frames below
+    # `quiet_floor_db`.
+    note_rule: str = "E"
+    quiet_floor_db: float = 20.0  # notes ignore frames this far below the syllable's peak (B-E)
+    loud_db: float = 10.0  # candidate B: the "loud part" is within this of the peak
+
+
+# MELODY2 candidates for a syllable's note (WP-R5). B-E first drop the frames more than
+# `quiet_floor_db` below the loudest frame; "loudness-weighted" means weighted by amplitude²
+# (energy, as PITCH1's "energy" rule and MELODY1's proxy).
+NOTE_CANDIDATES = ("A", "B", "C", "D", "E")
+CANDIDATE_TEXT = {
+    "A": "longest steady part (±50 c, ≥ 20 ms), else ending",
+    "B": "longest steady part, else the ending of the loud part (loudness-weighted)",
+    "C": "longest steady part, else the loudness-weighted mean",
+    "D": "stability-weighted mean (steady parts)",
+    "E": "loudness-weighted mean",
+}
 
 
 def longest_steady(c: np.ndarray, tol: float) -> tuple[int, int, int]:
@@ -100,6 +125,60 @@ def anchors(c: np.ndarray, settings: BuildSettings | None = None) -> dict:
     }
 
 
+def _weighted_mean(c: np.ndarray, w: np.ndarray) -> float:
+    total = float(np.sum(w))
+    return float(np.sum(w * c) / total) if total > 0.0 else float(np.mean(c))
+
+
+def note_candidates(c: np.ndarray, a: np.ndarray, settings: BuildSettings | None = None) -> dict:
+    """A syllable's note (cents) under each MELODY2 candidate rule A-E (WP-R5).
+
+    `c` is the voiced contour (cents, 1 frame = 1 ms) and `a` its amplitude on the same frames. A is
+    D-019's rule on all frames, unchanged (the control). B-E ignore the frames more than
+    `quiet_floor_db` below the loudest one, where the tracker is unreliable. Also returns, per
+    candidate, the part used ("steady part" / "loud ending" / "whole") and its span [start, end) in
+    frames of `c`.
+    """
+    settings = settings or BuildSettings()
+    c = np.asarray(c, dtype=float)
+    a = np.asarray(a, dtype=float)
+    if len(c) != len(a) or len(c) == 0:
+        raise ValueError("note_candidates: c and a need the same, non-zero length")
+    peak = float(a.max())
+    floor = peak * 10.0 ** (-settings.quiet_floor_db / 20.0)
+    keep = a >= floor if peak > 0.0 else np.ones(len(a), bool)
+    k_idx = np.flatnonzero(keep)
+    ck, ak = c[keep], a[keep]
+    energy = ak**2
+    n, i, j = longest_steady(ck, settings.steady_tol_cents)
+    has_steady = n >= settings.steady_min_ms
+    loud = np.flatnonzero(ak >= ak.max() * 10.0 ** (-settings.loud_db / 20.0))
+    tail = loud[-max(1, len(loud) // 4):]
+    slope = np.abs(np.gradient(ck)) * 1000.0 if len(ck) > 1 else np.zeros(1)
+    stability = np.exp(-slope / settings.stability_v0)
+
+    def span(lo: int, hi: int) -> tuple[int, int]:  # [lo, hi) in kept frames -> frames of c
+        return int(k_idx[lo]), int(k_idx[hi - 1]) + 1
+
+    whole = span(0, len(ck))
+    steady_mean = float(ck[i:j].mean()) if has_steady else float("nan")
+    a_rule = anchors(c, settings)
+    a_span = a_rule["_span"]
+    return {
+        "A": (a_rule["rule"], "steady part" if a_rule["rule_used"] == "steady part" else "ending",
+              (int(a_span[0]), int(a_span[1]))),
+        "B": ((steady_mean, "steady part", span(i, j)) if has_steady else
+              (_weighted_mean(ck[tail], energy[tail]), "loud ending",
+               span(int(tail[0]), int(tail[-1]) + 1))),
+        "C": ((steady_mean, "steady part", span(i, j)) if has_steady else
+              (_weighted_mean(ck, energy), "whole", whole)),
+        "D": (_weighted_mean(ck, stability), "whole", whole),
+        "E": (_weighted_mean(ck, energy), "whole", whole),
+        "steady_ms": int(n),
+        "kept_frames": int(len(ck)),
+    }
+
+
 def group_phrases(segments: list[dict], settings: BuildSettings) -> list[list[tuple[int, dict]]]:
     """Group annotated segments of the bank category into phrases (index in the file, segment)."""
     segs = [(k, s) for k, s in enumerate(segments) if s["category"] == settings.category]
@@ -134,7 +213,13 @@ def _syllable(tr: dict, k: int, s: dict, t0: float, settings: BuildSettings) -> 
     w = 0.5 - 0.5 * np.cos(np.linspace(0, np.pi, 3))
     a[:3] *= w
     a[-3:] *= w[::-1]
-    anc = anchors(c[vv], settings)
+    if settings.note_rule == "A":  # the R1 bank: D-019 on every voiced frame
+        anc = anchors(c[vv], settings)
+    else:  # WP-R5: every note ignores the quietest frames; `rule` is the chosen candidate
+        cv, av = c[vv], a[vv]
+        anc = anchors(cv[av >= av.max() * 10.0 ** (-settings.quiet_floor_db / 20.0)], settings)
+        value, used, cspan = note_candidates(cv, av, settings)[settings.note_rule]
+        anc.update(rule=value, rule_used=used, _span=cspan)
     voiced_idx = np.flatnonzero(vv)
     span_v = anc.pop("_span")
     span = [int(voiced_idx[span_v[0]]), int(voiced_idx[span_v[1] - 1]) + 1]
@@ -161,10 +246,65 @@ def _median(xs: list[float]) -> float:
     return s[m] if len(s) % 2 else 0.5 * (s[m - 1] + s[m])
 
 
+def _doc_hash(doc: dict) -> str:
+    """12-hex content hash of a JSON document."""
+    return hashlib.sha256(json.dumps(doc, sort_keys=True).encode()).hexdigest()[:12]
+
+
 def bank_hash(bank: dict) -> str:
     """12-hex content hash of a bank (the `hash` field itself excluded)."""
     body = {k: v for k, v in bank.items() if k != "hash"}
     return hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()[:12]
+
+
+def load_corrections(path: Path) -> dict:
+    """Read and validate a `cuicui.note_corrections` file (notes set by ear, WP-R5 TUNE1)."""
+    import jsonschema  # noqa: PLC0415 - only needed here
+
+    from cuicui.bank.validate import schema_path  # noqa: PLC0415 - avoids an import cycle
+
+    doc = json.loads(Path(path).read_text())
+    schema = json.loads(schema_path("note_corrections").read_text())
+    errors = [f"{'/'.join(str(x) for x in e.absolute_path)}: {e.message}"
+              for e in jsonschema.Draft202012Validator(schema).iter_errors(doc)]
+    if errors:
+        raise ValueError(f"invalid note corrections {path}:\n  " + "\n  ".join(errors))
+    return doc
+
+
+def apply_corrections(phrases: list[dict], corrections: dict) -> dict:
+    """Apply notes set by ear to built phrases (in place); returns counts.
+
+    A corrected syllable gets its heard note under every rule (it dominates any rule) and the flag
+    "ear"; a "no clear note" syllable keeps its computed notes and gets the flag "no_note".
+    Syllables are matched by their annotation segment, and the label must agree.
+    """
+    by_segment = {s["segment"]: s for p in phrases for s in p["syllables"]}
+    ear = no_note = 0
+    seen: set[int] = set()
+    for c in corrections["syllables"]:
+        seg = c["segment"]
+        if seg in seen:
+            raise ValueError(f"note corrections: segment {seg} is listed twice")
+        seen.add(seg)
+        s = by_segment.get(seg)
+        if s is None:
+            raise ValueError(f"note corrections: no syllable from segment {seg} in this bank")
+        if s["label"] != c["label"]:
+            raise ValueError(f"note corrections: segment {seg} is a '{s['label']}', "
+                             f"not a '{c['label']}'")
+        if c.get("no_clear_note"):
+            s["flags"].append("no_note")
+            no_note += 1
+            continue
+        note = round(float(c["note_cents"]), 1)
+        for r in NOTE_RULES:
+            s["anchors"][r] = note
+        s["anchors"]["rule_used"] = "ear"
+        s["anchors"]["rule_span_ms"] = [0, len(s["f_hz"])]
+        s["flags"].append("ear")
+        ear += 1
+    return {"ear_notes": ear, "no_note": no_note}
 
 
 def build_bank(
@@ -176,8 +316,12 @@ def build_bank(
     description: str = "",
     created_by: str = "WP-R1",
     settings: BuildSettings | None = None,
+    corrections: dict | None = None,
 ) -> dict:
-    """Build a `cuicui.syllable_bank` v1 dict from a recording and its tseg annotation JSON."""
+    """Build a `cuicui.syllable_bank` v1 dict from a recording and its tseg annotation JSON.
+
+    `corrections`: notes set by ear (`load_corrections`), applied after the rules.
+    """
     settings = settings or BuildSettings()
     ann = json.loads(Path(annotations_path).read_text())
     x, sr = sf.read(str(wav_path), always_2d=True)
@@ -219,8 +363,16 @@ def build_bank(
             {"id": len(phrases), "start_s": round(t0 + base * f0_track.HOP_S, 3), "syllables": out}
         )
 
+    applied = apply_corrections(phrases, corrections) if corrections else None
     all_syl = [s for p in phrases for s in p["syllables"]]
     centres = {r: round(_median([s["anchors"][r] for s in all_syl]), 1) for r in NOTE_RULES}
+    rules = dict(RULE_TEXT)
+    if settings.note_rule != "A":
+        rules = {"rule": CANDIDATE_TEXT[settings.note_rule] + FLOOR_TEXT,
+                 **{r: RULE_TEXT[r] + FLOOR_TEXT for r in ("steady", "landing", "average")}}
+    if applied:
+        ear = "; notes set by ear (flag 'ear') under every rule"
+        rules = {r: t + ear for r, t in rules.items()}
     h2 = np.concatenate(h2_all) if h2_all else np.array([np.nan])
     h3 = np.concatenate(h3_all) if h3_all else np.array([np.nan])
     bank = {
@@ -250,8 +402,12 @@ def build_bank(
             "steady_tol_cents": settings.steady_tol_cents,
             "steady_min_ms": settings.steady_min_ms,
             "hop_threshold_cents": settings.hop_threshold_cents,
+            **({"note_rule": settings.note_rule, "quiet_floor_db": settings.quiet_floor_db,
+                "loud_db": settings.loud_db} if settings.note_rule != "A" else {}),
+            **({"corrections": {"made_by": corrections.get("made_by", ""), **applied,
+                                "hash": _doc_hash(corrections)}} if applied else {}),
         },
-        "rules": dict(RULE_TEXT),
+        "rules": rules,
         "centres_cents": centres,
         "bird_centre_cents": centres["rule"],
         "stats": {
@@ -262,6 +418,8 @@ def build_bank(
                 sum(s["anchors"]["rule_used"] == "steady part" for s in all_syl)
             ),
             "hops": int(sum("hop" in s["flags"] for s in all_syl)),
+            **({"ear_notes": applied["ear_notes"], "no_note": applied["no_note"]}
+               if applied else {}),
             "measured_h2_db": round(float(np.nanmedian(h2)), 1),
             "measured_h3_db": round(float(np.nanmedian(h3)), 1),
         },

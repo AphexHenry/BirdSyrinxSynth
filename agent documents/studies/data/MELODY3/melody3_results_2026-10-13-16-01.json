@@ -1,0 +1,165 @@
+{
+ "study": "MELODY3",
+ "version": 1,
+ "design_hash": "97f6e1fab5b0",
+ "started": "2026-10-13T14:00:31.127Z",
+ "idx": 5,
+ "results": [
+  {
+   "screen": 1,
+   "id": "seed-504",
+   "ratings": {
+    "A": 10,
+    "B": 71,
+    "C": 71,
+    "D": 36
+   },
+   "recognise": {
+    "A": false,
+    "B": false,
+    "C": false,
+    "D": false
+   },
+   "ending_up": {
+    "A": false,
+    "B": false,
+    "C": false,
+    "D": false
+   },
+   "listens": {
+    "R": 1,
+    "A": 1,
+    "B": 2,
+    "C": 1,
+    "D": 1
+   },
+   "ms": 41553,
+   "at": "2026-10-13T15:57:32.635Z"
+  },
+  {
+   "screen": 2,
+   "id": "seed-502",
+   "ratings": {
+    "A": 79,
+    "B": 7,
+    "C": 61,
+    "D": 46
+   },
+   "recognise": {
+    "A": true,
+    "B": false,
+    "C": true,
+    "D": false
+   },
+   "ending_up": {
+    "A": false,
+    "B": false,
+    "C": false,
+    "D": false
+   },
+   "listens": {
+    "A": 2,
+    "B": 2,
+    "C": 2,
+    "D": 1
+   },
+   "ms": 62141,
+   "at": "2026-10-13T15:58:34.817Z"
+  },
+  {
+   "screen": 3,
+   "id": "seed-505",
+   "ratings": {
+    "A": 7,
+    "B": 80,
+    "C": 80,
+    "D": 59
+   },
+   "recognise": {
+    "A": false,
+    "B": true,
+    "C": true,
+    "D": false
+   },
+   "ending_up": {
+    "A": false,
+    "B": false,
+    "C": false,
+    "D": false
+   },
+   "listens": {
+    "A": 1,
+    "B": 1,
+    "C": 1,
+    "D": 1
+   },
+   "ms": 36038,
+   "at": "2026-10-13T15:59:10.886Z"
+  },
+  {
+   "screen": 4,
+   "id": "seed-503",
+   "ratings": {
+    "A": 53,
+    "B": 31,
+    "C": 61,
+    "D": 60
+   },
+   "recognise": {
+    "A": false,
+    "B": false,
+    "C": false,
+    "D": false
+   },
+   "ending_up": {
+    "A": false,
+    "B": false,
+    "C": false,
+    "D": false
+   },
+   "listens": {
+    "A": 1,
+    "B": 1,
+    "C": 3,
+    "D": 1,
+    "R": 1
+   },
+   "ms": 48554,
+   "at": "2026-10-13T15:59:59.477Z"
+  },
+  {
+   "screen": 5,
+   "id": "seed-501",
+   "ratings": {
+    "A": 36,
+    "B": 53,
+    "C": 63,
+    "D": 64
+   },
+   "recognise": {
+    "A": false,
+    "B": false,
+    "C": false,
+    "D": false
+   },
+   "ending_up": {
+    "A": false,
+    "B": false,
+    "C": true,
+    "D": true
+   },
+   "listens": {
+    "A": 1,
+    "B": 1,
+    "C": 1,
+    "D": 1
+   },
+   "ms": 49484,
+   "at": "2026-10-13T16:00:49.002Z"
+  }
+ ],
+ "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:157.0) Gecko/20100101 Firefox/157.0",
+ "finished": "2026-10-13T16:00:49.003Z",
+ "comment": "first page i did not see the checkboxes and i haven't filled them.",
+ "sample_rate": 48000
+}

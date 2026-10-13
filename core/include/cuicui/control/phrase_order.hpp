@@ -34,7 +34,10 @@ struct OrderStep {
 /// Per-singer order state. Times are seconds from the singer's note-on.
 /// `reserve` (D-030): leave the release syllables out (they end a long key press instead). A phrase then
 /// closes up over a skipped syllable: the next one starts as much earlier as the skipped one lasted, so the
-/// silences around it remain. With `reserve` false the order is the R1 / PROTO1 one, draw for draw.
+/// silences around it remain. `reserve` also keeps the syllables flagged "no_note" / "no_tap" (D-032) from
+/// starting a key press: a random first pick that lands on one is drawn again from the singer's stream, so every
+/// other pick is unchanged; a phrase start moves to its first syllable that may start keys. They still sing inside
+/// phrases. With `reserve` false the order is the R1 / PROTO1 one, draw for draw.
 class PhraseOrder {
 public:
     /// First syllable (starts at 0 s). `phrasePointer` is shared by all singers (PhraseStart mode).
@@ -43,16 +46,31 @@ public:
         mode_ = mode;
         reserve_ = reserve && !bank.playableSyllables().empty();
         if (mode == OrderMode::Shuffled) {
-            last_ = pickSyllable(bank, rng);
+            last_ = pickFirst(bank, rng);
             left_ = 4 + uniformIndex(rng, 6);
             return {last_, 0.0};
         }
         if (mode == OrderMode::RandomStart) {
-            const int pick = pickSyllable(bank, rng);
+            const int pick = pickFirst(bank, rng);
             phrase_ = bank.syllable(pick).phrase;
             index_ = bank.syllable(pick).index;
         } else {
             enterNextPhrase(bank, rng, phrasePointer);
+            for (int tries = 0; reserve_ && !bank.tapSyllables().empty(); ++tries) { // a phrase start that may start keys
+                while (index_ < bank.phrase(phrase_).count && !bank.isTapSyllable(bank.syllableOf(phrase_, index_))) {
+                    ++index_;
+                }
+                if (index_ < bank.phrase(phrase_).count) {
+                    break;
+                }
+                if (tries >= 4 * bank.numPhrases()) { // cannot happen while a tap syllable exists; stay safe
+                    const int s = bank.tapSyllables().front();
+                    phrase_ = bank.syllable(s).phrase;
+                    index_ = bank.syllable(s).index;
+                    break;
+                }
+                enterNextPhrase(bank, rng, phrasePointer);
+            }
         }
         return {bank.syllableOf(phrase_, index_), 0.0};
     }
@@ -92,6 +110,21 @@ public:
     [[nodiscard]] OrderMode mode() const noexcept { return mode_; }
 
 private:
+    /// The first syllable of a key press (D-032): with reserve, a pick that may not start keys is drawn again
+    /// (bounded; then the first one that may). Banks without such flags draw exactly as before.
+    int pickFirst(const SyllableBank& bank, dsp::Rng& rng) const noexcept {
+        int pick = pickSyllable(bank, rng);
+        if (!reserve_ || bank.tapSyllables().empty()) {
+            return pick;
+        }
+        for (int tries = 0; tries < kFirstPickTries && !bank.isTapSyllable(pick); ++tries) {
+            pick = pickSyllable(bank, rng);
+        }
+        return bank.isTapSyllable(pick) ? pick : bank.tapSyllables().front();
+    }
+
+    static constexpr int kFirstPickTries = 64;
+
     /// A syllable to start from, uniformly: any (R1), or only the playable ones (reserve).
     int pickSyllable(const SyllableBank& bank, dsp::Rng& rng) const noexcept {
         if (!reserve_) {

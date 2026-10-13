@@ -65,7 +65,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout() {
         }
         if (std::string_view(spec.id) == "perf.note_rule") {
             params.push_back(std::make_unique<juce::AudioParameterChoice>(
-                pid, name, juce::StringArray{"Longest steady part, else ending", "Steady parts", "Landing", "Average"},
+                pid, name, juce::StringArray{"Loud part", "Steady parts", "Landing", "Average"},
                 0));
             continue;
         }

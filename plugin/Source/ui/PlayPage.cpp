@@ -57,7 +57,7 @@ PlayPage::PlayPage(SyrinxAudioProcessor& proc) : proc_(proc), display_(proc) {
         "natural", "on note");
     firstOnNote_ = std::make_unique<Switch>(apvts, "perf.first_on_note", "First syllable on the note");
     noteRule_ = std::make_unique<ChoiceBox>(apvts, "perf.note_rule", "A syllable's note is its",
-                                            juce::StringArray{"longest steady part", "steady parts", "landing", "average"});
+                                            juce::StringArray{"loud part", "steady parts", "landing", "average"});
     setHelp(*melodyKnob_, "perf.snap");
     setHelp(*firstOnNote_, "perf.first_on_note");
     setHelp(*noteRule_, "perf.note_rule");

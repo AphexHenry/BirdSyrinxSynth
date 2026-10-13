@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cuicuiinstruments.com/schemas/note_corrections.schema.json",
+  "title": "cuicui.note_corrections",
+  "description": "Syllable notes set by ear for one syllable bank (WP-R5, study TUNE1, decision D-032). `python -m cuicui.bank --corrections <file>` applies them: a corrected syllable's note becomes `note_cents` under every note rule; a 'no clear note' syllable is flagged and never starts a key press. Syllables are matched by their annotation segment; the label must agree.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["format", "version", "bank", "syllables"],
+  "properties": {
+    "format": { "const": "cuicui.note_corrections" },
+    "version": { "const": 1 },
+    "bank": { "type": "string", "minLength": 1, "description": "the bank these corrections belong to (its name)" },
+    "made_by": { "type": "string" },
+    "reference_rule": { "type": "string", "description": "the rule the listener started from (the slider's zero)" },
+    "reference_cents": { "type": "number", "description": "the note every syllable was placed on while listening" },
+    "syllables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["segment", "label"],
+        "properties": {
+          "segment": { "type": "integer", "minimum": 0, "description": "index of the syllable's segment in the annotation file" },
+          "label": { "type": "string" },
+          "note_cents": { "type": "number", "description": "the note heard, MIDI cents (6900 = A4), at the syllable's own pitch" },
+          "move_cents": { "type": "number", "description": "how far the listener moved it from the reference rule's placement" },
+          "rule_e_cents": { "type": "number", "description": "the reference rule's note when the listener set it" },
+          "no_clear_note": { "type": "boolean" }
+        },
+        "oneOf": [
+          { "required": ["note_cents"], "not": { "properties": { "no_clear_note": { "const": true } }, "required": ["no_clear_note"] } },
+          { "required": ["no_clear_note"], "properties": { "no_clear_note": { "const": true } }, "not": { "required": ["note_cents"] } }
+        ]
+      }
+    }
+  }
+}

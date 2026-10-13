@@ -117,7 +117,20 @@ inline control::SyllableBank parseSyllableBank(std::string_view text) {
                 spanB = span[0];
                 spanE = span[1];
             }
-            b.addSyllable(tMs, hz, amp, anchors, spanB, spanE, s.value("label", std::string()));
+            bool tap = true; // D-032: "no_note" / "no_tap" keep it from starting a key press
+            if (s.contains("flags")) {
+                if (!s["flags"].is_array()) {
+                    fail(sw + ": flags must be an array of strings");
+                }
+                for (const auto& f : s["flags"]) {
+                    if (!f.is_string()) {
+                        fail(sw + ": flags must be an array of strings");
+                    }
+                    const auto flag = f.get<std::string>();
+                    tap = tap && flag != control::kNoNoteFlag && flag != control::kNoTapFlag;
+                }
+            }
+            b.addSyllable(tMs, hz, amp, anchors, spanB, spanE, s.value("label", std::string()), tap);
             ++si;
         }
         ++pi;

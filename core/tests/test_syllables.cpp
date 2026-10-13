@@ -10,6 +10,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -78,10 +81,11 @@ TEST_CASE("syllable bank: the committed zf_22938 bank loads and matches the prot
     REQUIRE(b.numPhrases() == 12);
     REQUIRE(b.numSyllables() == 123);
     REQUIRE(b.totalContourMs() == 13515);
-    CHECK_THAT(b.centreCents(NoteRule::Rule), WithinAbs(10502.9, 1e-9));
-    CHECK_THAT(b.centreCents(NoteRule::Steady), WithinAbs(10470.5, 1e-9));
-    CHECK_THAT(b.centreCents(NoteRule::Landing), WithinAbs(10428.1, 1e-9));
-    CHECK_THAT(b.centreCents(NoteRule::Average), WithinAbs(10411.4, 1e-9));
+    // WP-R5 bank (rule E + 11 notes set by ear, D-031/D-032); R1's were 10502.9 / 10470.5 / 10428.1 / 10411.4
+    CHECK_THAT(b.centreCents(NoteRule::Rule), WithinAbs(10545.7, 1e-9));
+    CHECK_THAT(b.centreCents(NoteRule::Steady), WithinAbs(10531.2, 1e-9));
+    CHECK_THAT(b.centreCents(NoteRule::Landing), WithinAbs(10471.2, 1e-9));
+    CHECK_THAT(b.centreCents(NoteRule::Average), WithinAbs(10424.5, 1e-9));
     for (int i = 0; i < b.numSyllables(); ++i) {
         const auto& s = b.syllable(i);
         REQUIRE(s.lengthMs >= 2);
@@ -642,4 +646,129 @@ TEST_CASE("release alarm: results do not depend on the host block size") {
             CHECK(runs[k].reqs[i].releaseAlarm == runs[0].reqs[i].releaseAlarm);
         }
     }
+}
+
+// ------------------------------------------------------------------ D-032: syllables that never start a key press
+namespace {
+
+/// The committed bank with the flag `flag` added to every syllable in `ids`.
+SyllableBank flaggedBank(const std::vector<int>& ids, const std::string& flag) {
+    std::ifstream in(std::string(CUICUI_SOURCE_DIR) + "/assets/voicebanks/zf_22938/bank.json");
+    std::stringstream ss;
+    ss << in.rdbuf();
+    auto j = nlohmann::json::parse(ss.str());
+    int k = 0;
+    for (auto& p : j["phrases"]) {
+        for (auto& s : p["syllables"]) {
+            if (std::find(ids.begin(), ids.end(), k) != ids.end()) {
+                s["flags"].push_back(flag);
+            }
+            ++k;
+        }
+    }
+    return cuicui::io::parseSyllableBank(j.dump());
+}
+
+/// First syllable of each of 40 taps (one key press each), in the given order mode.
+std::vector<int> firstSyllables(const SyllableBank& b, OrderMode order, bool reserve, std::uint64_t seed) {
+    PlayContext ctx;
+    ctx.order = order;
+    ctx.releaseAlarm = reserve;
+    ModeAB m;
+    m.prepare(kSr);
+    m.reset(seed);
+    m.setBank(&b);
+    std::vector<std::pair<long long, PlayEvent>> ev;
+    for (int k = 0; k < 40; ++k) {
+        ev.push_back({480 + 24000LL * k, noteOn(60 + k % 12)});
+        ev.push_back({480 + 24000LL * k + 2880, noteOff(60 + k % 12)});
+    }
+    const auto run = drive(m, ev, 480 + 24000LL * 41, 256, ctx);
+    std::vector<int> out;
+    for (const auto& q : run.reqs) {
+        if (q.first) {
+            out.push_back(q.syllable);
+        }
+    }
+    return out;
+}
+
+} // namespace
+
+TEST_CASE("bank flags: no_note and no_tap keep a syllable from starting a key press") {
+    using cuicui::io::parseSyllableBank;
+    const std::string head =
+        R"({"format":"cuicui.syllable_bank","version":1,"contour_rate_hz":1000,)"
+        R"("centres_cents":{"rule":1,"steady":1,"landing":1,"average":1},"phrases":[{"id":0,"syllables":[)";
+    const std::string syl = R"({"f_hz":[1000,1000],"a":[0,1],"anchors":{"rule":1,"steady":1,"landing":1,"average":1},)";
+    const auto b = parseSyllableBank(head + syl + R"("t_ms":0,"flags":["no_note"]},)" + syl +
+                                     R"("t_ms":5,"flags":["hop","no_tap"]},)" + syl + R"("t_ms":10,"flags":["hop"]},)" +
+                                     syl + R"("t_ms":15,"label":"alarm"},)" + syl + R"("t_ms":20}]}]})");
+    CHECK_FALSE(b.isTapSyllable(0));
+    CHECK_FALSE(b.isTapSyllable(1));
+    CHECK(b.isTapSyllable(2));
+    CHECK_FALSE(b.isTapSyllable(3)); // a release call never starts a key press either
+    CHECK(b.isTapSyllable(4));
+    CHECK(b.tapSyllables() == std::vector<int>{2, 4});
+    CHECK(b.playableSyllables().size() == 4); // flagged syllables still sing in phrases
+    CHECK_THROWS_AS(parseSyllableBank(head + syl + R"("t_ms":0,"flags":"no_note"}]}]})"), cuicui::io::SyllableBankError);
+    CHECK_THROWS_AS(parseSyllableBank(head + syl + R"("t_ms":0,"flags":[3]}]}]})"), cuicui::io::SyllableBankError);
+    for (int i = 0; i < realBank().numSyllables(); ++i) { // the committed bank flags none (TUNE1: no "no clear note")
+        CHECK(realBank().isTapSyllable(i) == !realBank().isReleaseSyllable(i));
+    }
+}
+
+TEST_CASE("bank flags: flagged syllables never start a key press; every other first pick is unchanged") {
+    const auto& plain = realBank();
+    std::vector<int> flagged; // every third playable syllable
+    for (std::size_t i = 0; i < plain.playableSyllables().size(); i += 3) {
+        flagged.push_back(plain.playableSyllables()[i]);
+    }
+    const auto isFlagged = [&](int s) { return std::find(flagged.begin(), flagged.end(), s) != flagged.end(); };
+    for (const char* flag : {"no_note", "no_tap"}) {
+        const auto b = flaggedBank(flagged, flag);
+        for (auto order : {OrderMode::RandomStart, OrderMode::PhraseStart, OrderMode::Shuffled}) {
+            for (std::uint64_t seed : {3ULL, 77ULL, 20261013ULL}) {
+                INFO(flag << " order " << static_cast<int>(order) << " seed " << seed);
+                const auto got = firstSyllables(b, order, true, seed);
+                const auto before = firstSyllables(plain, order, true, seed);
+                REQUIRE(got.size() == 40);
+                REQUIRE(before.size() == 40);
+                int kept = 0;
+                for (std::size_t k = 0; k < got.size(); ++k) {
+                    CHECK_FALSE(isFlagged(got[k]));
+                    if (order != OrderMode::PhraseStart && !isFlagged(before[k])) {
+                        CHECK(got[k] == before[k]); // a redraw only where the old pick was flagged
+                        ++kept;
+                    }
+                }
+                if (order != OrderMode::PhraseStart) {
+                    CHECK(kept >= 15);
+                }
+                // the R1 / PROTO1 playing (no reserve) ignores the flags, draw for draw
+                CHECK(firstSyllables(b, order, false, seed) == firstSyllables(plain, order, false, seed));
+            }
+        }
+    }
+}
+
+TEST_CASE("bank flags: a held key still sings the flagged syllables inside its phrases") {
+    const auto& plain = realBank();
+    std::vector<int> flagged(plain.playableSyllables().begin(), plain.playableSyllables().end());
+    flagged.erase(flagged.begin()); // all playable syllables but the first one may not start a key press
+    const auto b = flaggedBank(flagged, "no_tap");
+    REQUIRE(b.tapSyllables().size() == 1);
+    PlayContext ctx;
+    ModeAB m;
+    m.prepare(kSr);
+    m.reset(11);
+    m.setBank(&b);
+    const auto run = drive(m, {{480, noteOn(64)}, {480 + 4 * 48000, noteOff(64)}}, 6 * 48000, 256, ctx);
+    REQUIRE(run.reqs.size() > 3);
+    CHECK(run.reqs[0].syllable == b.tapSyllables().front());
+    int flaggedSung = 0;
+    for (std::size_t i = 1; i < run.reqs.size(); ++i) {
+        flaggedSung += std::find(flagged.begin(), flagged.end(), run.reqs[i].syllable) != flagged.end() ? 1 : 0;
+    }
+    CHECK(flaggedSung > 0);
 }

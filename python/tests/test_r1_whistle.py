@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 from scipy import signal
 
-from cuicui.bank import anchors, bank_hash, build_bank, load_bank, validate_bank
+from cuicui.bank import anchors, bank_hash, build_bank, load_bank, load_corrections, validate_bank
 from cuicui.reference import singing as ref
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -42,8 +42,11 @@ def test_bank_asset_is_valid_and_small(bank_json):
 
 @pytest.mark.skipif(not REC.exists(), reason="recording 22938 not on this machine")
 def test_bank_rebuild_is_reproducible(bank_json):
+    # WP-R5: rule E (the default) + the notes set by ear next to the bank (D-031, D-032)
     rebuilt = build_bank(REC, REC.with_suffix(".json"), name="zf_22938", species="zebra finch",
-                         description=bank_json["description"])
+                         description=bank_json["description"],
+                         created_by=bank_json["source"]["created_by"],
+                         corrections=load_corrections(BANK_PATH.parent / "note_corrections.json"))
     assert rebuilt["hash"] == bank_json["hash"]
 
 

@@ -9,9 +9,9 @@ from pathlib import Path
 import jsonschema
 
 
-def schema_path() -> Path:
-    """`schemas/syllable_bank.schema.json` at the repository root."""
-    return Path(__file__).resolve().parents[3] / "schemas" / "syllable_bank.schema.json"
+def schema_path(name: str = "syllable_bank") -> Path:
+    """`schemas/<name>.schema.json` at the repository root (default: the syllable bank's)."""
+    return Path(__file__).resolve().parents[3] / "schemas" / f"{name}.schema.json"
 
 
 def validate_bank(bank: dict) -> list[str]:

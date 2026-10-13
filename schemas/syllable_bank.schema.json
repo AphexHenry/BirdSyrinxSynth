@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cuicuiinstruments.com/schemas/syllable_bank.schema.json",
   "title": "cuicui.syllable_bank",
-  "description": "A bird's real syllables (1 ms pitch and amplitude curves) grouped into its real phrases, with each syllable's note under four rules. Built by `python -m cuicui.bank`. WP-R1, decision D-026.",
+  "description": "A bird's real syllables (1 ms pitch and amplitude curves) grouped into its real phrases, with each syllable's note under four rules. Built by `python -m cuicui.bank`. WP-R1, decision D-026; notes set by ear and rule_used values added in WP-R5 (D-032).",
   "type": "object",
   "additionalProperties": true,
   "required": ["format", "version", "name", "contour_rate_hz", "centres_cents", "phrases"],
@@ -75,7 +75,7 @@
             {
               "type": "object",
               "properties": {
-                "rule_used": { "enum": ["steady part", "ending"] },
+                "rule_used": { "enum": ["steady part", "ending", "loud ending", "whole", "ear"] },
                 "steady_ms": { "type": "integer", "minimum": 0 },
                 "rule_span_ms": {
                   "type": "array",

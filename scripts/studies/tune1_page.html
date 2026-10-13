@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Syllable Tuning</title>
+<style>
+  :root {
+    --bg: #f7f6f1; --card: #ffffff; --fg: #1f1e1b; --muted: #6d6b64; --line: #e2e0d8;
+    --accent: #2e6b4f; --accent-fg: #ffffff; --track: #d9d6cc; --chip: #eef3ef; --warn: #a3471b;
+    --moved: #c9752b; --now: #2e6b4f; --tick: #57544c; --tick-e: #2e6b4f; --curve: #e8572a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141413; --card: #1d1d1b; --fg: #ecebe5; --muted: #9b998f; --line: #34332f;
+      --accent: #7cc49d; --accent-fg: #10231a; --track: #3a3934; --chip: #23302a; --warn: #f0a070;
+      --moved: #f0a35a; --now: #7cc49d; --tick: #b5b2a8; --tick-e: #7cc49d; --curve: #ff8a5c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.45rem; margin: 0 0 4px; }
+  h2 { font-size: 1.1rem; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; }
+  ol, ul { padding-left: 1.2rem; } li { margin: 4px 0; }
+  button { font: inherit; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--fg); padding: 6px 11px; cursor: pointer; }
+  button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+  button.small { padding: 3px 8px; font-size: .85rem; }
+  button:disabled { opacity: .45; cursor: default; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 8px 0; }
+  .muted { color: var(--muted); }
+  .hint { color: var(--muted); font-size: .88rem; }
+  .status { color: var(--muted); font-size: .9rem; min-height: 1.4em; }
+  .warn { color: var(--warn); }
+  .bar { height: 6px; background: var(--track); border-radius: 3px; margin: 6px 0 10px; overflow: hidden; }
+  .bar > div { height: 100%; background: var(--accent); width: 0; }
+  .toolbar { position: sticky; top: 0; z-index: 5; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+  .toolbar .title { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; padding: 5px 10px; }
+  .seg button.on { background: var(--chip); font-weight: 600; }
+  .cards { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .syl { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .syl.moved { border-left-color: var(--moved); }
+  .syl.nc { border-left-color: var(--muted); opacity: .75; }
+  .syl.now { outline: 3px solid var(--now); outline-offset: 1px; }
+  .syl .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .syl .head .state { margin-left: auto; font-size: .85rem; color: var(--muted); }
+  .syl.moved .head .state { color: var(--moved); font-weight: 600; }
+  .tag { font-size: .75rem; border: 1px solid var(--line); border-radius: 999px; padding: 0 7px; color: var(--muted); }
+  .ctrl { display: grid; grid-template-columns: 44px 1fr 92px; gap: 10px; align-items: center; margin-top: 6px; }
+  .ctrl .val { font-variant-numeric: tabular-nums; text-align: right; font-size: .9rem; }
+  input[type=range] { width: 100%; accent-color: var(--accent); margin: 0; }
+  .ticks { position: relative; margin: 0 102px 0 54px; height: 0; }
+  .tick { position: absolute; transform: translateX(-50%); font-size: .7rem; line-height: 1; padding: 2px 3px; border-radius: 4px; border: 1px solid var(--line); background: var(--bg); color: var(--tick); cursor: pointer; white-space: nowrap; }
+  .tick::before { content: ""; position: absolute; left: 50%; top: -5px; height: 5px; border-left: 1px solid var(--tick); }
+  .tick.e { color: var(--tick-e); border-color: var(--tick-e); font-weight: 700; }
+  .nudge { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
+  .nudge label { margin-left: auto; font-size: .88rem; }
+  .rules { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-top: 8px; font-size: .85rem; }
+  .rules button { padding: 2px 7px; font-size: .8rem; }
+  .rules button.use { border-color: var(--accent); color: var(--accent); }
+  canvas[hidden] { display: none; }
+  canvas { display: block; width: 100%; height: 64px; margin-top: 8px; border-radius: 6px; background: var(--bg); }
+  kbd { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; margin-left: 6px; color: var(--muted); background: var(--bg); }
+  textarea { width: 100%; min-height: 100px; font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+  table.rl { border-collapse: collapse; font-size: .85rem; margin: 6px 0; }
+  table.rl td { padding: 2px 10px 2px 0; vertical-align: top; }
+  @media (max-width: 560px) { .ctrl { grid-template-columns: 40px 1fr 74px; } .ticks { margin: 0 84px 0 50px; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Every syllable on one note</h1>
+  <p class="sub" id="subline">progress is saved</p>
+
+  <section id="intro" class="card">
+    <ol>
+      <li>Every syllable of the bird is placed on the same note, <b id="refName">A7</b>, by the new default rule (loudness-weighted average). A soft tone plays that note before each syllable.</li>
+      <li>Work through the groups. <b>Play the row</b> plays every syllable of the group one after another on the note, so the odd ones stand out.</li>
+      <li>For a syllable that sounds <b>off the note</b>, move its slider until it sits on the note (right = higher). ▶ replays it with the tone. Leave the ones that sound right at zero.</li>
+      <li>If a syllable has <b>no clear note</b> at all (you can't say which note it is), tick "no clear note" instead.</li>
+      <li>The small buttons <b>A … high</b> play the syllable placed by each note rule; the ticks under the slider show where each rule puts it, and "use" sets the slider there. Use them as you like.</li>
+      <li>At the end, a short <b>check round</b>: 10 syllables come back once more, without the rule buttons. Then download the results.</li>
+    </ol>
+    <table class="rl" id="ruleTable"></table>
+    <p class="hint">Headphones, same volume throughout. Keys: <b>Space</b> play/stop the row, <b>Esc</b> stop.</p>
+    <div class="row"><button id="start" class="primary">Start</button><button id="restart" hidden>Start over</button></div>
+    <p class="status" id="introStatus"></p>
+  </section>
+
+  <section id="work" hidden>
+    <div class="card toolbar">
+      <div class="title"><b id="groupLabel"></b><span class="muted" id="groupHint"></span></div>
+      <div class="bar"><div id="barFill"></div></div>
+      <div class="row">
+        <button id="rowBtn" class="primary">▶ Play the row<kbd>space</kbd></button>
+        <button id="stopBtn">■ Stop</button>
+        <span class="muted">Reference:</span>
+        <span class="seg" id="refMode"><button data-v="before">tone before</button><button data-v="drone">held tone</button><button data-v="none">none</button></span>
+        <label class="muted">tone <input type="range" id="toneDb" min="-24" max="0" step="1" style="width:90px;vertical-align:middle"></label>
+        <label class="muted"><input type="checkbox" id="curves"> pitch curves</label>
+      </div>
+    </div>
+    <div id="cards" class="cards"></div>
+    <div class="row" style="margin-top:14px">
+      <button id="prevBtn">◀ Previous group</button>
+      <button id="nextBtn" class="primary">Next group ▶</button>
+      <span class="status" id="workStatus"></span>
+    </div>
+  </section>
+
+  <section id="check" hidden>
+    <div class="card toolbar">
+      <div class="title"><b>Check round</b><span class="muted">10 syllables once more: set each on the note again (leave it at zero if it already is)</span></div>
+      <div class="row">
+        <button id="stopBtn2">■ Stop</button>
+        <span class="muted">Reference:</span>
+        <span class="seg" id="refMode2"><button data-v="before">tone before</button><button data-v="drone">held tone</button><button data-v="none">none</button></span>
+      </div>
+    </div>
+    <div id="checkCards" class="cards"></div>
+    <div class="row" style="margin-top:14px"><button id="finishBtn" class="primary">Finish ▶</button><span class="status" id="checkStatus"></span></div>
+  </section>
+
+  <section id="done" class="card" hidden>
+    <h2>Done, thank you.</h2>
+    <p id="doneSummary" class="muted"></p>
+    <p>Optional: anything you noticed (syllables that were hard, a rule that seemed right more often…)?</p>
+    <textarea id="comment" placeholder="Your notes…"></textarea>
+    <div class="row"><button id="download" class="primary">Download results (.json)</button><button id="copy">Copy results</button><button id="backBtn">◀ Back to the groups</button></div>
+    <p class="status" id="doneStatus"></p>
+    <textarea id="resultsText" readonly hidden></textarea>
+  </section>
+</main>
+
+<!--DATA-->
+<script>
+(function () {
+  "use strict";
+  const D = window.STUDY;
+  const KEY = D.study.toLowerCase() + "-progress-" + D.design_hash;
+  const $ = (id) => document.getElementById(id);
+  const ITEMS = D.items, REF = D.reference_cents, MIN = -700, MAX = 700, CORRECTED = 25;
+  const RULE_IDS = D.rules.map((r) => r.id);
+  const SHORT = { landing: "L", average: "Av", loudest: "Lo", high: "H" };   // tick labels under the slider
+  let state = load() || fresh();
+  let timers = [];
+
+  function fresh() {
+    return { study: D.study, version: D.version, design_hash: D.design_hash, started: new Date().toISOString(),
+             phase: "intro", group: 0, moves: {}, no_clear_note: {}, listens: {}, row_plays: {}, group_ms: {},
+             check: null, settings: { ref: "before", toneDb: -9, curves: false }, user_agent: navigator.userAgent };
+  }
+  function load() { try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable: the page still works */ } }
+
+  // ------------------------------------------------------------------ audio: the PROTO1 voice, synthesised here
+  const A = {
+    ctx: null, master: null, bus: null, live: [],
+    init() {
+      if (this.ctx) { if (this.ctx.state === "suspended") this.ctx.resume(); return; }
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.ctx = ctx;
+      this.master = ctx.createGain(); this.master.gain.value = Math.pow(10, -8 / 20);
+      const lim = ctx.createDynamicsCompressor();
+      lim.threshold.value = -6; lim.ratio.value = 12; lim.attack.value = 0.002; lim.release.value = 0.12;
+      this.master.connect(lim).connect(ctx.destination);
+      this.bus = ctx.createGain(); this.bus.connect(this.master);
+      const conv = ctx.createConvolver(); conv.buffer = this.roomIR(0.22);
+      const wet = ctx.createGain(); wet.gain.value = 0.09;            // about -21 dB of room, as PROTO1
+      this.bus.connect(conv).connect(wet).connect(this.master);
+    },
+    roomIR(rt60) {
+      const ctx = this.ctx, n = Math.round(0.4 * ctx.sampleRate), b = ctx.createBuffer(2, n, ctx.sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const d = b.getChannelData(ch); let lp = 0;
+        for (let i = 0; i < n; i++) { const t = i / ctx.sampleRate; lp += 0.35 * ((Math.random() * 2 - 1) - lp); d[i] = t < 0.004 ? 0 : lp * Math.exp(-6.91 * t / rt60); }
+      }
+      return b;
+    },
+    syllable(it, shiftCents) {                                     // PROTO1 Voice.render (colour on)
+      const ctx = this.ctx, sr = ctx.sampleRate, F = it.f, Am = it.a, m = F.length, k = Math.pow(2, shiftCents / 1200);
+      const n = Math.round(m / 1000 * sr), buf = ctx.createBuffer(1, n, sr), d = buf.getChannelData(0), gain = 0.315;
+      let ph = 0;
+      for (let i = 0; i < n; i++) {
+        const tms = i / sr * 1000; let j = Math.floor(tms), fr = tms - j;
+        if (j >= m - 1) { j = m - 2; fr = 1; }
+        const f = Math.exp(Math.log(F[j]) * (1 - fr) + Math.log(F[j + 1]) * fr) * k;
+        const a = Am[j] * (1 - fr) + Am[j + 1] * fr;
+        ph += 2 * Math.PI * f / sr; if (ph > 2 * Math.PI) ph -= 2 * Math.PI;
+        d[i] = gain * a * (Math.sin(ph) + 0.0316 * Math.sin(2 * ph + 0.6) + 0.0224 * Math.sin(3 * ph + 0.9));
+      }
+      return buf;
+    },
+    tone(cents, dur) {
+      const ctx = this.ctx, sr = ctx.sampleRate, n = Math.round(dur * sr), buf = ctx.createBuffer(1, n, sr), d = buf.getChannelData(0);
+      const f = 440 * Math.pow(2, (cents - 6900) / 1200), amp = 0.315 * Math.pow(10, state.settings.toneDb / 20);
+      for (let i = 0; i < n; i++) { const t = i / sr; d[i] = amp * Math.min(1, t / 0.01) * Math.min(1, (dur - t) / 0.04) * Math.sin(2 * Math.PI * f * t); }
+      return buf;
+    },
+    at(buf, t) { const s = this.ctx.createBufferSource(); s.buffer = buf; s.connect(this.bus); s.start(t); this.live.push(s); s.onended = () => { this.live = this.live.filter((x) => x !== s); }; },
+    stop() { this.live.forEach((s) => { try { s.stop(); } catch (e) { /* already stopped */ } }); this.live = []; timers.forEach(clearTimeout); timers = []; document.querySelectorAll(".syl.now").forEach((el) => el.classList.remove("now")); },
+  };
+
+  // ------------------------------------------------------------------ placement: note on the reference
+  const move = (id) => state.moves[id] || 0;
+  const shiftFor = (it, rule) => REF - (rule ? it.notes[rule] : it.notes.E - move(it.id));
+  const ruleMove = (it, r) => it.notes.E - it.notes[r];             // the slider value that equals rule r
+  function count(id, what) { const l = state.listens[id] || (state.listens[id] = { play: 0, rules: {} }); if (what === "play") l.play++; else l.rules[what] = (l.rules[what] || 0) + 1; save(); }
+
+  function flash(cardEl, delay, ms) {
+    if (!cardEl) return;
+    timers.push(setTimeout(() => cardEl.classList.add("now"), Math.max(0, delay * 1000)));
+    timers.push(setTimeout(() => cardEl.classList.remove("now"), Math.max(0, delay * 1000 + ms + 120)));
+  }
+  // one syllable (with the reference); shift in cents
+  function playOne(it, shift, cardEl) {
+    A.init(); A.stop();
+    const ctx = A.ctx, t0 = ctx.currentTime + 0.05, mode = state.settings.ref, len = it.ms / 1000;
+    let ts = t0;
+    if (mode === "before") { A.at(A.tone(REF, 0.25), t0); ts = t0 + 0.37; }
+    else if (mode === "drone") { A.at(A.tone(REF, 0.25 + len + 0.3), t0); ts = t0 + 0.25; }
+    A.at(A.syllable(it, shift), ts);
+    flash(cardEl, ts - ctx.currentTime, it.ms);
+  }
+  function playRow(ids) {
+    A.init(); A.stop();
+    const ctx = A.ctx, mode = state.settings.ref, step = mode === "before" ? 0.9 : 0.45, t0 = ctx.currentTime + 0.08;
+    if (mode === "drone") A.at(A.tone(REF, ids.length * step + 0.4), t0);
+    ids.forEach((id, k) => {
+      const it = ITEMS[id], t = t0 + k * step + (mode === "drone" ? 0.25 : 0);
+      if (mode === "before") A.at(A.tone(REF, 0.25), t);
+      const ts = t + (mode === "before" ? 0.37 : 0);
+      A.at(A.syllable(it, shiftFor(it)), ts);
+      flash($("c" + id), ts - ctx.currentTime, it.ms);
+    });
+    const g = state.group; state.row_plays[g] = (state.row_plays[g] || 0) + 1; save();
+  }
+
+  // ------------------------------------------------------------------ cards
+  const fmt = (c) => (c === 0 ? "on the note" : (c > 0 ? "+" : "−") + (Math.abs(c) / 100).toFixed(2) + " st");
+  function stateText(id) { return state.no_clear_note[id] ? "no clear note" : Math.abs(move(id)) >= CORRECTED ? "moved " + fmt(move(id)) : "on the note"; }
+
+  function drawCurve(cv, it, shift) {
+    const w = cv.clientWidth || 300, h = 64, dpr = window.devicePixelRatio || 1;
+    cv.width = w * dpr; cv.height = h * dpr;
+    const g = cv.getContext("2d"); g.scale(dpr, dpr); g.clearRect(0, 0, w, h);
+    const css = getComputedStyle(document.documentElement);
+    const y = (c) => h / 2 - (c - REF) / 800 * (h / 2 - 4);
+    g.strokeStyle = css.getPropertyValue("--tick").trim(); g.setLineDash([4, 3]); g.beginPath(); g.moveTo(0, y(REF)); g.lineTo(w, y(REF)); g.stroke(); g.setLineDash([]);
+    g.strokeStyle = css.getPropertyValue("--curve").trim(); g.lineWidth = 2;
+    const n = it.f.length;
+    for (let i = 1; i < n; i++) {
+      if (it.a[i] < 0.1) continue;
+      const c0 = 1200 * Math.log2(it.f[i - 1] / 440) + 6900 + shift, c1 = 1200 * Math.log2(it.f[i] / 440) + 6900 + shift;
+      g.globalAlpha = Math.min(1, 0.25 + it.a[i]);
+      g.beginPath(); g.moveTo((i - 1) / (n - 1) * w, y(c0)); g.lineTo(i / (n - 1) * w, y(c1)); g.stroke();
+    }
+    g.globalAlpha = 1;
+  }
+
+  function makeCard(it, check) {
+    const el = document.createElement("div");
+    el.className = "syl"; el.id = (check ? "k" : "c") + it.id;
+    const get = () => (check ? (state.check.moves[it.id] || 0) : move(it.id));
+    const set = (v) => {
+      v = Math.max(MIN, Math.min(MAX, Math.round(v / 5) * 5));
+      if (check) state.check.moves[it.id] = v; else state.moves[it.id] = v;
+      save(); refresh();
+    };
+    const num = check ? (state.check.ids.indexOf(it.id) + 1) + " / " + state.check.ids.length : "#" + it.id;
+    el.innerHTML =
+      '<div class="head"><b>' + num + '</b>' + (check ? "" : '<span>' + it.label + '</span><span class="muted">' + it.ms + ' ms</span>' + (it.call ? '<span class="tag">release call</span>' : "")) +
+      '<span class="state"></span></div>' +
+      '<div class="ctrl"><button class="play" title="Play on the note">▶</button><input type="range" min="' + MIN + '" max="' + MAX + '" step="5" aria-label="Move syllable ' + it.id + '"><span class="val"></span></div>' +
+      (check ? "" : '<div class="ticks"></div>') +
+      '<div class="nudge"><button class="small" data-d="-100">−1 st</button><button class="small" data-d="-10">−10 c</button><button class="small" data-d="10">+10 c</button><button class="small" data-d="100">+1 st</button><button class="small" data-z="1">0</button>' +
+      (check ? "" : '<label><input type="checkbox" class="nc"> no clear note</label>') + "</div>" +
+      (check ? "" : '<div class="rules"><span class="muted">Hear:</span></div>') +
+      '<canvas hidden></canvas>';
+    const sl = el.querySelector("input[type=range]"), val = el.querySelector(".val"), st = el.querySelector(".state"), cv = el.querySelector("canvas");
+    const shiftNow = () => REF - (it.notes.E - get());
+    function refresh() {
+      const v = get();
+      sl.value = v; val.textContent = (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) + " c";
+      if (check) { st.textContent = Math.abs(v) >= CORRECTED ? "moved " + fmt(v) : "on the note"; el.classList.toggle("moved", Math.abs(v) >= CORRECTED); }
+      else { st.textContent = stateText(it.id); el.classList.toggle("moved", Math.abs(v) >= CORRECTED && !state.no_clear_note[it.id]); el.classList.toggle("nc", !!state.no_clear_note[it.id]); }
+      cv.hidden = !state.settings.curves;
+      if (state.settings.curves) drawCurve(cv, it, shiftNow());
+    }
+    el.querySelector(".play").addEventListener("click", (e) => { e.currentTarget.blur(); playOne(it, shiftNow(), el); if (!check) count(it.id, "play"); });
+    sl.addEventListener("input", () => set(+sl.value));
+    sl.addEventListener("change", () => playOne(it, shiftNow(), el));
+    el.querySelectorAll(".nudge button").forEach((b) => b.addEventListener("click", (e) => {
+      e.currentTarget.blur(); set(b.dataset.z ? 0 : get() + (+b.dataset.d)); playOne(it, shiftNow(), el);
+    }));
+    if (!check) {
+      const nc = el.querySelector(".nc");
+      nc.checked = !!state.no_clear_note[it.id];
+      nc.addEventListener("change", () => { if (nc.checked) state.no_clear_note[it.id] = true; else delete state.no_clear_note[it.id]; save(); refresh(); });
+      // ticks: where each rule would put the syllable (rows avoid overlaps)
+      const tk = el.querySelector(".ticks"), placed = [];
+      RULE_IDS.map((r) => ({ r, m: ruleMove(it, r) })).sort((a, b) => a.m - b.m).forEach(({ r, m }) => {
+        const pct = (Math.max(MIN, Math.min(MAX, m)) - MIN) / (MAX - MIN) * 100;
+        let row = 0; while (placed.some((p) => p.row === row && Math.abs(p.pct - pct) < 3.5)) row++;
+        placed.push({ pct, row });
+        const t = document.createElement("span");
+        t.className = "tick" + (r === "E" ? " e" : ""); t.style.left = pct + "%"; t.style.top = (6 + row * 16) + "px";
+        t.textContent = (m < MIN ? "‹" : "") + (SHORT[r] || r) + (m > MAX ? "›" : "");
+        t.title = "Rule " + r + ": " + fmt(Math.round(m)) + " — click to set the slider here";
+        t.addEventListener("click", () => { set(m); playOne(it, shiftNow(), el); });
+        tk.appendChild(t);
+      });
+      tk.style.height = (8 + 16 * (1 + Math.max(...placed.map((p) => p.row)))) + "px";
+      const rules = el.querySelector(".rules");
+      let use = null;
+      D.rules.forEach((r) => {
+        const b = document.createElement("button");
+        b.textContent = r.label; b.title = r.text + " (" + fmt(Math.round(ruleMove(it, r.id))) + ")";
+        b.addEventListener("click", (e) => {
+          e.currentTarget.blur(); playOne(it, shiftFor(it, r.id), el); count(it.id, r.id);
+          if (!use) { use = document.createElement("button"); use.className = "use"; rules.appendChild(use); }
+          use.textContent = "use " + r.label; use.onclick = () => { set(ruleMove(it, r.id)); playOne(it, shiftNow(), el); };
+        });
+        rules.appendChild(b);
+      });
+    }
+    el._refresh = refresh;
+    refresh();
+    return el;
+  }
+
+  // ------------------------------------------------------------------ screens
+  let groupT0 = 0;
+  function show(phase) {
+    state.phase = phase; save();
+    ["intro", "work", "check", "done"].forEach((s) => { $(s).hidden = s !== (phase === "groups" ? "work" : phase); });
+  }
+  function leaveGroup() { if (groupT0) { const g = state.group; state.group_ms[g] = (state.group_ms[g] || 0) + Math.round(performance.now() - groupT0); groupT0 = 0; save(); } }
+  function showGroup() {
+    A.stop();
+    const g = D.groups[state.group];
+    $("groupLabel").textContent = "Group " + (state.group + 1) + " / " + D.groups.length + " · " + g.title + " · " + g.items.length + " syllables";
+    $("barFill").style.width = (100 * state.group / D.groups.length) + "%";
+    $("groupHint").textContent = "zero = rule E on " + D.reference_name;
+    $("prevBtn").disabled = state.group === 0;
+    $("nextBtn").textContent = state.group === D.groups.length - 1 ? "To the check round ▶" : "Next group ▶";
+    const cards = $("cards"); cards.innerHTML = "";
+    g.items.forEach((id) => cards.appendChild(makeCard(ITEMS[id], false)));
+    $("workStatus").textContent = "";
+    groupT0 = performance.now();
+  }
+  function startCheck() {
+    if (!state.check) {
+      const shuffle = (xs) => { const a = xs.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+      const ids = ITEMS.map((it) => it.id).filter((id) => !state.no_clear_note[id]);
+      const corrected = shuffle(ids.filter((id) => Math.abs(move(id)) >= CORRECTED)).slice(0, 6);
+      const rest = shuffle(ids.filter((id) => Math.abs(move(id)) < CORRECTED)).slice(0, 10 - corrected.length);
+      state.check = { ids: shuffle(corrected.concat(rest)), moves: {}, started: new Date().toISOString() };
+      save();
+    }
+    show("check");
+    const cc = $("checkCards"); cc.innerHTML = "";
+    state.check.ids.forEach((id) => cc.appendChild(makeCard(ITEMS[id], true)));
+    window.scrollTo(0, 0);
+  }
+  function finish() {
+    A.stop();
+    state.finished = state.finished || new Date().toISOString(); save();
+    show("done");
+    const ids = ITEMS.map((it) => it.id);
+    const moved = ids.filter((id) => Math.abs(move(id)) >= CORRECTED && !state.no_clear_note[id]).length;
+    const nc = ids.filter((id) => state.no_clear_note[id]).length;
+    const pl = (n, w) => n + " " + w + (n === 1 ? "" : "s");
+    $("doneSummary").textContent = pl(moved, "syllable") + " moved, " + nc + " marked 'no clear note', " + (ids.length - moved - nc) + " left on the note.";
+  }
+  function setRefMode(v) {
+    state.settings.ref = v; save();
+    document.querySelectorAll(".seg button").forEach((b) => b.classList.toggle("on", b.dataset.v === v));
+  }
+
+  // ------------------------------------------------------------------ wiring
+  $("ruleTable").innerHTML = D.rules.map((r) => "<tr><td><b>" + r.label + "</b>" + (SHORT[r.id] ? " (" + SHORT[r.id] + ")" : "") + "</td><td>" + r.text + "</td></tr>").join("");
+  $("refName").textContent = D.reference_name;
+  $("subline").textContent = D.study + " · " + ITEMS.length + " syllables in " + D.groups.length + " groups · about 20–30 minutes · progress is saved";
+  document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", (e) => { e.currentTarget.blur(); setRefMode(b.dataset.v); }));
+  setRefMode(state.settings.ref);
+  $("toneDb").value = state.settings.toneDb;
+  $("toneDb").addEventListener("input", () => { state.settings.toneDb = +$("toneDb").value; save(); });
+  $("curves").checked = !!state.settings.curves;
+  $("curves").addEventListener("change", () => { state.settings.curves = $("curves").checked; save(); document.querySelectorAll(".syl").forEach((el) => el._refresh && el._refresh()); });
+  $("start").addEventListener("click", () => {
+    A.init();
+    if (state.phase === "check") { startCheck(); return; }
+    if (state.phase === "done") { finish(); return; }
+    show("groups"); showGroup();
+  });
+  $("restart").addEventListener("click", () => { if (!confirm("Erase every saved setting and start from group 1?")) return; state = fresh(); save(); location.reload(); });
+  $("rowBtn").addEventListener("click", (e) => { e.currentTarget.blur(); playRow(D.groups[state.group].items); });
+  $("stopBtn").addEventListener("click", (e) => { e.currentTarget.blur(); A.stop(); });
+  $("stopBtn2").addEventListener("click", (e) => { e.currentTarget.blur(); A.stop(); });
+  $("prevBtn").addEventListener("click", (e) => { e.currentTarget.blur(); if (state.group > 0) { leaveGroup(); state.group--; save(); showGroup(); window.scrollTo(0, 0); } });
+  $("nextBtn").addEventListener("click", (e) => {
+    e.currentTarget.blur(); leaveGroup();
+    if (state.group < D.groups.length - 1) { state.group++; save(); showGroup(); window.scrollTo(0, 0); }
+    else startCheck();
+  });
+  $("finishBtn").addEventListener("click", (e) => { e.currentTarget.blur(); finish(); });
+  $("backBtn").addEventListener("click", () => { show("groups"); showGroup(); window.scrollTo(0, 0); });
+  function resultsJson() {
+    const out = Object.assign({}, state, { comment: $("comment").value, sample_rate: A.ctx ? A.ctx.sampleRate : null, reference_cents: REF });
+    return JSON.stringify(out, null, 1);
+  }
+  $("download").addEventListener("click", () => {
+    const blob = new Blob([resultsJson()], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = D.study.toLowerCase() + "_results_" + new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-") + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    $("doneStatus").textContent = "Saved to your Downloads folder as " + a.download;
+  });
+  $("copy").addEventListener("click", async () => {
+    const txt = resultsJson();
+    try { await navigator.clipboard.writeText(txt); $("doneStatus").textContent = "Copied. Paste it in the chat."; }
+    catch (e) { const ta = $("resultsText"); ta.hidden = false; ta.value = txt; ta.select(); $("doneStatus").textContent = "Select-all and copy the text below (⌘C)."; }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.target && (e.target.tagName === "TEXTAREA")) return;
+    if (e.key === "Escape") { A.stop(); return; }
+    if (e.key === " " && state.phase === "groups" && !$("work").hidden) { e.preventDefault(); if (A.live.length) A.stop(); else playRow(D.groups[state.group].items); }
+  });
+  if (state.phase !== "intro") {
+    $("start").textContent = state.phase === "done" ? "Show results" : state.phase === "check" ? "Resume the check round" : "Resume at group " + (state.group + 1);
+    $("restart").hidden = false;
+    $("introStatus").textContent = Object.keys(state.moves).length + " slider settings saved on this computer.";
+  }
+})();
+</script>
+</body>
+</html>

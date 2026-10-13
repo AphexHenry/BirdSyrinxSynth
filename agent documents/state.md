@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-10-12 — by: R4 session (R4 done, tag wp-R4; MELODY1 check; re-plan: next WP = R5, then R3)
+**Last updated:** 2026-10-13 — by: R5 session (R5 done, tag wp-R5; next WP in line: R3; the human wants to improve the performing part next)
 
 ## Status legend
 
@@ -38,7 +38,7 @@
 | 15a | R0 | Approach review + understanding studies + web prototype (PITCH1/2, COLOUR1/2, ENGINE1, PROTO1) | C5 | done | 2026-10-11 | wp-R0 | `reviews/2026-10-11_approach_review.md` |
 | 15b | R1 | Real syllables + whistle voice + playing modes A/B in the plugin (modular) | R0 | done | 2026-10-12 | wp-R1 | `work_packages/WP-R1_real_syllables_whistle_voice.md` |
 | 15c | R4 | Perform UI + presets (revised C6) | R1 | done | 2026-10-12 | wp-R4 | `work_packages/WP-R4_perform_ui_presets.md` |
-| 15d | R5 | Melodies that sound right: syllable notes (MELODY2) + held keys | R4 | todo | | | `work_packages/WP-R5_melodies.md` |
+| 15d | R5 | Melodies that sound right: syllable notes (MELODY2) + held keys | R4 | done | 2026-10-13 | wp-R5 | `work_packages/WP-R5_melodies.md` |
 | 15e | R3 | Variations within the bird's style (+ more recordings) | R1, R5 | todo | | | `work_packages/WP-R3_variations_within_style.md` |
 | 15f | R2 | Anatomical engine as optional voice (click fix, colour, re-test) | R1 | optional | | | `work_packages/WP-R2_anatomical_voice_optional.md` |
 | 16 | C6 | Perform UI, Physiology page, presets v1 | C5 | optional | | | `work_packages/WP-C6_perform_ui_presets.md` |
@@ -55,6 +55,20 @@
 | 27 | G3 | Differentiable twin & amortised inference | E3 | optional | | | `work_packages/WP-G3_differentiable_amortized.md` |
 
 ## Current capabilities
+
+**2026-10-13 — WP-R5: melodies that sound right** (done, tag wp-R5).
+- **A syllable's note is the pitch of its loud part** (rule E, the loudness-weighted mean; chosen by the human after the blind test MELODY2). Frames more than 20 dB below the syllable's peak are ignored.
+  - 11 notes were set by ear in the tuning test TUNE1 (`assets/voicebanks/zf_22938/note_corrections.json`); they override every rule.
+  - Rule E agrees with the ear within a semitone for 98 % of the syllables (the old rule 47 %).
+- **The bank `zf_22938` is rebuilt** (hash `9e0e08577e5a`): the same 123 syllables, order and curves; only the notes changed.
+  - 99 % of playable syllables are within 2 semitones of their loud part (R1: 75 %).
+  - Tapped tunes land on their notes, and the "ending goes up" of R1's Frère Jacques is gone.
+  - Blind, the new bank beat the old one on 5 of 5 screens (MELODY3: 67 vs 49).
+- **New factory preset "Finch, melody"** (the human's choice for held keys): follow the keyboard, Snap to note 100 %, Birds 1. Every syllable of a held key lands on the note.
+- **The bank builder** (`python -m cuicui.bank`): `--note-rule` (default E; A rebuilds R1's bank), `--corrections` (format `cuicui.note_corrections` v1).
+  - Bank flags `no_note` / `no_tap` keep a syllable from starting a key press, while it still sings in phrases (D-032). The factory bank uses none.
+- **The Play page** calls the default note rule "Loud part".
+- **Studies with results:** MELODY2, TUNE1, MELODY3 (`agent documents/studies/`).
 
 **2026-10-12 — WP-R4: the instrument window** (done, tag wp-R4).
 - **Play page:**
@@ -98,6 +112,10 @@
 | Tap → sound (whistle) | 36 samples first sample, 53 to > −80 dBFS (latency 35 = 0.73 ms) | R1 | 2026-10-12 |
 | Plugin vs prototype (same MIDI, seed) | events identical; pitch ≤ 1.3e-5 c; waveform −138 dB | R1 | 2026-10-12 |
 | Whistle clicks (LF at onsets / offsets) | −72.4 / −75.8 dB (real bird −61.0 / −61.8) | R1 | 2026-10-12 |
+| Playable syllables within ±2 st of their loud part | 99.2 % (R1 bank 74.6 %) | R5 | 2026-10-13 |
+| Note rule within ±1 st of the ear (TUNE1) | rule E 97.6 % (old rule A 47.2 %) | R5 | 2026-10-13 |
+| Listener repeatability, tuning by ear | median 32 c (corrected items 45 c) | R5 | 2026-10-13 |
+| Blind tune rating, tapped Frère Jacques (MELODY3) | new bank 67.2, R1 bank 49.4 (5 seeds) | R5 | 2026-10-13 |
 | Editor CPU, message thread (Retina) | 2.0–2.3 % at rest; 8–10 % while four birds sing (30 fps) | R4 | 2026-10-12 |
 | Audio with the editor open + preset switching | 0 allocations; worst block 0.09–0.10 ms of 5.33 ms | R4 | 2026-10-12 |
 | Generative density syl/s | 3.23 / 4.50 / 7.00 at Density 0.2 / 0.5 / 0.8 | C5 | 2026-09-18 |
@@ -150,15 +168,20 @@
   - D-030:
     - The 0.6 s threshold is fixed (not a control), and a chord let go together gives one call per bird.
     - The PROTO1 web prototype and the Python reference keep the calls inside phrases; reference tests run with D-030 off.
-- **Tunes (MELODY1, 2026-10-12):**
-  - The default note rule (D-019) sets a glide's note at its quiet bottom (the plain mean of its last quarter). The bird then shifts such syllables up by 3–6 semitones, and tapped tunes come out wrong (the end of Frère Jacques "goes up").
-  - 25 % of playable syllables have a note more than 2 semitones from their loud part.
-  - Held keys add 2–3 off-note syllables per key unless Snap to note is 100 %.
-  - Fix: WP-R5. Study: `agent documents/studies/MELODY1_tapped_melody.md`.
+- **Tunes (WP-R5, 2026-10-13):**
+  - The notes are fixed (rule E + 11 notes by ear).
+  - But a **tapped** tune with one random syllable per key is recognised on some draws only (MELODY3: 2 of 4 answered screens; WP-R5 criterion 3 FAIL). Neighbouring syllables have unrelated shapes, and the steps between notes get lost.
+  - For tunes, hold the keys with the preset "Finch, melody". Tap strategies are in the backlog. The human accepted the fail for now.
+  - With "Finch, melody", legato tunes are clearer than before but less recognisable than taps ("acceptable for now").
+  - Item 11 of the R5 page ends high: its last syllable, #97, was tuned +250 c by ear (+65 c in the check round). Backlog.
+- **The bird's centre moved +43 c with the new notes**, so at Snap to note 0 (own height) the whole bird sits 43 c lower than in R1. It is the same bird (criterion 6).
+- **Note-rule choices:** "Steady parts", "landing" and "average" also ignore the frames below −20 dB now (median change 20 c).
+- **With Birds 1**, a long press's release call (D-030) can overlap the next key's first syllable.
 - **Study scripts** in `scripts/review/` and `scripts/studies/` are research code outside the ruff gate. Some lint warnings remain (line length, `zip(strict=)`).
 
 ## Open questions for the human
 
+- **Next focus (the human, 2026-10-13):** "i need to move on to improve the performing part". The next WP in the table is R3 (variations + more recordings). Whether a performing-focused WP comes first is the human's call (protocol §3.5 / §8).
 - D1 is parked (`optional`) until after Phase B. Recordings live at `/Users/baptistebohelay/Dev/research/birds synth/data/annotations/` (`22938.wav` + `22938.json`; custom tseg JSON schema 1.2). When D1 starts: bird identity, label meanings (`peep`, `swipe`, `peep_grillon`, …), and whether to copy into `data/raw/zebra_finch/`.
 - JUCE licence choice before any public release (see `decisions.md` D-003).
 - B6 CPU: accept ~3 % per voice, or spend a WP on optimisation (skip gated-off RK4, UVT dirty-flag)? Recommendation: accept for now, revisit if the plugin feels heavy.
@@ -243,3 +266,7 @@
 | 2026-10-12 | R4 | Claude Opus 5.5 | feedback: the long rising "alarm" only on the release of a ≥ 0.6 s press (D-030); core playing mode + tests; real alarms + demos on the listening page; still awaiting approval |
 | 2026-10-12 | R4 | Claude Opus 5.5 | approved, committed and tagged wp-R4 (D-028…D-030 accepted; play test R4PLAY not run before approval) |
 | 2026-10-12 | – | Claude Opus 5.5 | MELODY1 (why R1's tapped tune was clear and live playing is not): human listening + analysis. Re-plan (D-031): WP-R5 "melodies" before R3 |
+| 2026-10-12 | R5 | Claude Opus 5.5 | started WP-R5 (note rule by blind test MELODY2, bank rebuild, held keys in melodies) |
+| 2026-10-13 | R5 | Claude Opus 5.5 | MELODY2 (no pre-registered winner; human chose rule E), TUNE1 (11 notes by ear, E matches the ear 97.6 %), bank rebuilt `9e0e08577e5a`, MELODY3 (new bank beats old 5/5; wide-sweep avoidance not adopted; criterion 3 FAIL), held keys: human chose (c) → preset "Finch, melody"; D-032, D-033 proposed |
+| 2026-10-13 | R5 | Claude Opus 5.5 | WP-R5 awaiting approval (criteria 1, 2, 4–7 PASS; criterion 3 FAIL, decision pending; listening page opened) |
+| 2026-10-13 | R5 | Claude Opus 5.5 | human: new notes "much better", 14/15 "sound the same", criterion 3 FAIL accepted ("i need to move on to improve the performing part"); D-031…D-033 accepted; committed and tagged wp-R5 |

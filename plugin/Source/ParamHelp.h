@@ -13,8 +13,8 @@ inline constexpr std::pair<std::string_view, std::string_view> kParamHelp[] = {
                    "experimental physical model of the syrinx; its controls are on the Advanced page."},
     {"voice.harmonics", "Adds the bird's own 2nd and 3rd harmonics, at the level measured in the recording "
                         "(-30 / -33 dB). Off: a pure whistle."},
-    {"perf.note_rule", "What counts as a syllable's note when it is placed on your key: its longest steady part "
-                       "(else its ending), its steady parts, where it lands, or its average."},
+    {"perf.note_rule", "What counts as a syllable's note when it is placed on your key: its loud part (the "
+                       "default), its steady parts, where it lands, or its average. Notes tuned by ear win."},
     {"perf.mapping", "Own height: each key sings its note name at the bird's natural height. Follow keys: the bird "
                      "sings three octaves above your key, so tunes keep their shape (best from C4 to C6)."},
     {"perf.first_on_note", "The first syllable of each key press lands exactly on your note. Off: it keeps its "

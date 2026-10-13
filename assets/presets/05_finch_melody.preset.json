@@ -1,0 +1,14 @@
+{
+  "format": "cuicui.preset",
+  "version": 1,
+  "name": "Finch, melody",
+  "category": "Finch",
+  "author": "Cuicui Instruments",
+  "description": "For tunes: the bird sings three octaves above your keys and every syllable lands on your note; one bird, each new key takes over from the last. Hold the keys: the tune stays clear (WP-R5).",
+  "voice_bank": "zf_22938",
+  "parameters": {
+    "perf.mapping": "Follow the keyboard",
+    "perf.snap": 1.0,
+    "perf.polyphony": 1
+  }
+}

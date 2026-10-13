@@ -1,0 +1,88 @@
+{
+ "format": "cuicui.note_corrections",
+ "version": 1,
+ "bank": "zf_22938",
+ "made_by": "TUNE1, by ear (the human, 2026-10-13), study agent documents/studies/TUNE1_every_syllable_by_ear.md, design 6657cac8a7ac",
+ "reference_rule": "E",
+ "reference_cents": 10500.0,
+ "syllables": [
+  {
+   "segment": 20,
+   "label": "swipe",
+   "note_cents": 10868.6,
+   "move_cents": -30.0,
+   "rule_e_cents": 10838.6
+  },
+  {
+   "segment": 87,
+   "label": "swipe",
+   "note_cents": 10065.6,
+   "move_cents": 65.0,
+   "rule_e_cents": 10130.6
+  },
+  {
+   "segment": 95,
+   "label": "Hswipe",
+   "note_cents": 10778.2,
+   "move_cents": 120.0,
+   "rule_e_cents": 10898.2
+  },
+  {
+   "segment": 103,
+   "label": "swipe",
+   "note_cents": 10418.7,
+   "move_cents": -80.0,
+   "rule_e_cents": 10338.7
+  },
+  {
+   "segment": 107,
+   "label": "swipe",
+   "note_cents": 10150.4,
+   "move_cents": 40.0,
+   "rule_e_cents": 10190.4
+  },
+  {
+   "segment": 108,
+   "label": "swipe",
+   "note_cents": 10875.6,
+   "move_cents": -50.0,
+   "rule_e_cents": 10825.6
+  },
+  {
+   "segment": 115,
+   "label": "swipe+swipe",
+   "note_cents": 10111.8,
+   "move_cents": 250.0,
+   "rule_e_cents": 10361.8
+  },
+  {
+   "segment": 122,
+   "label": "swipe",
+   "note_cents": 10734.4,
+   "move_cents": 130.0,
+   "rule_e_cents": 10864.4
+  },
+  {
+   "segment": 123,
+   "label": "swipe",
+   "note_cents": 10654.0,
+   "move_cents": 40.0,
+   "rule_e_cents": 10694.0
+  },
+  {
+   "segment": 129,
+   "label": "swipe",
+   "note_cents": 10407.6,
+   "move_cents": -30.0,
+   "rule_e_cents": 10377.6
+  },
+  {
+   "segment": 142,
+   "label": "swipe",
+   "note_cents": 10716.8,
+   "move_cents": 90.0,
+   "rule_e_cents": 10806.8
+  }
+ ],
+ "description": "Notes heard by the listener with every syllable placed on A7 by rule E (loudness-weighted mean); move_cents = how far the syllable was moved to sound on the note; note_cents = rule E - move. Applied by python -m cuicui.bank --corrections; a corrected note replaces every rule's value (D-032)."
+}

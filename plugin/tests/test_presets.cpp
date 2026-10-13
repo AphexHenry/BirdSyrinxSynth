@@ -112,6 +112,59 @@ TEST_CASE("presets: a preset sets what it lists and resets everything else to de
     CHECK(pm.isModified());
 }
 
+TEST_CASE("presets: 'Finch, melody' is for tunes: follow the keyboard, every syllable on the note, one bird (WP-R5)") {
+    SyrinxAudioProcessor proc;
+    auto& pm = proc.presets();
+    const auto* melody = pm.findFactory("Finch, melody");
+    REQUIRE(melody != nullptr);
+    REQUIRE(pm.factory().size() >= 5);
+    CHECK(pm.factory()[4].name == "Finch, melody"); // with the other Finch presets, after "Finch, follow the keyboard"
+    proc.setParamPlain("out.room", 0.0f);
+    pm.load(*melody);
+    CHECK(plainOf(proc, "perf.mapping") == 1.0f); // follow the keyboard
+    CHECK(plainOf(proc, "perf.snap") == 1.0f);
+    CHECK(plainOf(proc, "perf.polyphony") == 1.0f);
+    CHECK(plainOf(proc, "perf.first_on_note") == 1.0f); // the rest stays at its default
+    CHECK(plainOf(proc, "perf.note_rule") == 0.0f);
+    CHECK(plainOf(proc, "out.room") == 1.0f);
+
+    // a legato tune of held keys: every syllable lands on its key's note, and each key takes over from the last
+    std::vector<cuicui::control::SyllableLogEntry> log(512);
+    proc.setSyllableLog(log.data(), static_cast<int>(log.size()));
+    proc.prepareToPlay(48000.0, 256);
+    juce::AudioBuffer<float> buf(2, 256);
+    const int keys[] = {60, 62, 64, 60, 64, 65, 67};
+    const int step = 48000 / 2 / 256; // 0.5 s per note, in blocks
+    for (int blk = 0; blk < step * 9; ++blk) {
+        juce::MidiBuffer midi;
+        for (int k = 0; k < 7; ++k) {
+            if (blk == 1 + k * step) {
+                midi.addEvent(juce::MidiMessage::noteOn(1, keys[k], static_cast<juce::uint8>(100)), 8);
+            }
+            if (blk == 1 + (k + 1) * step) {
+                midi.addEvent(juce::MidiMessage::noteOff(1, keys[k]), 0); // released as the next key goes down
+            }
+        }
+        proc.processBlock(buf, midi);
+    }
+    const int n = proc.syllableLogCount();
+    const auto& bank = proc.syllableBank();
+    REQUIRE(n > 14); // held keys sing more than one syllable each
+    int lastKeyStart = -1;
+    for (int i = 0; i < n; ++i) {
+        const auto& r = log[static_cast<std::size_t>(i)].request;
+        INFO("syllable " << i << " key " << r.note);
+        CHECK(std::abs(bank.anchorCents(r.syllable, cuicui::control::NoteRule::Rule) + r.shiftCents - r.targetCents) < 1e-6);
+        CHECK(std::abs(r.targetCents - (r.note + 36) * 100.0) < 1e-9); // three octaves above the key
+        if (r.first) {
+            CHECK(r.note != lastKeyStart);
+            lastKeyStart = r.note;
+        } else if (!r.releaseAlarm) {
+            CHECK(r.note == lastKeyStart); // only the newest key sings on (one bird)
+        }
+    }
+}
+
 TEST_CASE("presets: choices by name and switches as true/false; bad files are refused") {
     SyrinxAudioProcessor proc;
     auto& pm = proc.presets();

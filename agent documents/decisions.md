@@ -273,7 +273,7 @@
 ### D-031 — Tunes: re-open the note of a glide (D-019); WP-R5 before R3
 - **Status:**
   - the order: accepted (human: "adapt the plan so I can call the next agent", 2026-10-12);
-  - the rule: open, decided by MELODY2 in WP-R5.
+  - the rule: **E, the loudness-weighted mean**, accepted 2026-10-13 with WP-R5. MELODY2 had no pre-registered winner: the best, B, beat A by 9.5 points, just under the 10 required; C beat it by 8.6 and E by 8.8. The rule said "keep A and ask", and the human chose E ("1a"). TUNE1 then found E within ±100 c of the ear for 97.6 % of the syllables (the old rule: 47 %). See D-032.
 - **Context** (MELODY1, `studies/MELODY1_tapped_melody.md`):
   - R1's tapped Frère Jacques was recognisable. With other random syllables, or with held keys, it was not.
   - With the melody on a plain tone beside it, the human heard that its last notes "go up".
@@ -293,3 +293,52 @@
 - **Consequences:**
   - D-019's default changes if MELODY2 says so. The four note-rule choices stay available.
   - R3 starts from the rebuilt bank.
+
+### D-032 — Notes by rule E, notes set by ear, and syllables that never start a key press
+- **Status:** accepted · 2026-10-13 · WP-R5 (the human: "the corrected pitch should dominate any type of pitch decision"; "1a": keep the 11 notes set by ear)
+- **Context:** MELODY2 (rule E chosen, D-031) and TUNE1 (`studies/TUNE1_every_syllable_by_ear.md`). The listener heard every syllable placed on A7 by rule E: 112 of 123 sounded on the note, and 11 were moved by 30–250 c. None was marked "no clear note".
+- **Decision:**
+  - **Bank builder** (`python -m cuicui.bank`):
+    - the default note rule is **E**, the loudness-weighted mean (`BuildSettings.note_rule = "E"`);
+    - with E, every anchor (rule, steady, landing, average) ignores the frames more than **20 dB below** the syllable's peak;
+    - `--note-rule A` rebuilds the R1 bank exactly (hash `09b16ee69ac8`);
+    - new options `--corrections <file>` and `--created-by`.
+  - **New file format `cuicui.note_corrections` v1** (`schemas/note_corrections.schema.json`). It lists syllables by annotation segment and label, each with either `note_cents` (the note heard) or `no_clear_note: true`. The factory file is `assets/voicebanks/zf_22938/note_corrections.json` (11 notes, from TUNE1).
+  - **A note set by ear replaces every rule's value** for its syllable (rule, steady, landing, average). The syllable gets `rule_used: "ear"`, the flag `"ear"`, and a span covering the whole contour. A correction that names a missing segment or a different label stops the build.
+  - **Bank format v1, additive:**
+    - `rule_used` may also be "loud ending", "whole" or "ear";
+    - the flags "ear", "no_note" (a "no clear note" syllable) and "no_tap" (set by the builder);
+    - `build.note_rule`, `build.quiet_floor_db`, `build.corrections`, and the stats `ear_notes` / `no_note`.
+  - **Core:** syllables flagged "no_note" or "no_tap" never start a key press.
+    - API: `SyllableBank::isTapSyllable`, `tapSyllables()`.
+    - `PhraseOrder::begin` redraws a flagged random first pick from the singer's own stream, so every other pick is unchanged. A phrase start moves to its first syllable allowed to start a key press.
+    - Such syllables still sing inside phrases.
+    - The rule applies only with D-030's reserve (the default playing). The R1 / PROTO1 playing ignores the flags, draw for draw.
+  - **Plugin:** the default note-rule choice is labelled **"Loud part"** (host choice text and Play page). The help text says notes tuned by ear win.
+  - **The rebuilt factory bank** `zf_22938`, hash `9e0e08577e5a`:
+    - unchanged: the same 123 syllables, order, labels, onsets and curves;
+    - new: the centres 10545.7 / 10531.2 / 10471.2 / 10424.5 c;
+    - no flags apart from "ear" (11) and the existing "hop".
+- **Consequences:**
+  - Sounds placed by a note change: placement, own-height centre, first syllable on the note.
+  - Phrases at Snap to note 0 move as a whole by the centre's change (−43 c).
+  - The web prototype carries the new bank.
+  - Recordings added in R3 can have their own corrections file.
+
+### D-033 — Held keys in tunes: the "Finch, melody" preset
+- **Status:** accepted · 2026-10-13 · WP-R5 (the human, from the held-key comparison page: "generally c is better")
+- **Context:** WP-R5 §4.3 offered four options, rendered on three tunes, held 0.35 s or legato:
+  - (a) the phrase goes on only after a hold threshold;
+  - (b) no closing call when the next key follows at once;
+  - (c) a "Finch, melody" preset;
+  - (d) nothing.
+
+  MELODY3 (blind) also tested "taps never start with a very wide sweep" (loud part > 8 semitones). It was not adopted: +4.8 points, better on 2 of 4 screens.
+- **Decision:**
+  - **New factory preset "Finch, melody"** (`assets/presets/05_finch_melody.preset.json`, after the Finch presets): follow the keyboard, Snap to note 100 %, Birds 1. Every syllable of a held key lands on the note, and each new key takes over from the last.
+  - **Not picked, so not shipped:** (a) and (b). They were built only as prototype switches for the renders, and removed afterwards.
+  - The other factory presets move one number up (06–11); presets are found by name.
+- **Consequences:**
+  - The default sound and the other presets are unchanged.
+  - Tapped tunes (one random syllable per key) are still recognised only on some draws (MELODY3, WP-R5 criterion 3). The human accepted this for now: "i need to move on to improve the performing part". Tap strategies are in the backlog.
+

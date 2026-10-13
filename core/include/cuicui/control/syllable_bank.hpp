@@ -16,8 +16,14 @@ namespace cuicui::control {
 /// held long enough ends with one when it is released.
 inline constexpr std::string_view kReleaseLabelPrefix = "alarm";
 
-/// Which part of a syllable is its "note" (D-019). Index into the anchor/centre arrays.
-/// Rule = longest steady part (±50 c, ≥ 20 ms), else the ending (default).
+/// Bank flags (D-032) that keep a syllable from starting a key press: "no_note" (the listener heard no clear note,
+/// TUNE1) and "no_tap" (set by the bank builder). Such syllables still sing inside phrases.
+inline constexpr std::string_view kNoNoteFlag = "no_note";
+inline constexpr std::string_view kNoTapFlag = "no_tap";
+
+/// Which part of a syllable is its "note" (D-019, D-031). Index into the anchor/centre arrays.
+/// Rule = the bank's default: since WP-R5 the loudness-weighted mean ("loud part"; R1 banks: the longest steady
+/// part, else the ending). Notes set by ear (D-032) replace every rule's value for their syllables.
 enum class NoteRule { Rule = 0, Steady = 1, Landing = 2, Average = 3 };
 inline constexpr int kNoteRuleCount = 4;
 
@@ -81,6 +87,10 @@ public:
     [[nodiscard]] const std::vector<int>& playableSyllables() const noexcept { return playable_; }
     /// Median silence the bird leaves before a release syllable inside its phrases (ms); 60 if unknown.
     [[nodiscard]] double releaseGapMs() const noexcept { return releaseGapMs_; }
+    /// D-032: may this syllable start a key press? False for the bank flags "no_note" / "no_tap" and for the
+    /// release syllables. `tapSyllables()` lists the playable ones that may (empty = none flagged… or none left).
+    [[nodiscard]] bool isTapSyllable(int syl) const noexcept { return tapFlag_[static_cast<std::size_t>(syl)] != 0; }
+    [[nodiscard]] const std::vector<int>& tapSyllables() const noexcept { return tap_; }
 
 private:
     friend struct SyllableBankBuilder;
@@ -89,8 +99,8 @@ private:
     std::vector<BankSyllable> syllables_;
     std::vector<BankPhrase> phrases_;
     std::vector<std::string> labels_;
-    std::vector<unsigned char> releaseFlag_;
-    std::vector<int> release_, playable_;
+    std::vector<unsigned char> releaseFlag_, tapFlag_;
+    std::vector<int> release_, playable_, tap_;
     std::vector<double> releaseGaps_;
     double releaseGapMs_ = 60.0;
     std::array<double, kNoteRuleCount> centreCents_{};
@@ -113,10 +123,11 @@ struct SyllableBankBuilder {
         p.startS = startS;
         bank.phrases_.push_back(p);
     }
-    /// Append a syllable to the current phrase. `hz` and `amp` have one value per ms.
+    /// Append a syllable to the current phrase. `hz` and `amp` have one value per ms. `tap` = false: it never
+    /// starts a key press (bank flags "no_note" / "no_tap", D-032).
     void addSyllable(int tMs, const std::vector<double>& hz, const std::vector<float>& amp,
                      const std::array<double, kNoteRuleCount>& anchors, int spanBegin, int spanEnd,
-                     std::string label) {
+                     std::string label, bool tap = true) {
         auto& p = bank.phrases_.back();
         BankSyllable s;
         s.phrase = bank.numPhrases() - 1;
@@ -143,6 +154,11 @@ struct SyllableBankBuilder {
         }
         (release ? bank.release_ : bank.playable_).push_back(index);
         bank.releaseFlag_.push_back(release ? 1 : 0);
+        const bool startsKeys = tap && !release;
+        bank.tapFlag_.push_back(startsKeys ? 1 : 0);
+        if (startsKeys) {
+            bank.tap_.push_back(index);
+        }
         bank.syllables_.push_back(s);
         bank.labels_.push_back(std::move(label));
         ++p.count;

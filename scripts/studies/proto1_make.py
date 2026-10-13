@@ -5,8 +5,8 @@ Builds listening/PROTO1/index.html (self-contained) from the committed syllable 
 of 22938, grouped into the bird's real phrases, with per-syllable note anchors for each pitch rule.
 Audio is synthesised in the page (whistle, or whistle + colour); see scripts/studies/proto1_page.html.
 
-The bank recipe moved to `python/cuicui/bank` in WP-R1 (unchanged; the rebuilt bank is identical to
-the R0 one). `--rebuild` rebuilds the bank from the recording first.
+The bank recipe moved to `python/cuicui/bank` in WP-R1. `--rebuild` rebuilds the bank from the recording first,
+with the WP-R5 recipe: rule E and the notes set by ear next to the bank (`note_corrections.json`, D-031/D-032).
 
 usage: python/.venv/bin/python scripts/studies/proto1_make.py [--rebuild]
 """
@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "python"))
-from cuicui.bank import build_bank, load_bank, write_bank  # noqa: E402
+from cuicui.bank import build_bank, load_bank, load_corrections, write_bank  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 OUT = ROOT / "listening/PROTO1"
@@ -28,8 +28,10 @@ BANK = ROOT / "assets/voicebanks/zf_22938/bank.json"
 
 def main():
     if "--rebuild" in sys.argv[1:]:
+        old = json.loads(BANK.read_text()) if BANK.exists() else {}
         bank = build_bank(REC, REC.with_suffix(".json"), name="zf_22938", species="zebra finch",
-                          description=json.loads(BANK.read_text())["description"] if BANK.exists() else "")
+                          description=old.get("description", ""), created_by="WP-R5",
+                          corrections=load_corrections(BANK.parent / "note_corrections.json"))
         write_bank(bank, BANK)
     bank = load_bank(BANK)
     phrases = bank["phrases"]

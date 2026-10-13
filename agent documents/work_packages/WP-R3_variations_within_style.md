@@ -55,3 +55,10 @@
   - Anything in R3 that depends on a syllable's note (transposition ranges, variation placement) must use the new anchors.
   - Do not build on the old D-019 "ending" values.
 - **Notes for new banks.** New recordings must get their notes with R5's rule: `python -m cuicui.bank` will carry it.
+
+## Notes from WP-R5
+
+- **Banks are built with rule E** (the loudness-weighted mean, D-031) by default. A new recording's bank gets its notes by rule E, with no corrections. For `zf_22938`, always pass `--corrections assets/voicebanks/zf_22938/note_corrections.json`: without it, the 11 notes set by ear are lost. See D-032.
+- **Checking a new bank's notes by ear:** the TUNE1 page (`scripts/studies/tune1_make.py` + `tune1_page.html`) places every syllable on one note and records corrections. It writes a `cuicui.note_corrections` file through `tune1_analyze.py`. To reuse it, point it at the new bank and choose a reference note near that bank's centre.
+- **Keeping a syllable from starting a key press:** add the flag `no_tap` (or `no_note`) in the bank. The core honours it (D-032).
+- **Tapped tunes** with random syllables are hit-and-miss (WP-R5 criterion 3, MELODY3). If variations change how syllables are chosen, a tap strategy for tunes is in the backlog. Examples: keep the syllable along a line of taps; use narrow syllables only.

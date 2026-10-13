@@ -1,0 +1,2683 @@
+{
+ "study": "TUNE1",
+ "version": 1,
+ "reference_cents": 10500.0,
+ "reference_name": "A7 (3520 Hz)",
+ "bank": "zf_22938",
+ "bank_hash_E": "00b2b3836dbd",
+ "rules": [
+  {
+   "id": "A",
+   "label": "A",
+   "text": "longest steady part, else the ending (D-019, the old default)"
+  },
+  {
+   "id": "B",
+   "label": "B",
+   "text": "longest steady part, else the ending of the loud part"
+  },
+  {
+   "id": "C",
+   "label": "C",
+   "text": "longest steady part, else the loudness-weighted average"
+  },
+  {
+   "id": "D",
+   "label": "D",
+   "text": "steady parts (stability-weighted average)"
+  },
+  {
+   "id": "E",
+   "label": "E",
+   "text": "loudness-weighted average (the new default; the slider's zero)"
+  },
+  {
+   "id": "landing",
+   "label": "landing",
+   "text": "the last quarter (plain average)"
+  },
+  {
+   "id": "average",
+   "label": "average",
+   "text": "plain average"
+  },
+  {
+   "id": "loudest",
+   "label": "loudest",
+   "text": "the pitch at the loudest moment (frames within 3 dB of the peak)"
+  },
+  {
+   "id": "high",
+   "label": "high",
+   "text": "the high part: 80th percentile of the pitch over the frames within 12 dB of the peak"
+  }
+ ],
+ "groups": [
+  {
+   "title": "Phrases 1–4",
+   "items": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+   ]
+  },
+  {
+   "title": "Phrase 5",
+   "items": [
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+   ]
+  },
+  {
+   "title": "Phrase 6",
+   "items": [
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43
+   ]
+  },
+  {
+   "title": "Phrases 7–8",
+   "items": [
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60
+   ]
+  },
+  {
+   "title": "Phrase 9",
+   "items": [
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78
+   ]
+  },
+  {
+   "title": "Phrase 10",
+   "items": [
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100
+   ]
+  },
+  {
+   "title": "Phrase 11",
+   "items": [
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115
+   ]
+  },
+  {
+   "title": "Phrase 12",
+   "items": [
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122
+   ]
+  }
+ ],
+ "design_hash": "6657cac8a7ac",
+ "items": [
+  {
+   "id": 0,
+   "phrase": 0,
+   "index": 0,
+   "segment": 2,
+   "label": "swipe",
+   "ms": 86,
+   "notes": {
+    "A": 10352.5,
+    "B": 10516.7,
+    "C": 10511.2,
+    "D": 10539.8,
+    "E": 10511.2,
+    "landing": 10482.2,
+    "average": 10345.6,
+    "loudest": 10586.8,
+    "high": 10598.5
+   },
+   "call": false
+  },
+  {
+   "id": 1,
+   "phrase": 0,
+   "index": 1,
+   "segment": 4,
+   "label": "peep",
+   "ms": 164,
+   "notes": {
+    "A": 10656.0,
+    "B": 10565.0,
+    "C": 10592.6,
+    "D": 10620.8,
+    "E": 10592.6,
+    "landing": 10613.9,
+    "average": 10618.9,
+    "loudest": 10583.3,
+    "high": 10705.1
+   },
+   "call": false
+  },
+  {
+   "id": 2,
+   "phrase": 0,
+   "index": 2,
+   "segment": 5,
+   "label": "peep",
+   "ms": 77,
+   "notes": {
+    "A": 10663.4,
+    "B": 10663.4,
+    "C": 10663.4,
+    "D": 10509.7,
+    "E": 10480.1,
+    "landing": 10302.1,
+    "average": 10416.0,
+    "loudest": 10467.9,
+    "high": 10670.8
+   },
+   "call": false
+  },
+  {
+   "id": 3,
+   "phrase": 1,
+   "index": 0,
+   "segment": 7,
+   "label": "swipe",
+   "ms": 88,
+   "notes": {
+    "A": 10250.8,
+    "B": 10250.8,
+    "C": 10250.8,
+    "D": 10365.8,
+    "E": 10266.0,
+    "landing": 10417.3,
+    "average": 10324.3,
+    "loudest": 10239.7,
+    "high": 10515.7
+   },
+   "call": false
+  },
+  {
+   "id": 4,
+   "phrase": 1,
+   "index": 1,
+   "segment": 8,
+   "label": "peep_grillon",
+   "ms": 105,
+   "notes": {
+    "A": 10808.6,
+    "B": 10808.6,
+    "C": 10808.6,
+    "D": 10653.8,
+    "E": 10641.3,
+    "landing": 10724.4,
+    "average": 10652.4,
+    "loudest": 10688.1,
+    "high": 10820.2
+   },
+   "call": false
+  },
+  {
+   "id": 5,
+   "phrase": 2,
+   "index": 0,
+   "segment": 10,
+   "label": "peep_grillon",
+   "ms": 86,
+   "notes": {
+    "A": 10743.8,
+    "B": 10748.6,
+    "C": 10748.6,
+    "D": 10714.1,
+    "E": 10691.8,
+    "landing": 10659.5,
+    "average": 10680.2,
+    "loudest": 10730.7,
+    "high": 10778.5
+   },
+   "call": false
+  },
+  {
+   "id": 6,
+   "phrase": 2,
+   "index": 1,
+   "segment": 11,
+   "label": "Hswipe",
+   "ms": 107,
+   "notes": {
+    "A": 10654.1,
+    "B": 10656.4,
+    "C": 10656.4,
+    "D": 10630.7,
+    "E": 10620.5,
+    "landing": 10757.8,
+    "average": 10576.7,
+    "loudest": 10713.6,
+    "high": 10710.5
+   },
+   "call": false
+  },
+  {
+   "id": 7,
+   "phrase": 3,
+   "index": 0,
+   "segment": 13,
+   "label": "swipe",
+   "ms": 80,
+   "notes": {
+    "A": 10463.1,
+    "B": 10587.2,
+    "C": 10573.7,
+    "D": 10531.2,
+    "E": 10573.7,
+    "landing": 10474.7,
+    "average": 10357.4,
+    "loudest": 10643.8,
+    "high": 10645.4
+   },
+   "call": false
+  },
+  {
+   "id": 8,
+   "phrase": 3,
+   "index": 1,
+   "segment": 14,
+   "label": "swipe",
+   "ms": 136,
+   "notes": {
+    "A": 10573.7,
+    "B": 10505.8,
+    "C": 10569.2,
+    "D": 10546.9,
+    "E": 10569.2,
+    "landing": 10544.0,
+    "average": 10583.0,
+    "loudest": 10579.0,
+    "high": 10696.5
+   },
+   "call": false
+  },
+  {
+   "id": 9,
+   "phrase": 3,
+   "index": 2,
+   "segment": 15,
+   "label": "swipe",
+   "ms": 96,
+   "notes": {
+    "A": 10653.5,
+    "B": 10653.5,
+    "C": 10653.5,
+    "D": 10526.7,
+    "E": 10495.1,
+    "landing": 10291.2,
+    "average": 10384.6,
+    "loudest": 10506.8,
+    "high": 10656.0
+   },
+   "call": false
+  },
+  {
+   "id": 10,
+   "phrase": 3,
+   "index": 3,
+   "segment": 16,
+   "label": "swipe+swipe",
+   "ms": 195,
+   "notes": {
+    "A": 10358.4,
+    "B": 10360.4,
+    "C": 10360.4,
+    "D": 10242.8,
+    "E": 10244.7,
+    "landing": 10111.6,
+    "average": 10224.0,
+    "loudest": 10221.8,
+    "high": 10364.7
+   },
+   "call": false
+  },
+  {
+   "id": 11,
+   "phrase": 3,
+   "index": 4,
+   "segment": 17,
+   "label": "Lswipe",
+   "ms": 170,
+   "notes": {
+    "A": 10027.2,
+    "B": 10028.3,
+    "C": 10028.3,
+    "D": 10012.9,
+    "E": 10013.9,
+    "landing": 9988.7,
+    "average": 10003.3,
+    "loudest": 10017.2,
+    "high": 10037.9
+   },
+   "call": false
+  },
+  {
+   "id": 12,
+   "phrase": 4,
+   "index": 0,
+   "segment": 19,
+   "label": "swipe",
+   "ms": 76,
+   "notes": {
+    "A": 10523.6,
+    "B": 10574.9,
+    "C": 10526.2,
+    "D": 10632.1,
+    "E": 10526.2,
+    "landing": 10548.9,
+    "average": 10393.3,
+    "loudest": 10610.4,
+    "high": 10630.8
+   },
+   "call": false
+  },
+  {
+   "id": 13,
+   "phrase": 4,
+   "index": 1,
+   "segment": 20,
+   "label": "swipe",
+   "ms": 110,
+   "notes": {
+    "A": 11020.5,
+    "B": 11020.5,
+    "C": 11020.5,
+    "D": 10911.7,
+    "E": 10838.6,
+    "landing": 10000.8,
+    "average": 10674.9,
+    "loudest": 10866.8,
+    "high": 11032.3
+   },
+   "call": false
+  },
+  {
+   "id": 14,
+   "phrase": 4,
+   "index": 2,
+   "segment": 21,
+   "label": "swipe",
+   "ms": 152,
+   "notes": {
+    "A": 10791.1,
+    "B": 10791.1,
+    "C": 10791.1,
+    "D": 10591.9,
+    "E": 10675.2,
+    "landing": 10666.7,
+    "average": 10609.5,
+    "loudest": 10708.4,
+    "high": 10802.4
+   },
+   "call": false
+  },
+  {
+   "id": 15,
+   "phrase": 4,
+   "index": 3,
+   "segment": 22,
+   "label": "peep",
+   "ms": 116,
+   "notes": {
+    "A": 10842.0,
+    "B": 10842.0,
+    "C": 10842.0,
+    "D": 10765.2,
+    "E": 10777.7,
+    "landing": 10713.4,
+    "average": 10734.7,
+    "loudest": 10792.6,
+    "high": 10853.2
+   },
+   "call": false
+  },
+  {
+   "id": 16,
+   "phrase": 4,
+   "index": 4,
+   "segment": 23,
+   "label": "swipe",
+   "ms": 88,
+   "notes": {
+    "A": 10539.4,
+    "B": 10636.2,
+    "C": 10660.1,
+    "D": 10616.7,
+    "E": 10660.1,
+    "landing": 10721.5,
+    "average": 10646.3,
+    "loudest": 10666.8,
+    "high": 10726.3
+   },
+   "call": false
+  },
+  {
+   "id": 17,
+   "phrase": 4,
+   "index": 5,
+   "segment": 24,
+   "label": "peep",
+   "ms": 120,
+   "notes": {
+    "A": 10691.7,
+    "B": 10860.3,
+    "C": 10823.1,
+    "D": 10827.2,
+    "E": 10823.1,
+    "landing": 10736.3,
+    "average": 10803.3,
+    "loudest": 10832.9,
+    "high": 10925.3
+   },
+   "call": false
+  },
+  {
+   "id": 18,
+   "phrase": 4,
+   "index": 6,
+   "segment": 25,
+   "label": "peep",
+   "ms": 62,
+   "notes": {
+    "A": 10740.8,
+    "B": 10740.8,
+    "C": 10740.8,
+    "D": 10802.2,
+    "E": 10778.1,
+    "landing": 10754.4,
+    "average": 10802.7,
+    "loudest": 10752.7,
+    "high": 10852.1
+   },
+   "call": false
+  },
+  {
+   "id": 19,
+   "phrase": 4,
+   "index": 7,
+   "segment": 26,
+   "label": "peep",
+   "ms": 51,
+   "notes": {
+    "A": 10734.7,
+    "B": 10863.8,
+    "C": 10758.9,
+    "D": 10704.2,
+    "E": 10758.9,
+    "landing": 10776.0,
+    "average": 10679.2,
+    "loudest": 10848.4,
+    "high": 10877.9
+   },
+   "call": false
+  },
+  {
+   "id": 20,
+   "phrase": 4,
+   "index": 8,
+   "segment": 27,
+   "label": "swipe+swipe",
+   "ms": 117,
+   "notes": {
+    "A": 10144.2,
+    "B": 10144.2,
+    "C": 10144.2,
+    "D": 10376.0,
+    "E": 10370.7,
+    "landing": 10163.6,
+    "average": 10378.4,
+    "loudest": 10144.3,
+    "high": 10772.8
+   },
+   "call": false
+  },
+  {
+   "id": 21,
+   "phrase": 4,
+   "index": 9,
+   "segment": 28,
+   "label": "peep",
+   "ms": 79,
+   "notes": {
+    "A": 10404.1,
+    "B": 10507.2,
+    "C": 10455.3,
+    "D": 10445.3,
+    "E": 10455.3,
+    "landing": 10494.3,
+    "average": 10400.2,
+    "loudest": 10475.0,
+    "high": 10534.8
+   },
+   "call": false
+  },
+  {
+   "id": 22,
+   "phrase": 4,
+   "index": 10,
+   "segment": 29,
+   "label": "swipe",
+   "ms": 62,
+   "notes": {
+    "A": 10132.7,
+    "B": 10276.4,
+    "C": 10389.5,
+    "D": 10415.0,
+    "E": 10389.5,
+    "landing": 10196.9,
+    "average": 10369.8,
+    "loudest": 10343.6,
+    "high": 10535.3
+   },
+   "call": false
+  },
+  {
+   "id": 23,
+   "phrase": 4,
+   "index": 11,
+   "segment": 30,
+   "label": "swipe",
+   "ms": 101,
+   "notes": {
+    "A": 10390.3,
+    "B": 10438.8,
+    "C": 10406.3,
+    "D": 10245.5,
+    "E": 10406.3,
+    "landing": 10400.8,
+    "average": 10323.0,
+    "loudest": 10485.9,
+    "high": 10503.3
+   },
+   "call": false
+  },
+  {
+   "id": 24,
+   "phrase": 4,
+   "index": 12,
+   "segment": 31,
+   "label": "swipe",
+   "ms": 73,
+   "notes": {
+    "A": 10271.4,
+    "B": 10263.0,
+    "C": 10263.0,
+    "D": 10271.0,
+    "E": 10219.7,
+    "landing": 10268.6,
+    "average": 10121.1,
+    "loudest": 10249.9,
+    "high": 10276.1
+   },
+   "call": false
+  },
+  {
+   "id": 25,
+   "phrase": 4,
+   "index": 13,
+   "segment": 32,
+   "label": "peep",
+   "ms": 53,
+   "notes": {
+    "A": 10424.4,
+    "B": 10424.4,
+    "C": 10424.4,
+    "D": 10418.6,
+    "E": 10391.5,
+    "landing": 10152.1,
+    "average": 10332.8,
+    "loudest": 10414.0,
+    "high": 10447.1
+   },
+   "call": false
+  },
+  {
+   "id": 26,
+   "phrase": 4,
+   "index": 14,
+   "segment": 33,
+   "label": "peep",
+   "ms": 106,
+   "notes": {
+    "A": 10436.5,
+    "B": 10439.3,
+    "C": 10546.4,
+    "D": 10481.8,
+    "E": 10546.4,
+    "landing": 10419.7,
+    "average": 10534.1,
+    "loudest": 10575.8,
+    "high": 10708.1
+   },
+   "call": false
+  },
+  {
+   "id": 27,
+   "phrase": 4,
+   "index": 15,
+   "segment": 34,
+   "label": "swipe",
+   "ms": 103,
+   "notes": {
+    "A": 10650.2,
+    "B": 10650.2,
+    "C": 10650.2,
+    "D": 10439.3,
+    "E": 10480.0,
+    "landing": 10444.3,
+    "average": 10415.6,
+    "loudest": 10491.3,
+    "high": 10648.9
+   },
+   "call": false
+  },
+  {
+   "id": 28,
+   "phrase": 4,
+   "index": 16,
+   "segment": 35,
+   "label": "peep",
+   "ms": 85,
+   "notes": {
+    "A": 10734.3,
+    "B": 10734.3,
+    "C": 10734.3,
+    "D": 10771.4,
+    "E": 10784.6,
+    "landing": 10703.1,
+    "average": 10792.1,
+    "loudest": 10795.6,
+    "high": 10858.2
+   },
+   "call": false
+  },
+  {
+   "id": 29,
+   "phrase": 4,
+   "index": 17,
+   "segment": 36,
+   "label": "swipe",
+   "ms": 77,
+   "notes": {
+    "A": 9989.5,
+    "B": 10162.9,
+    "C": 10494.3,
+    "D": 10516.6,
+    "E": 10494.3,
+    "landing": 10025.9,
+    "average": 10401.5,
+    "loudest": 10519.3,
+    "high": 10659.4
+   },
+   "call": false
+  },
+  {
+   "id": 30,
+   "phrase": 4,
+   "index": 18,
+   "segment": 37,
+   "label": "peep",
+   "ms": 83,
+   "notes": {
+    "A": 10318.4,
+    "B": 10326.3,
+    "C": 10326.3,
+    "D": 10535.2,
+    "E": 10567.2,
+    "landing": 10620.8,
+    "average": 10503.9,
+    "loudest": 10646.4,
+    "high": 10725.8
+   },
+   "call": false
+  },
+  {
+   "id": 31,
+   "phrase": 4,
+   "index": 19,
+   "segment": 38,
+   "label": "swipe",
+   "ms": 65,
+   "notes": {
+    "A": 9852.8,
+    "B": 9972.7,
+    "C": 10277.3,
+    "D": 10339.1,
+    "E": 10277.3,
+    "landing": 9923.2,
+    "average": 10214.3,
+    "loudest": 10348.7,
+    "high": 10507.9
+   },
+   "call": false
+  },
+  {
+   "id": 32,
+   "phrase": 5,
+   "index": 0,
+   "segment": 40,
+   "label": "swipe",
+   "ms": 84,
+   "notes": {
+    "A": 10292.5,
+    "B": 10569.5,
+    "C": 10588.9,
+    "D": 10454.1,
+    "E": 10588.9,
+    "landing": 10403.7,
+    "average": 10331.5,
+    "loudest": 10659.9,
+    "high": 10674.5
+   },
+   "call": false
+  },
+  {
+   "id": 33,
+   "phrase": 5,
+   "index": 1,
+   "segment": 41,
+   "label": "swipe",
+   "ms": 76,
+   "notes": {
+    "A": 10511.2,
+    "B": 10438.1,
+    "C": 10556.0,
+    "D": 10565.5,
+    "E": 10556.0,
+    "landing": 10471.2,
+    "average": 10564.9,
+    "loudest": 10564.2,
+    "high": 10713.1
+   },
+   "call": false
+  },
+  {
+   "id": 34,
+   "phrase": 5,
+   "index": 2,
+   "segment": 42,
+   "label": "swipe",
+   "ms": 95,
+   "notes": {
+    "A": 10247.4,
+    "B": 10304.3,
+    "C": 10483.8,
+    "D": 10402.5,
+    "E": 10483.8,
+    "landing": 10259.0,
+    "average": 10391.5,
+    "loudest": 10460.8,
+    "high": 10634.2
+   },
+   "call": false
+  },
+  {
+   "id": 35,
+   "phrase": 5,
+   "index": 3,
+   "segment": 43,
+   "label": "peep",
+   "ms": 68,
+   "notes": {
+    "A": 10325.3,
+    "B": 10325.3,
+    "C": 10325.3,
+    "D": 10266.5,
+    "E": 10335.8,
+    "landing": 10242.0,
+    "average": 10293.4,
+    "loudest": 10335.9,
+    "high": 10395.5
+   },
+   "call": false
+  },
+  {
+   "id": 36,
+   "phrase": 5,
+   "index": 4,
+   "segment": 44,
+   "label": "swipe",
+   "ms": 127,
+   "notes": {
+    "A": 10328.0,
+    "B": 10328.0,
+    "C": 10328.0,
+    "D": 10175.7,
+    "E": 10211.1,
+    "landing": 10040.4,
+    "average": 10182.0,
+    "loudest": 10220.5,
+    "high": 10307.6
+   },
+   "call": false
+  },
+  {
+   "id": 37,
+   "phrase": 5,
+   "index": 5,
+   "segment": 45,
+   "label": "Lswipe",
+   "ms": 164,
+   "notes": {
+    "A": 9996.2,
+    "B": 9996.9,
+    "C": 9996.9,
+    "D": 10001.8,
+    "E": 9995.5,
+    "landing": 9964.9,
+    "average": 9981.4,
+    "loudest": 10001.5,
+    "high": 10022.0
+   },
+   "call": false
+  },
+  {
+   "id": 38,
+   "phrase": 5,
+   "index": 6,
+   "segment": 46,
+   "label": "Hswipe",
+   "ms": 64,
+   "notes": {
+    "A": 11144.3,
+    "B": 11144.3,
+    "C": 11144.3,
+    "D": 10880.4,
+    "E": 11016.1,
+    "landing": 11051.6,
+    "average": 10839.1,
+    "loudest": 11124.1,
+    "high": 11151.4
+   },
+   "call": false
+  },
+  {
+   "id": 39,
+   "phrase": 5,
+   "index": 7,
+   "segment": 47,
+   "label": "swipe",
+   "ms": 56,
+   "notes": {
+    "A": 10463.5,
+    "B": 10465.6,
+    "C": 10465.6,
+    "D": 10338.7,
+    "E": 10357.8,
+    "landing": 10196.7,
+    "average": 10356.1,
+    "loudest": 10360.2,
+    "high": 10467.7
+   },
+   "call": false
+  },
+  {
+   "id": 40,
+   "phrase": 5,
+   "index": 8,
+   "segment": 48,
+   "label": "peep",
+   "ms": 81,
+   "notes": {
+    "A": 10512.7,
+    "B": 10512.7,
+    "C": 10512.7,
+    "D": 10482.1,
+    "E": 10466.0,
+    "landing": 10486.8,
+    "average": 10464.9,
+    "loudest": 10446.2,
+    "high": 10510.6
+   },
+   "call": false
+  },
+  {
+   "id": 41,
+   "phrase": 5,
+   "index": 9,
+   "segment": 49,
+   "label": "peep",
+   "ms": 108,
+   "notes": {
+    "A": 10959.1,
+    "B": 10959.1,
+    "C": 10959.1,
+    "D": 10954.9,
+    "E": 10995.7,
+    "landing": 10887.5,
+    "average": 10996.9,
+    "loudest": 10991.5,
+    "high": 11062.1
+   },
+   "call": false
+  },
+  {
+   "id": 42,
+   "phrase": 5,
+   "index": 10,
+   "segment": 50,
+   "label": "Lpeep",
+   "ms": 98,
+   "notes": {
+    "A": 9912.9,
+    "B": 9990.7,
+    "C": 10042.2,
+    "D": 10006.6,
+    "E": 10042.2,
+    "landing": 9927.8,
+    "average": 10020.0,
+    "loudest": 10054.1,
+    "high": 10098.1
+   },
+   "call": false
+  },
+  {
+   "id": 43,
+   "phrase": 5,
+   "index": 11,
+   "segment": 51,
+   "label": "alarm",
+   "ms": 441,
+   "notes": {
+    "A": 10604.6,
+    "B": 10604.6,
+    "C": 10604.6,
+    "D": 10562.6,
+    "E": 10587.9,
+    "landing": 10673.3,
+    "average": 10554.2,
+    "loudest": 10615.8,
+    "high": 10672.3
+   },
+   "call": true
+  },
+  {
+   "id": 44,
+   "phrase": 6,
+   "index": 0,
+   "segment": 53,
+   "label": "peep",
+   "ms": 72,
+   "notes": {
+    "A": 10240.6,
+    "B": 10418.8,
+    "C": 10590.6,
+    "D": 10694.6,
+    "E": 10590.6,
+    "landing": 10345.5,
+    "average": 10611.1,
+    "loudest": 10593.5,
+    "high": 10713.9
+   },
+   "call": false
+  },
+  {
+   "id": 45,
+   "phrase": 6,
+   "index": 1,
+   "segment": 54,
+   "label": "swipe",
+   "ms": 106,
+   "notes": {
+    "A": 10692.3,
+    "B": 10692.3,
+    "C": 10692.3,
+    "D": 10485.0,
+    "E": 10496.7,
+    "landing": 10335.9,
+    "average": 10411.7,
+    "loudest": 10472.5,
+    "high": 10695.6
+   },
+   "call": false
+  },
+  {
+   "id": 46,
+   "phrase": 6,
+   "index": 2,
+   "segment": 55,
+   "label": "swipe+swipe",
+   "ms": 190,
+   "notes": {
+    "A": 10290.2,
+    "B": 10380.8,
+    "C": 10380.8,
+    "D": 10200.3,
+    "E": 10244.9,
+    "landing": 10113.1,
+    "average": 10223.8,
+    "loudest": 10219.8,
+    "high": 10366.6
+   },
+   "call": false
+  },
+  {
+   "id": 47,
+   "phrase": 7,
+   "index": 0,
+   "segment": 57,
+   "label": "swipe",
+   "ms": 76,
+   "notes": {
+    "A": 10585.7,
+    "B": 10585.7,
+    "C": 10585.7,
+    "D": 10598.1,
+    "E": 10526.9,
+    "landing": 10517.3,
+    "average": 10384.5,
+    "loudest": 10595.6,
+    "high": 10604.5
+   },
+   "call": false
+  },
+  {
+   "id": 48,
+   "phrase": 7,
+   "index": 1,
+   "segment": 58,
+   "label": "swipe",
+   "ms": 71,
+   "notes": {
+    "A": 10468.3,
+    "B": 10414.7,
+    "C": 10548.1,
+    "D": 10541.1,
+    "E": 10548.1,
+    "landing": 10451.6,
+    "average": 10590.4,
+    "loudest": 10505.3,
+    "high": 10728.7
+   },
+   "call": false
+  },
+  {
+   "id": 49,
+   "phrase": 7,
+   "index": 2,
+   "segment": 59,
+   "label": "swipe",
+   "ms": 96,
+   "notes": {
+    "A": 10237.8,
+    "B": 10289.4,
+    "C": 10483.8,
+    "D": 10444.9,
+    "E": 10483.8,
+    "landing": 10254.0,
+    "average": 10404.3,
+    "loudest": 10464.8,
+    "high": 10637.8
+   },
+   "call": false
+  },
+  {
+   "id": 50,
+   "phrase": 7,
+   "index": 3,
+   "segment": 60,
+   "label": "swipe+swipe",
+   "ms": 192,
+   "notes": {
+    "A": 10340.6,
+    "B": 10340.6,
+    "C": 10340.6,
+    "D": 10232.6,
+    "E": 10267.9,
+    "landing": 10122.1,
+    "average": 10235.9,
+    "loudest": 10263.5,
+    "high": 10356.1
+   },
+   "call": false
+  },
+  {
+   "id": 51,
+   "phrase": 7,
+   "index": 4,
+   "segment": 61,
+   "label": "Lswipe",
+   "ms": 161,
+   "notes": {
+    "A": 10029.4,
+    "B": 10027.9,
+    "C": 10027.9,
+    "D": 10006.8,
+    "E": 10004.8,
+    "landing": 9961.7,
+    "average": 9991.5,
+    "loudest": 10008.1,
+    "high": 10038.0
+   },
+   "call": false
+  },
+  {
+   "id": 52,
+   "phrase": 7,
+   "index": 5,
+   "segment": 62,
+   "label": "peep",
+   "ms": 65,
+   "notes": {
+    "A": 11050.1,
+    "B": 11054.9,
+    "C": 11054.9,
+    "D": 10845.3,
+    "E": 10915.6,
+    "landing": 11029.3,
+    "average": 10796.3,
+    "loudest": 10986.5,
+    "high": 11081.3
+   },
+   "call": false
+  },
+  {
+   "id": 53,
+   "phrase": 7,
+   "index": 6,
+   "segment": 63,
+   "label": "peep",
+   "ms": 58,
+   "notes": {
+    "A": 10403.7,
+    "B": 10403.7,
+    "C": 10403.7,
+    "D": 10357.8,
+    "E": 10335.0,
+    "landing": 10196.5,
+    "average": 10323.1,
+    "loudest": 10340.0,
+    "high": 10415.6
+   },
+   "call": false
+  },
+  {
+   "id": 54,
+   "phrase": 7,
+   "index": 7,
+   "segment": 64,
+   "label": "peep",
+   "ms": 93,
+   "notes": {
+    "A": 10455.6,
+    "B": 10455.8,
+    "C": 10455.8,
+    "D": 10494.6,
+    "E": 10436.5,
+    "landing": 10464.8,
+    "average": 10465.4,
+    "loudest": 10415.7,
+    "high": 10549.9
+   },
+   "call": false
+  },
+  {
+   "id": 55,
+   "phrase": 7,
+   "index": 8,
+   "segment": 65,
+   "label": "Hswipe",
+   "ms": 99,
+   "notes": {
+    "A": 11001.3,
+    "B": 11001.3,
+    "C": 11001.3,
+    "D": 10986.3,
+    "E": 11007.0,
+    "landing": 10878.9,
+    "average": 11010.4,
+    "loudest": 10996.3,
+    "high": 11039.7
+   },
+   "call": false
+  },
+  {
+   "id": 56,
+   "phrase": 7,
+   "index": 9,
+   "segment": 66,
+   "label": "Lpeep",
+   "ms": 117,
+   "notes": {
+    "A": 10027.7,
+    "B": 10027.7,
+    "C": 10027.7,
+    "D": 10002.3,
+    "E": 9995.2,
+    "landing": 10047.5,
+    "average": 10021.1,
+    "loudest": 10000.2,
+    "high": 10068.1
+   },
+   "call": false
+  },
+  {
+   "id": 57,
+   "phrase": 7,
+   "index": 10,
+   "segment": 67,
+   "label": "alarm",
+   "ms": 379,
+   "notes": {
+    "A": 10679.3,
+    "B": 10679.3,
+    "C": 10679.3,
+    "D": 10544.3,
+    "E": 10579.2,
+    "landing": 10680.4,
+    "average": 10539.8,
+    "loudest": 10616.6,
+    "high": 10666.5
+   },
+   "call": true
+  },
+  {
+   "id": 58,
+   "phrase": 7,
+   "index": 11,
+   "segment": 69,
+   "label": "swipe",
+   "ms": 70,
+   "notes": {
+    "A": 10311.4,
+    "B": 10474.0,
+    "C": 10551.2,
+    "D": 10560.7,
+    "E": 10551.2,
+    "landing": 10367.9,
+    "average": 10485.8,
+    "loudest": 10594.2,
+    "high": 10616.4
+   },
+   "call": false
+  },
+  {
+   "id": 59,
+   "phrase": 7,
+   "index": 12,
+   "segment": 70,
+   "label": "swipe",
+   "ms": 103,
+   "notes": {
+    "A": 10682.0,
+    "B": 10682.0,
+    "C": 10682.0,
+    "D": 10497.7,
+    "E": 10505.0,
+    "landing": 10346.0,
+    "average": 10409.8,
+    "loudest": 10494.7,
+    "high": 10690.7
+   },
+   "call": false
+  },
+  {
+   "id": 60,
+   "phrase": 7,
+   "index": 13,
+   "segment": 71,
+   "label": "swipe+swipe",
+   "ms": 190,
+   "notes": {
+    "A": 10330.7,
+    "B": 10336.7,
+    "C": 10336.7,
+    "D": 10233.5,
+    "E": 10253.7,
+    "landing": 10067.9,
+    "average": 10202.6,
+    "loudest": 10261.4,
+    "high": 10362.8
+   },
+   "call": false
+  },
+  {
+   "id": 61,
+   "phrase": 8,
+   "index": 0,
+   "segment": 73,
+   "label": "swipe",
+   "ms": 80,
+   "notes": {
+    "A": 10428.1,
+    "B": 10583.2,
+    "C": 10561.9,
+    "D": 10646.6,
+    "E": 10561.9,
+    "landing": 10513.2,
+    "average": 10376.6,
+    "loudest": 10628.6,
+    "high": 10650.0
+   },
+   "call": false
+  },
+  {
+   "id": 62,
+   "phrase": 8,
+   "index": 1,
+   "segment": 75,
+   "label": "swipe",
+   "ms": 73,
+   "notes": {
+    "A": 10519.0,
+    "B": 10532.6,
+    "C": 10595.8,
+    "D": 10582.2,
+    "E": 10595.8,
+    "landing": 10544.2,
+    "average": 10586.2,
+    "loudest": 10578.7,
+    "high": 10701.7
+   },
+   "call": false
+  },
+  {
+   "id": 63,
+   "phrase": 8,
+   "index": 2,
+   "segment": 76,
+   "label": "swipe",
+   "ms": 99,
+   "notes": {
+    "A": 10655.7,
+    "B": 10655.7,
+    "C": 10655.7,
+    "D": 10582.8,
+    "E": 10490.6,
+    "landing": 10257.8,
+    "average": 10408.1,
+    "loudest": 10466.3,
+    "high": 10667.1
+   },
+   "call": false
+  },
+  {
+   "id": 64,
+   "phrase": 8,
+   "index": 3,
+   "segment": 77,
+   "label": "swipe+swipe",
+   "ms": 181,
+   "notes": {
+    "A": 10317.0,
+    "B": 10316.0,
+    "C": 10316.0,
+    "D": 10284.3,
+    "E": 10237.6,
+    "landing": 10109.1,
+    "average": 10242.9,
+    "loudest": 10202.0,
+    "high": 10371.8
+   },
+   "call": false
+  },
+  {
+   "id": 65,
+   "phrase": 8,
+   "index": 4,
+   "segment": 78,
+   "label": "swipe",
+   "ms": 73,
+   "notes": {
+    "A": 10470.3,
+    "B": 10418.0,
+    "C": 10579.2,
+    "D": 10516.6,
+    "E": 10579.2,
+    "landing": 10386.7,
+    "average": 10566.2,
+    "loudest": 10595.6,
+    "high": 10785.2
+   },
+   "call": false
+  },
+  {
+   "id": 66,
+   "phrase": 8,
+   "index": 5,
+   "segment": 79,
+   "label": "swipe",
+   "ms": 103,
+   "notes": {
+    "A": 10698.6,
+    "B": 10698.6,
+    "C": 10698.6,
+    "D": 10386.5,
+    "E": 10509.5,
+    "landing": 10373.7,
+    "average": 10424.5,
+    "loudest": 10535.6,
+    "high": 10700.3
+   },
+   "call": false
+  },
+  {
+   "id": 67,
+   "phrase": 8,
+   "index": 6,
+   "segment": 80,
+   "label": "swipe",
+   "ms": 84,
+   "notes": {
+    "A": 10717.2,
+    "B": 10717.2,
+    "C": 10717.2,
+    "D": 10718.3,
+    "E": 10780.9,
+    "landing": 10645.6,
+    "average": 10762.5,
+    "loudest": 10785.0,
+    "high": 10882.8
+   },
+   "call": false
+  },
+  {
+   "id": 68,
+   "phrase": 8,
+   "index": 7,
+   "segment": 81,
+   "label": "swipe",
+   "ms": 82,
+   "notes": {
+    "A": 10075.1,
+    "B": 10145.3,
+    "C": 10488.0,
+    "D": 10614.2,
+    "E": 10488.0,
+    "landing": 10005.2,
+    "average": 10390.8,
+    "loudest": 10512.8,
+    "high": 10674.6
+   },
+   "call": false
+  },
+  {
+   "id": 69,
+   "phrase": 8,
+   "index": 8,
+   "segment": 82,
+   "label": "swipe",
+   "ms": 89,
+   "notes": {
+    "A": 10377.6,
+    "B": 10531.2,
+    "C": 10598.6,
+    "D": 10554.2,
+    "E": 10598.6,
+    "landing": 10642.3,
+    "average": 10535.6,
+    "loudest": 10657.2,
+    "high": 10717.6
+   },
+   "call": false
+  },
+  {
+   "id": 70,
+   "phrase": 8,
+   "index": 9,
+   "segment": 83,
+   "label": "swipe",
+   "ms": 68,
+   "notes": {
+    "A": 9896.5,
+    "B": 9946.2,
+    "C": 10193.6,
+    "D": 10278.8,
+    "E": 10193.6,
+    "landing": 9932.4,
+    "average": 10170.9,
+    "loudest": 10176.7,
+    "high": 10377.4
+   },
+   "call": false
+  },
+  {
+   "id": 71,
+   "phrase": 8,
+   "index": 10,
+   "segment": 84,
+   "label": "swipe",
+   "ms": 95,
+   "notes": {
+    "A": 10579.7,
+    "B": 10601.3,
+    "C": 10676.7,
+    "D": 10710.3,
+    "E": 10676.7,
+    "landing": 10568.1,
+    "average": 10723.9,
+    "loudest": 10588.5,
+    "high": 11019.5
+   },
+   "call": false
+  },
+  {
+   "id": 72,
+   "phrase": 8,
+   "index": 11,
+   "segment": 85,
+   "label": "double",
+   "ms": 172,
+   "notes": {
+    "A": 10813.4,
+    "B": 10386.2,
+    "C": 10410.6,
+    "D": 10358.4,
+    "E": 10410.6,
+    "landing": 10622.3,
+    "average": 10401.7,
+    "loudest": 10480.1,
+    "high": 10475.5
+   },
+   "call": false
+  },
+  {
+   "id": 73,
+   "phrase": 8,
+   "index": 12,
+   "segment": 86,
+   "label": "swipe",
+   "ms": 51,
+   "notes": {
+    "A": 10254.2,
+    "B": 10301.0,
+    "C": 10533.1,
+    "D": 10286.2,
+    "E": 10533.1,
+    "landing": 10267.0,
+    "average": 10370.4,
+    "loudest": 10578.2,
+    "high": 10642.5
+   },
+   "call": false
+  },
+  {
+   "id": 74,
+   "phrase": 8,
+   "index": 13,
+   "segment": 87,
+   "label": "swipe",
+   "ms": 131,
+   "notes": {
+    "A": 9651.1,
+    "B": 10039.4,
+    "C": 10130.6,
+    "D": 10030.1,
+    "E": 10130.6,
+    "landing": 9772.9,
+    "average": 9938.7,
+    "loudest": 10228.0,
+    "high": 10176.6
+   },
+   "call": false
+  },
+  {
+   "id": 75,
+   "phrase": 8,
+   "index": 14,
+   "segment": 88,
+   "label": "alarm",
+   "ms": 427,
+   "notes": {
+    "A": 10613.1,
+    "B": 10613.1,
+    "C": 10613.1,
+    "D": 10605.0,
+    "E": 10634.4,
+    "landing": 10741.5,
+    "average": 10596.8,
+    "loudest": 10665.0,
+    "high": 10729.8
+   },
+   "call": true
+  },
+  {
+   "id": 76,
+   "phrase": 8,
+   "index": 15,
+   "segment": 90,
+   "label": "peep",
+   "ms": 76,
+   "notes": {
+    "A": 10485.4,
+    "B": 10557.8,
+    "C": 10650.4,
+    "D": 10628.7,
+    "E": 10650.4,
+    "landing": 10491.3,
+    "average": 10644.3,
+    "loudest": 10649.6,
+    "high": 10756.1
+   },
+   "call": false
+  },
+  {
+   "id": 77,
+   "phrase": 8,
+   "index": 16,
+   "segment": 91,
+   "label": "swipe",
+   "ms": 101,
+   "notes": {
+    "A": 10622.4,
+    "B": 10622.4,
+    "C": 10622.4,
+    "D": 10394.5,
+    "E": 10440.9,
+    "landing": 10282.3,
+    "average": 10342.0,
+    "loudest": 10466.1,
+    "high": 10623.1
+   },
+   "call": false
+  },
+  {
+   "id": 78,
+   "phrase": 8,
+   "index": 17,
+   "segment": 92,
+   "label": "swipe+swipe",
+   "ms": 189,
+   "notes": {
+    "A": 10294.0,
+    "B": 10294.0,
+    "C": 10294.0,
+    "D": 10251.5,
+    "E": 10244.8,
+    "landing": 10092.9,
+    "average": 10217.1,
+    "loudest": 10247.4,
+    "high": 10327.9
+   },
+   "call": false
+  },
+  {
+   "id": 79,
+   "phrase": 9,
+   "index": 0,
+   "segment": 94,
+   "label": "swipe",
+   "ms": 76,
+   "notes": {
+    "A": 10514.9,
+    "B": 10518.8,
+    "C": 10540.1,
+    "D": 10523.1,
+    "E": 10540.1,
+    "landing": 10517.1,
+    "average": 10347.1,
+    "loudest": 10603.6,
+    "high": 10622.5
+   },
+   "call": false
+  },
+  {
+   "id": 80,
+   "phrase": 9,
+   "index": 1,
+   "segment": 95,
+   "label": "Hswipe",
+   "ms": 105,
+   "notes": {
+    "A": 10989.7,
+    "B": 10989.7,
+    "C": 10989.7,
+    "D": 10995.3,
+    "E": 10898.2,
+    "landing": 9964.6,
+    "average": 10698.8,
+    "loudest": 10948.2,
+    "high": 11009.2
+   },
+   "call": false
+  },
+  {
+   "id": 81,
+   "phrase": 9,
+   "index": 2,
+   "segment": 96,
+   "label": "Hswipe",
+   "ms": 93,
+   "notes": {
+    "A": 10269.1,
+    "B": 10269.1,
+    "C": 10269.1,
+    "D": 10566.0,
+    "E": 10640.9,
+    "landing": 10570.0,
+    "average": 10587.0,
+    "loudest": 10642.3,
+    "high": 10799.8
+   },
+   "call": false
+  },
+  {
+   "id": 82,
+   "phrase": 9,
+   "index": 3,
+   "segment": 99,
+   "label": "peep",
+   "ms": 70,
+   "notes": {
+    "A": 10602.9,
+    "B": 10606.1,
+    "C": 10606.1,
+    "D": 10638.5,
+    "E": 10664.6,
+    "landing": 10720.9,
+    "average": 10659.1,
+    "loudest": 10666.8,
+    "high": 10724.9
+   },
+   "call": false
+  },
+  {
+   "id": 83,
+   "phrase": 9,
+   "index": 4,
+   "segment": 100,
+   "label": "peep",
+   "ms": 77,
+   "notes": {
+    "A": 10779.7,
+    "B": 10872.1,
+    "C": 10829.7,
+    "D": 10816.3,
+    "E": 10829.7,
+    "landing": 10837.5,
+    "average": 10778.5,
+    "loudest": 10771.6,
+    "high": 10982.3
+   },
+   "call": false
+  },
+  {
+   "id": 84,
+   "phrase": 9,
+   "index": 5,
+   "segment": 101,
+   "label": "peep",
+   "ms": 63,
+   "notes": {
+    "A": 10740.4,
+    "B": 10739.6,
+    "C": 10739.6,
+    "D": 10781.9,
+    "E": 10785.1,
+    "landing": 10728.2,
+    "average": 10794.1,
+    "loudest": 10776.0,
+    "high": 10885.8
+   },
+   "call": false
+  },
+  {
+   "id": 85,
+   "phrase": 9,
+   "index": 6,
+   "segment": 102,
+   "label": "peep",
+   "ms": 52,
+   "notes": {
+    "A": 10831.6,
+    "B": 11069.1,
+    "C": 10782.3,
+    "D": 10751.7,
+    "E": 10782.3,
+    "landing": 10868.0,
+    "average": 10698.7,
+    "loudest": 10879.4,
+    "high": 10876.3
+   },
+   "call": false
+  },
+  {
+   "id": 86,
+   "phrase": 9,
+   "index": 7,
+   "segment": 103,
+   "label": "swipe",
+   "ms": 110,
+   "notes": {
+    "A": 10199.9,
+    "B": 10199.5,
+    "C": 10199.5,
+    "D": 10399.8,
+    "E": 10338.7,
+    "landing": 10204.1,
+    "average": 10443.8,
+    "loudest": 10173.3,
+    "high": 10839.8
+   },
+   "call": false
+  },
+  {
+   "id": 87,
+   "phrase": 9,
+   "index": 8,
+   "segment": 104,
+   "label": "peep",
+   "ms": 75,
+   "notes": {
+    "A": 10558.6,
+    "B": 10564.1,
+    "C": 10484.7,
+    "D": 10449.2,
+    "E": 10484.7,
+    "landing": 10559.2,
+    "average": 10420.4,
+    "loudest": 10506.0,
+    "high": 10581.6
+   },
+   "call": false
+  },
+  {
+   "id": 88,
+   "phrase": 9,
+   "index": 9,
+   "segment": 105,
+   "label": "peep",
+   "ms": 61,
+   "notes": {
+    "A": 10289.5,
+    "B": 10273.0,
+    "C": 10410.7,
+    "D": 10460.4,
+    "E": 10410.7,
+    "landing": 10289.6,
+    "average": 10425.9,
+    "loudest": 10293.3,
+    "high": 10564.6
+   },
+   "call": false
+  },
+  {
+   "id": 89,
+   "phrase": 9,
+   "index": 10,
+   "segment": 106,
+   "label": "peep",
+   "ms": 112,
+   "notes": {
+    "A": 10475.7,
+    "B": 10476.8,
+    "C": 10440.4,
+    "D": 10380.9,
+    "E": 10440.4,
+    "landing": 10358.0,
+    "average": 10358.7,
+    "loudest": 10527.1,
+    "high": 10532.5
+   },
+   "call": false
+  },
+  {
+   "id": 90,
+   "phrase": 9,
+   "index": 11,
+   "segment": 107,
+   "label": "swipe",
+   "ms": 70,
+   "notes": {
+    "A": 10233.3,
+    "B": 10230.2,
+    "C": 10190.4,
+    "D": 10194.2,
+    "E": 10190.4,
+    "landing": 10233.8,
+    "average": 10068.6,
+    "loudest": 10212.6,
+    "high": 10229.1
+   },
+   "call": false
+  },
+  {
+   "id": 91,
+   "phrase": 9,
+   "index": 12,
+   "segment": 108,
+   "label": "swipe",
+   "ms": 82,
+   "notes": {
+    "A": 11112.2,
+    "B": 11112.2,
+    "C": 11112.2,
+    "D": 10845.4,
+    "E": 10825.6,
+    "landing": 10583.9,
+    "average": 10901.5,
+    "loudest": 10768.9,
+    "high": 11124.0
+   },
+   "call": false
+  },
+  {
+   "id": 92,
+   "phrase": 9,
+   "index": 13,
+   "segment": 109,
+   "label": "swipe",
+   "ms": 70,
+   "notes": {
+    "A": 10651.6,
+    "B": 10619.2,
+    "C": 10545.7,
+    "D": 10469.2,
+    "E": 10545.7,
+    "landing": 10669.8,
+    "average": 10398.5,
+    "loudest": 10658.6,
+    "high": 10684.1
+   },
+   "call": false
+  },
+  {
+   "id": 93,
+   "phrase": 9,
+   "index": 14,
+   "segment": 110,
+   "label": "swipe",
+   "ms": 79,
+   "notes": {
+    "A": 9976.6,
+    "B": 10196.5,
+    "C": 10588.8,
+    "D": 10623.7,
+    "E": 10588.8,
+    "landing": 10013.1,
+    "average": 10485.6,
+    "loudest": 10696.2,
+    "high": 10789.8
+   },
+   "call": false
+  },
+  {
+   "id": 94,
+   "phrase": 9,
+   "index": 15,
+   "segment": 111,
+   "label": "swipe",
+   "ms": 80,
+   "notes": {
+    "A": 10699.8,
+    "B": 10699.8,
+    "C": 10699.8,
+    "D": 10605.9,
+    "E": 10597.8,
+    "landing": 10616.7,
+    "average": 10544.3,
+    "loudest": 10655.0,
+    "high": 10704.0
+   },
+   "call": false
+  },
+  {
+   "id": 95,
+   "phrase": 9,
+   "index": 16,
+   "segment": 112,
+   "label": "swipe",
+   "ms": 61,
+   "notes": {
+    "A": 9593.6,
+    "B": 9905.2,
+    "C": 10192.3,
+    "D": 10426.9,
+    "E": 10192.3,
+    "landing": 9798.2,
+    "average": 10166.2,
+    "loudest": 10240.2,
+    "high": 10479.5
+   },
+   "call": false
+  },
+  {
+   "id": 96,
+   "phrase": 9,
+   "index": 17,
+   "segment": 113,
+   "label": "swipe",
+   "ms": 87,
+   "notes": {
+    "A": 10502.9,
+    "B": 10559.0,
+    "C": 10603.0,
+    "D": 10598.1,
+    "E": 10603.0,
+    "landing": 10535.2,
+    "average": 10635.2,
+    "loudest": 10562.0,
+    "high": 10727.0
+   },
+   "call": false
+  },
+  {
+   "id": 97,
+   "phrase": 9,
+   "index": 18,
+   "segment": 115,
+   "label": "swipe+swipe",
+   "ms": 174,
+   "notes": {
+    "A": 9697.1,
+    "B": 9707.2,
+    "C": 9707.2,
+    "D": 10077.9,
+    "E": 10361.8,
+    "landing": 9709.4,
+    "average": 10196.1,
+    "loudest": 10405.0,
+    "high": 10483.1
+   },
+   "call": false
+  },
+  {
+   "id": 98,
+   "phrase": 9,
+   "index": 19,
+   "segment": 116,
+   "label": "peep",
+   "ms": 55,
+   "notes": {
+    "A": 10217.4,
+    "B": 10397.2,
+    "C": 10528.8,
+    "D": 10408.2,
+    "E": 10528.8,
+    "landing": 10280.4,
+    "average": 10401.4,
+    "loudest": 10565.1,
+    "high": 10655.3
+   },
+   "call": false
+  },
+  {
+   "id": 99,
+   "phrase": 9,
+   "index": 20,
+   "segment": 117,
+   "label": "swipe",
+   "ms": 131,
+   "notes": {
+    "A": 9671.1,
+    "B": 10121.7,
+    "C": 10111.6,
+    "D": 9935.1,
+    "E": 10111.6,
+    "landing": 9808.1,
+    "average": 9985.9,
+    "loudest": 10231.5,
+    "high": 10184.6
+   },
+   "call": false
+  },
+  {
+   "id": 100,
+   "phrase": 9,
+   "index": 21,
+   "segment": 118,
+   "label": "alarm_grillon",
+   "ms": 391,
+   "notes": {
+    "A": 10653.4,
+    "B": 10653.4,
+    "C": 10653.4,
+    "D": 10543.8,
+    "E": 10580.9,
+    "landing": 10670.1,
+    "average": 10525.8,
+    "loudest": 10642.8,
+    "high": 10670.4
+   },
+   "call": true
+  },
+  {
+   "id": 101,
+   "phrase": 10,
+   "index": 0,
+   "segment": 120,
+   "label": "swipe",
+   "ms": 76,
+   "notes": {
+    "A": 10635.0,
+    "B": 10615.4,
+    "C": 10606.1,
+    "D": 10681.0,
+    "E": 10606.1,
+    "landing": 10618.7,
+    "average": 10427.2,
+    "loudest": 10671.4,
+    "high": 10690.5
+   },
+   "call": false
+  },
+  {
+   "id": 102,
+   "phrase": 10,
+   "index": 1,
+   "segment": 122,
+   "label": "swipe",
+   "ms": 110,
+   "notes": {
+    "A": 11065.4,
+    "B": 11067.1,
+    "C": 11067.1,
+    "D": 10946.8,
+    "E": 10864.4,
+    "landing": 10110.4,
+    "average": 10659.0,
+    "loudest": 10938.5,
+    "high": 11081.1
+   },
+   "call": false
+  },
+  {
+   "id": 103,
+   "phrase": 10,
+   "index": 2,
+   "segment": 123,
+   "label": "swipe",
+   "ms": 94,
+   "notes": {
+    "A": 10294.2,
+    "B": 10294.2,
+    "C": 10294.2,
+    "D": 10558.6,
+    "E": 10694.0,
+    "landing": 10631.7,
+    "average": 10610.8,
+    "loudest": 10730.7,
+    "high": 10837.2
+   },
+   "call": false
+  },
+  {
+   "id": 104,
+   "phrase": 10,
+   "index": 3,
+   "segment": 125,
+   "label": "peep",
+   "ms": 73,
+   "notes": {
+    "A": 10822.0,
+    "B": 10823.7,
+    "C": 10823.7,
+    "D": 10844.1,
+    "E": 10800.3,
+    "landing": 10817.3,
+    "average": 10839.0,
+    "loudest": 10758.3,
+    "high": 10855.7
+   },
+   "call": false
+  },
+  {
+   "id": 105,
+   "phrase": 10,
+   "index": 4,
+   "segment": 126,
+   "label": "peep",
+   "ms": 63,
+   "notes": {
+    "A": 10662.0,
+    "B": 10662.0,
+    "C": 10662.0,
+    "D": 10683.4,
+    "E": 10639.3,
+    "landing": 10728.4,
+    "average": 10632.0,
+    "loudest": 10645.1,
+    "high": 10708.5
+   },
+   "call": false
+  },
+  {
+   "id": 106,
+   "phrase": 10,
+   "index": 5,
+   "segment": 127,
+   "label": "peep",
+   "ms": 74,
+   "notes": {
+    "A": 10793.0,
+    "B": 10897.9,
+    "C": 10889.4,
+    "D": 10848.6,
+    "E": 10889.4,
+    "landing": 10862.3,
+    "average": 10860.0,
+    "loudest": 10901.4,
+    "high": 10994.2
+   },
+   "call": false
+  },
+  {
+   "id": 107,
+   "phrase": 10,
+   "index": 6,
+   "segment": 128,
+   "label": "swipe",
+   "ms": 132,
+   "notes": {
+    "A": 10695.4,
+    "B": 10695.4,
+    "C": 10695.4,
+    "D": 10742.9,
+    "E": 10743.3,
+    "landing": 10727.6,
+    "average": 10725.9,
+    "loudest": 10770.2,
+    "high": 10885.6
+   },
+   "call": false
+  },
+  {
+   "id": 108,
+   "phrase": 10,
+   "index": 7,
+   "segment": 129,
+   "label": "swipe",
+   "ms": 118,
+   "notes": {
+    "A": 10136.8,
+    "B": 10138.2,
+    "C": 10138.2,
+    "D": 10252.9,
+    "E": 10377.6,
+    "landing": 10143.2,
+    "average": 10371.7,
+    "loudest": 10350.4,
+    "high": 10757.3
+   },
+   "call": false
+  },
+  {
+   "id": 109,
+   "phrase": 10,
+   "index": 8,
+   "segment": 130,
+   "label": "peep",
+   "ms": 83,
+   "notes": {
+    "A": 10566.9,
+    "B": 10437.8,
+    "C": 10437.8,
+    "D": 10478.3,
+    "E": 10497.1,
+    "landing": 10559.8,
+    "average": 10443.1,
+    "loudest": 10507.6,
+    "high": 10582.4
+   },
+   "call": false
+  },
+  {
+   "id": 110,
+   "phrase": 10,
+   "index": 9,
+   "segment": 131,
+   "label": "swipe",
+   "ms": 110,
+   "notes": {
+    "A": 10400.0,
+    "B": 10490.0,
+    "C": 10422.9,
+    "D": 10392.2,
+    "E": 10422.9,
+    "landing": 10389.1,
+    "average": 10354.0,
+    "loudest": 10453.4,
+    "high": 10525.0
+   },
+   "call": false
+  },
+  {
+   "id": 111,
+   "phrase": 10,
+   "index": 10,
+   "segment": 132,
+   "label": "swipe",
+   "ms": 75,
+   "notes": {
+    "A": 10221.8,
+    "B": 10221.8,
+    "C": 10221.8,
+    "D": 10226.9,
+    "E": 10195.8,
+    "landing": 10227.3,
+    "average": 10064.4,
+    "loudest": 10221.4,
+    "high": 10238.8
+   },
+   "call": false
+  },
+  {
+   "id": 112,
+   "phrase": 10,
+   "index": 11,
+   "segment": 133,
+   "label": "peep",
+   "ms": 84,
+   "notes": {
+    "A": 10989.6,
+    "B": 10988.2,
+    "C": 10988.2,
+    "D": 10913.9,
+    "E": 11003.9,
+    "landing": 10972.1,
+    "average": 10969.0,
+    "loudest": 10986.1,
+    "high": 11117.6
+   },
+   "call": false
+  },
+  {
+   "id": 113,
+   "phrase": 10,
+   "index": 12,
+   "segment": 134,
+   "label": "swipe",
+   "ms": 70,
+   "notes": {
+    "A": 10750.6,
+    "B": 10756.2,
+    "C": 10559.3,
+    "D": 10457.5,
+    "E": 10559.3,
+    "landing": 10773.4,
+    "average": 10539.6,
+    "loudest": 10745.1,
+    "high": 10734.2
+   },
+   "call": false
+  },
+  {
+   "id": 114,
+   "phrase": 10,
+   "index": 13,
+   "segment": 135,
+   "label": "swipe",
+   "ms": 76,
+   "notes": {
+    "A": 10009.1,
+    "B": 10159.3,
+    "C": 10458.8,
+    "D": 10620.9,
+    "E": 10458.8,
+    "landing": 10021.3,
+    "average": 10402.8,
+    "loudest": 10435.3,
+    "high": 10707.5
+   },
+   "call": false
+  },
+  {
+   "id": 115,
+   "phrase": 10,
+   "index": 14,
+   "segment": 136,
+   "label": "swipe",
+   "ms": 86,
+   "notes": {
+    "A": 10690.0,
+    "B": 10690.0,
+    "C": 10690.0,
+    "D": 10633.9,
+    "E": 10628.1,
+    "landing": 10638.0,
+    "average": 10561.1,
+    "loudest": 10676.7,
+    "high": 10690.8
+   },
+   "call": false
+  },
+  {
+   "id": 116,
+   "phrase": 11,
+   "index": 0,
+   "segment": 137,
+   "label": "swipe+swipe",
+   "ms": 159,
+   "notes": {
+    "A": 9651.9,
+    "B": 9660.9,
+    "C": 9660.9,
+    "D": 10011.6,
+    "E": 10353.4,
+    "landing": 9738.9,
+    "average": 10200.6,
+    "loudest": 10369.5,
+    "high": 10486.1
+   },
+   "call": false
+  },
+  {
+   "id": 117,
+   "phrase": 11,
+   "index": 1,
+   "segment": 138,
+   "label": "peep",
+   "ms": 60,
+   "notes": {
+    "A": 10358.8,
+    "B": 10374.2,
+    "C": 10547.0,
+    "D": 10432.9,
+    "E": 10547.0,
+    "landing": 10318.1,
+    "average": 10424.8,
+    "loudest": 10600.7,
+    "high": 10640.8
+   },
+   "call": false
+  },
+  {
+   "id": 118,
+   "phrase": 11,
+   "index": 2,
+   "segment": 139,
+   "label": "swipe",
+   "ms": 128,
+   "notes": {
+    "A": 9707.5,
+    "B": 9879.0,
+    "C": 10092.3,
+    "D": 9964.7,
+    "E": 10092.3,
+    "landing": 9799.0,
+    "average": 9921.0,
+    "loudest": 10217.1,
+    "high": 10148.7
+   },
+   "call": false
+  },
+  {
+   "id": 119,
+   "phrase": 11,
+   "index": 3,
+   "segment": 140,
+   "label": "alarm",
+   "ms": 416,
+   "notes": {
+    "A": 10572.5,
+    "B": 10572.5,
+    "C": 10572.5,
+    "D": 10602.7,
+    "E": 10685.5,
+    "landing": 10762.6,
+    "average": 10604.6,
+    "loudest": 10717.7,
+    "high": 10764.1
+   },
+   "call": true
+  },
+  {
+   "id": 120,
+   "phrase": 11,
+   "index": 4,
+   "segment": 141,
+   "label": "peep",
+   "ms": 86,
+   "notes": {
+    "A": 10527.0,
+    "B": 10574.5,
+    "C": 10562.0,
+    "D": 10607.4,
+    "E": 10562.0,
+    "landing": 10504.5,
+    "average": 10420.8,
+    "loudest": 10636.2,
+    "high": 10671.3
+   },
+   "call": false
+  },
+  {
+   "id": 121,
+   "phrase": 11,
+   "index": 5,
+   "segment": 142,
+   "label": "swipe",
+   "ms": 114,
+   "notes": {
+    "A": 11064.4,
+    "B": 11064.4,
+    "C": 11064.4,
+    "D": 10643.6,
+    "E": 10806.8,
+    "landing": 10080.9,
+    "average": 10624.7,
+    "loudest": 10870.8,
+    "high": 11042.9
+   },
+   "call": false
+  },
+  {
+   "id": 122,
+   "phrase": 11,
+   "index": 6,
+   "segment": 143,
+   "label": "peep",
+   "ms": 111,
+   "notes": {
+    "A": 10596.6,
+    "B": 10800.9,
+    "C": 10800.9,
+    "D": 10626.6,
+    "E": 10664.2,
+    "landing": 10648.2,
+    "average": 10615.2,
+    "loudest": 10683.7,
+    "high": 10832.6
+   },
+   "call": false
+  }
+ ]
+}
