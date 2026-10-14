@@ -36,12 +36,18 @@ def main(argv: list[str] | None = None) -> int:
                     help="which MELODY2 rule sets a syllable's note (default E; A = the R1 bank)")
     ap.add_argument("--corrections", type=Path, help="notes set by ear (cuicui.note_corrections)")
     ap.add_argument("--created-by", default="WP-R1")
+    ap.add_argument("--variation", action="store_true",
+                    help="fit the shape model and store it in the bank (WP-R3, D-036)")
+    ap.add_argument("--phrase-gap-s", type=float, default=BuildSettings().phrase_gap_s,
+                    help="annotated syllables further apart start a new phrase (default 0.15)")
     args = ap.parse_args(argv)
 
     corrections = load_corrections(args.corrections) if args.corrections else None
     bank = build_bank(args.wav, args.annotations, name=args.name, species=args.species,
                       description=args.description, created_by=args.created_by,
-                      settings=BuildSettings(note_rule=args.note_rule), corrections=corrections)
+                      settings=BuildSettings(note_rule=args.note_rule, variation=args.variation,
+                                            phrase_gap_s=args.phrase_gap_s),
+                      corrections=corrections)
     problems = validate_bank(bank)
     if problems:
         print("INVALID BANK:\n  " + "\n  ".join(problems))

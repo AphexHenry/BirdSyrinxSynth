@@ -88,7 +88,7 @@ private:
     std::vector<Preset> factory_;
     std::vector<Preset> user_;
     juce::File userFolder_;
-    juce::String bankName_{"zf_22938"};
+    juce::String bankName_{"hf_22938+hf_22937"};
 
     mutable juce::CriticalSection lock_; // the current name / flag (state save/restore may run on any thread)
     juce::String currentName_{kDefaultName};

@@ -5,7 +5,7 @@
   "category": "Finch",
   "author": "Cuicui Instruments",
   "description": "The bird's own melody around your key, even for the first syllable: the closest to the real recording.",
-  "voice_bank": "zf_22938",
+  "voice_bank": "hf_22938+hf_22937",
   "parameters": {
     "perf.first_on_note": false,
     "perf.snap": 0.0

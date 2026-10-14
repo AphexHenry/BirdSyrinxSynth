@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Length and Range</title>
+<style>
+  :root {
+    --bg: #f7f6f1; --card: #ffffff; --fg: #1f1e1b; --muted: #6d6b64; --line: #e2e0d8;
+    --accent: #2e6b4f; --accent-fg: #ffffff; --chip: #eef3ef; --orig: #b9b5a8; --curve: #e8572a; --now: #2e6b4f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141413; --card: #1d1d1b; --fg: #ecebe5; --muted: #9b998f; --line: #34332f;
+      --accent: #7cc49d; --accent-fg: #10231a; --chip: #23302a; --orig: #5d5b55; --curve: #ff8a5c; --now: #7cc49d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.45rem; margin: 0 0 4px; }
+  h2 { font-size: 1.1rem; margin: 18px 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 18px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+  .card.now { outline: 3px solid var(--now); outline-offset: 1px; }
+  ol, ul { padding-left: 1.2rem; } li { margin: 4px 0; }
+  button { font: inherit; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--fg); padding: 4px 10px; cursor: pointer; }
+  button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+  button.on { outline: 2px solid var(--accent); }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+  .row .lab { width: 92px; color: var(--muted); font-size: .9rem; }
+  .head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .head .meta { color: var(--muted); font-size: .85rem; margin-left: auto; }
+  .muted { color: var(--muted); } .hint { color: var(--muted); font-size: .88rem; }
+  .status { color: var(--muted); font-size: .9rem; min-height: 1.4em; }
+  canvas { display: block; width: 100%; height: 70px; margin-top: 6px; border-radius: 6px; background: var(--bg); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); gap: 12px; }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } .row .lab { width: 100%; } }
+  label.ck { font-size: .85rem; color: var(--muted); margin-right: 10px; white-space: nowrap; }
+  input[type=number] { width: 70px; font: inherit; padding: 3px 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+  textarea { width: 100%; min-height: 90px; font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+  .toolbar { position: sticky; top: 0; z-index: 5; box-shadow: 0 2px 10px rgba(0,0,0,.06); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Length and pitch range</h1>
+  <p class="sub" id="subline"></p>
+
+  <section class="card">
+    <ol>
+      <li><b>Length</b> stretches or squeezes a syllable in time (60 % = shorter, 200 % = twice as long). Its pitches stay the same.</li>
+      <li><b>Pitch range</b> squeezes or widens how far the pitch moves around the syllable's note (60 % = flatter, 200 % = twice as wide a sweep). The note stays where it is.</li>
+      <li>Each button plays that version; <b>▶ all</b> plays them one after the other; <b>▶ random</b> plays five random draws of both (anywhere in 60–200 %, shorter and longer equally likely), as the plugin would.</li>
+      <li>Below, two real phrases: sung as recorded, then with each syllable at a random length and/or range. <b>New draw</b> gives other random values.</li>
+      <li>Tick where a syllable sounds unnatural, and at the end write the ranges you like. Then download (or copy) your answers.</li>
+    </ol>
+    <p class="hint">Headphones. <b>Esc</b> stops. The grey curve is the original; the coloured one is what you hear.</p>
+  </section>
+
+  <div class="card toolbar"><button id="stopAll">■ Stop</button><label class="ck"><input type="checkbox" id="room" checked> room</label><span class="status" id="status"></span></div>
+
+  <h2>Twelve syllables</h2>
+  <div class="grid" id="items"></div>
+
+  <h2>In a phrase</h2>
+  <div id="phrases"></div>
+
+  <h2>Your answer</h2>
+  <section class="card">
+    <div class="row"><span class="lab">Length</span>from <input type="number" id="lenLo" value="60" min="30" max="100" step="5"> % to <input type="number" id="lenHi" value="200" min="100" max="300" step="5"> % <label class="ck"><input type="checkbox" id="lenNone"> no length variation</label></div>
+    <div class="row"><span class="lab">Pitch range</span>from <input type="number" id="rngLo" value="60" min="30" max="100" step="5"> % to <input type="number" id="rngHi" value="200" min="100" max="300" step="5"> % <label class="ck"><input type="checkbox" id="rngNone"> no range variation</label></div>
+    <p>Anything else (which syllables, which direction, in phrases vs alone)?</p>
+    <textarea id="comment" placeholder="Your notes…"></textarea>
+    <div class="row"><button id="download" class="primary">Download answers (.json)</button><button id="copy">Copy answers</button></div>
+    <p class="status" id="doneStatus"></p>
+    <textarea id="resultsText" readonly hidden></textarea>
+  </section>
+</main>
+
+<!--DATA-->
+<script>
+(function () {
+  "use strict";
+  const D = window.STUDY;
+  const KEY = D.study.toLowerCase() + "-progress-" + D.design_hash;
+  const $ = (id) => document.getElementById(id);
+  const LEVELS = D.levels;
+  let state = load() || { study: D.study, version: D.version, design_hash: D.design_hash, started: new Date().toISOString(), unnatural: {}, plays: {}, draws: 0 };
+  let timers = [];
+  function load() { try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable: the page still works */ } }
+  function count(k) { state.plays[k] = (state.plays[k] || 0) + 1; save(); }
+
+  // ------------------------------------------------------------------ the curves
+  const cents = (f) => 1200 * Math.log2(f / 440) + 6900;
+  const hz = (c) => 440 * Math.pow(2, (c - 6900) / 1200);
+  function resample(x, n) {               // np.interp(linspace(0, m-1, n), arange(m), x), as the plugin
+    const m = x.length, out = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const pos = n > 1 ? (i === n - 1 ? m - 1 : i * (m - 1) / (n - 1)) : 0, j = Math.floor(pos);
+      out[i] = j >= m - 1 ? x[m - 1] : (x[j + 1] - x[j]) * (pos - j) + x[j];
+    }
+    return out;
+  }
+  function variant(it, lenPct, rngPct) {  // pitch range around the note, then the length
+    const k = rngPct / 100, c = it.f.map((f) => it.note + k * (cents(f) - it.note));
+    const n = Math.max(8, Math.round(it.ms * lenPct / 100));
+    return { f: resample(c, n).map(hz), a: resample(it.a, n), ms: n };
+  }
+  const RR = D.random_range;                // log-uniform: shorter and longer equally likely
+  const rnd = () => RR[0] * Math.pow(RR[1] / RR[0], Math.random());
+
+  // ------------------------------------------------------------------ audio: the plugin's whistle
+  const A = {
+    ctx: null, master: null, dry: null, wet: null, live: [],
+    init() {
+      if (this.ctx) { if (this.ctx.state === "suspended") this.ctx.resume(); return; }
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.ctx = ctx;
+      this.master = ctx.createGain(); this.master.gain.value = Math.pow(10, -6 / 20);
+      const lim = ctx.createDynamicsCompressor(); lim.threshold.value = -6; lim.ratio.value = 12; lim.attack.value = 0.002; lim.release.value = 0.12;
+      this.master.connect(lim).connect(ctx.destination);
+      this.dry = ctx.createGain(); this.dry.connect(this.master);
+      const conv = ctx.createConvolver(); conv.buffer = this.roomIR(0.22);
+      this.wet = ctx.createGain(); this.wet.gain.value = $("room").checked ? 0.09 : 0;
+      this.dry.connect(conv).connect(this.wet).connect(this.master);
+    },
+    roomIR(rt60) {
+      const ctx = this.ctx, n = Math.round(0.4 * ctx.sampleRate), b = ctx.createBuffer(2, n, ctx.sampleRate);
+      for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); let lp = 0;
+        for (let i = 0; i < n; i++) { const t = i / ctx.sampleRate; lp += 0.35 * ((Math.random() * 2 - 1) - lp); d[i] = t < 0.004 ? 0 : lp * Math.exp(-6.91 * t / rt60); } }
+      return b;
+    },
+    syllable(v) {
+      const ctx = this.ctx, sr = ctx.sampleRate, F = v.f, Am = v.a, m = F.length;
+      const n = Math.round(m / 1000 * sr), buf = ctx.createBuffer(1, n, sr), d = buf.getChannelData(0), gain = 0.315, fade = Math.round(0.0025 * sr);
+      let ph = 0;
+      for (let i = 0; i < n; i++) {
+        const tms = i / sr * 1000; let j = Math.floor(tms), fr = tms - j;
+        if (j >= m - 1) { j = m - 2; fr = 1; }
+        const f = Math.exp(Math.log(F[j]) * (1 - fr) + Math.log(F[j + 1]) * fr), a = Am[j] * (1 - fr) + Am[j + 1] * fr;
+        ph += 2 * Math.PI * f / sr; if (ph > 2 * Math.PI) ph -= 2 * Math.PI;
+        const w = Math.min(1, (i + 0.5) / fade, (n - i - 0.5) / fade);
+        d[i] = gain * a * w * (Math.sin(ph) + 0.0316 * Math.sin(2 * ph + 0.6) + 0.0224 * Math.sin(3 * ph + 0.9));
+      }
+      return buf;
+    },
+    at(buf, t) { const s = this.ctx.createBufferSource(); s.buffer = buf; s.connect(this.dry); s.start(t); this.live.push(s); s.onended = () => { this.live = this.live.filter((x) => x !== s); }; },
+    stop() { this.live.forEach((s) => { try { s.stop(); } catch (e) { /* stopped */ } }); this.live = []; timers.forEach(clearTimeout); timers = []; document.querySelectorAll(".card.now").forEach((c) => c.classList.remove("now")); $("status").textContent = ""; },
+  };
+
+  // a sequence of curves, `gap` seconds apart; `show(k)` is called as each starts
+  function playSeq(vs, gap, show) {
+    A.init(); A.stop();
+    let t = A.ctx.currentTime + 0.05;
+    vs.forEach((v, k) => {
+      A.at(A.syllable(v), t);
+      if (show) timers.push(setTimeout(() => show(k), Math.max(0, (t - A.ctx.currentTime) * 1000)));
+      t += v.ms / 1000 + gap;
+    });
+  }
+
+  // ------------------------------------------------------------------ the twelve syllables
+  function draw(cv, it, v) {
+    const w = cv.clientWidth || 400, h = 70, dpr = window.devicePixelRatio || 1;
+    cv.width = w * dpr; cv.height = h * dpr;
+    const g = cv.getContext("2d"); g.scale(dpr, dpr); g.clearRect(0, 0, w, h);
+    const css = getComputedStyle(document.documentElement);
+    const all = it.f.map(cents), lo = Math.min(...all), hi = Math.max(...all), mid = it.note;
+    const span = Math.max(300, 1.4 * Math.max(hi - mid, mid - lo)) * 2.05;
+    const maxMs = it.ms * 2.05;
+    const y = (c) => h / 2 - (c - mid) / span * (h / 2 - 4), x = (ms) => 6 + ms / maxMs * (w - 12);
+    g.strokeStyle = css.getPropertyValue("--orig").trim(); g.setLineDash([3, 3]); g.beginPath(); g.moveTo(0, y(mid)); g.lineTo(w, y(mid)); g.stroke(); g.setLineDash([]);
+    const line = (f, col, lw) => { g.strokeStyle = col; g.lineWidth = lw; g.beginPath(); f.forEach((fz, i) => { const p = [x(i), y(cents(fz))]; if (i === 0) g.moveTo(...p); else g.lineTo(...p); }); g.stroke(); };
+    line(it.f, css.getPropertyValue("--orig").trim(), 2);
+    if (v) line(v.f, css.getPropertyValue("--curve").trim(), 2);
+  }
+  function itemCard(it, idx) {
+    const el = document.createElement("div"); el.className = "card";
+    const btns = (kind) => LEVELS.map((l) => '<button data-k="' + kind + '" data-l="' + l + '">' + l + "%</button>").join("");
+    el.innerHTML = '<div class="head"><b>' + (idx + 1) + ". " + it.title + '</b><span class="meta">' + it.ms + " ms · sweep " + (it.sweep > 0 ? "+" : "") + it.sweep + " c</span></div>" +
+      "<canvas></canvas>" +
+      '<div class="row"><span class="lab">Length</span>' + btns("len") + '<button data-seq="len">▶ all</button></div>' +
+      '<div class="row"><span class="lab">Pitch range</span>' + btns("rng") + '<button data-seq="rng">▶ all</button></div>' +
+      '<div class="row"><span class="lab">Both</span><button data-rand="1">▶ random ×5</button></div>' +
+      '<div class="row"><span class="lab">Unnatural?</span>' +
+      [["len60", "length 60%"], ["len80", "length 80%"], ["len160", "length 160%"], ["len200", "length 200%"],
+       ["rng60", "range 60%"], ["rng80", "range 80%"], ["rng160", "range 160%"], ["rng200", "range 200%"]].map(([k, t]) =>
+        '<label class="ck"><input type="checkbox" data-u="' + k + '"> ' + t + "</label>").join("") + "</div>";
+    const cv = el.querySelector("canvas");
+    const sel = (b) => { el.querySelectorAll("button[data-k]").forEach((x) => x.classList.toggle("on", x === b)); };
+    el.querySelectorAll("button[data-k]").forEach((b) => b.addEventListener("click", (e) => {
+      e.currentTarget.blur(); const l = +b.dataset.l, v = b.dataset.k === "len" ? variant(it, l, 100) : variant(it, 100, l);
+      sel(b); draw(cv, it, v); playSeq([v], 0); count(idx + ":" + b.dataset.k + l);
+    }));
+    el.querySelectorAll("button[data-seq]").forEach((b) => b.addEventListener("click", (e) => {
+      e.currentTarget.blur(); const kind = b.dataset.seq;
+      const vs = LEVELS.map((l) => (kind === "len" ? variant(it, l, 100) : variant(it, 100, l)));
+      playSeq(vs, 0.35, (k) => { draw(cv, it, vs[k]); $("status").textContent = it.title + " — " + (kind === "len" ? "length " : "range ") + LEVELS[k] + " %"; });
+      count(idx + ":seq" + kind);
+    }));
+    el.querySelector("button[data-rand]").addEventListener("click", (e) => {
+      e.currentTarget.blur();
+      const draws = [0, 1, 2, 3, 4].map(() => [rnd(), rnd()]), vs = draws.map(([l, r]) => variant(it, l, r));
+      playSeq(vs, 0.35, (k) => { draw(cv, it, vs[k]); $("status").textContent = it.title + " — length " + Math.round(draws[k][0]) + " %, range " + Math.round(draws[k][1]) + " %"; });
+      count(idx + ":rand");
+    });
+    el.querySelectorAll("input[data-u]").forEach((c) => {
+      const k = idx + ":" + c.dataset.u; c.checked = !!state.unnatural[k];
+      c.addEventListener("change", () => { if (c.checked) state.unnatural[k] = true; else delete state.unnatural[k]; save(); });
+    });
+    setTimeout(() => draw(cv, it, null), 0);
+    window.addEventListener("resize", () => draw(cv, it, null));
+    return el;
+  }
+
+  // ------------------------------------------------------------------ phrases in context
+  function phraseCard(p, pi) {
+    const el = document.createElement("div"); el.className = "card";
+    let seeds = null;
+    const roll = () => { seeds = p.syllables.map(() => [rnd(), rnd()]); state.draws++; save(); };
+    roll();
+    el.innerHTML = '<div class="head"><b>' + p.title + '</b><span class="meta">' + p.syllables.length + " syllables</span></div>" +
+      '<div class="row"><button data-m="orig">▶ as recorded</button><button data-m="len">▶ random length</button><button data-m="rng">▶ random range</button><button data-m="both" class="primary">▶ random both</button><button data-new="1">New draw</button></div>';
+    el.querySelectorAll("button[data-m]").forEach((b) => b.addEventListener("click", (e) => {
+      e.currentTarget.blur(); A.init(); A.stop();
+      const mode = b.dataset.m; let t = A.ctx.currentTime + 0.05, prevEnd = null;
+      p.syllables.forEach((s, k) => {
+        const [l, r] = seeds[k];
+        const v = variant(s, mode === "len" || mode === "both" ? l : 100, mode === "rng" || mode === "both" ? r : 100);
+        // keep the bird's real gaps: each syllable starts its real gap after the previous one ends
+        if (k > 0) { const prev = p.syllables[k - 1]; t = prevEnd + (s.t_ms - (prev.t_ms + prev.ms)) / 1000; }
+        A.at(A.syllable(v), t); prevEnd = t + v.ms / 1000;
+      });
+      el.classList.add("now"); timers.push(setTimeout(() => el.classList.remove("now"), (prevEnd - A.ctx.currentTime) * 1000 + 200));
+      count("phrase" + pi + ":" + mode);
+    }));
+    el.querySelector("button[data-new]").addEventListener("click", (e) => { e.currentTarget.blur(); roll(); $("status").textContent = "New random values for " + p.title + "."; });
+    return el;
+  }
+
+  // ------------------------------------------------------------------ wiring
+  $("subline").textContent = D.study + " · " + D.items.length + " syllables, " + D.phrases.length + " phrases · not a blind test: listen as you like · about 10 minutes";
+  D.items.forEach((it, i) => $("items").appendChild(itemCard(it, i)));
+  D.phrases.forEach((p, i) => $("phrases").appendChild(phraseCard(p, i)));
+  $("stopAll").addEventListener("click", (e) => { e.currentTarget.blur(); A.stop(); });
+  $("room").addEventListener("change", () => { if (A.wet) A.wet.gain.value = $("room").checked ? 0.09 : 0; });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") A.stop(); });
+  ["lenLo", "lenHi", "rngLo", "rngHi"].forEach((id) => { if (state[id] !== undefined) $(id).value = state[id]; $(id).addEventListener("change", () => { state[id] = +$(id).value; save(); }); });
+  ["lenNone", "rngNone"].forEach((id) => { $(id).checked = !!state[id]; $(id).addEventListener("change", () => { state[id] = $(id).checked; save(); }); });
+  function answers() {
+    return JSON.stringify(Object.assign({}, state, {
+      length: $("lenNone").checked ? null : [+$("lenLo").value, +$("lenHi").value],
+      range: $("rngNone").checked ? null : [+$("rngLo").value, +$("rngHi").value],
+      comment: $("comment").value, finished: new Date().toISOString(),
+      items: D.items.map((it) => ({ rec: it.rec, segment: it.segment, label: it.label })) }), null, 1);
+  }
+  $("download").addEventListener("click", () => {
+    const blob = new Blob([answers()], { type: "application/json" }), a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "stretch1_answers_" + new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-") + ".json";
+    document.body.appendChild(a); a.click(); a.remove(); $("doneStatus").textContent = "Saved to your Downloads folder as " + a.download;
+  });
+  $("copy").addEventListener("click", async () => {
+    const txt = answers();
+    try { await navigator.clipboard.writeText(txt); $("doneStatus").textContent = "Copied. Paste it in the chat."; }
+    catch (e) { const ta = $("resultsText"); ta.hidden = false; ta.value = txt; ta.select(); $("doneStatus").textContent = "Select-all and copy the text below (⌘C)."; }
+  });
+})();
+</script>
+</body>
+</html>

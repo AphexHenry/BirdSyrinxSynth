@@ -1,4 +1,5 @@
 #include "alloc_counter.hpp"
+#include "cuicui/control/variation.hpp"
 #include "cuicui/control/archetypes.hpp"
 #include "cuicui/control/gesture_engine.hpp"
 #include "cuicui/control/inverse_map.hpp"
@@ -274,4 +275,34 @@ TEST_CASE("SyllableEngine::process allocates nothing over 60 s of dense playing 
     }
     REQUIRE(cuicui::test::alloc_count() == 0);
     REQUIRE(eng.samplesProcessed() == static_cast<long long>(60 * 48000 / 256) * 256);
+}
+
+TEST_CASE("SyllableEngine allocates nothing while singing new renditions (merged birds)") {
+    const auto a = cuicui::io::loadSyllableBank(std::string(CUICUI_SOURCE_DIR) + "/assets/voicebanks/hf_22938/bank.json");
+    const auto b = cuicui::io::loadSyllableBank(std::string(CUICUI_SOURCE_DIR) + "/assets/voicebanks/hf_22937/bank.json");
+    const auto bank = cuicui::control::mergeBanks({&a, &b});
+    cuicui::control::SyllableEngine eng;
+    eng.prepare(48000.0);
+    eng.setBank(&bank);
+    eng.reset(3);
+    cuicui::control::WhistleSettings s;
+    s.play.variation = 1.0;
+    s.play.polyphony = 6;
+    std::vector<float> l(256), r(256);
+    std::vector<cuicui::control::PlayEvent> ev(2);
+    cuicui::test::reset_alloc_count();
+    int on = 0;
+    for (int blk = 0; blk < 20 * 48000 / 256; ++blk) {
+        int ne = 0;
+        if (blk % 40 == 0) {
+            ev[0] = cuicui::control::PlayEvent{cuicui::control::PlayEvent::Type::NoteOn, 7, 50 + (blk / 40) % 30, 0.8f};
+            on = ev[0].note;
+            ne = 1;
+        } else if (blk % 40 == 30) {
+            ev[0] = cuicui::control::PlayEvent{cuicui::control::PlayEvent::Type::NoteOff, 3, on, 0.0f};
+            ne = 1;
+        }
+        eng.process(ev.data(), ne, 256, s, l.data(), r.data());
+    }
+    CHECK(cuicui::test::alloc_count() == 0);
 }

@@ -5,7 +5,7 @@
   "category": "Flock",
   "author": "Cuicui Instruments",
   "description": "One bird in the middle: each new key takes over from the last. For melodies.",
-  "voice_bank": "zf_22938",
+  "voice_bank": "hf_22938+hf_22937",
   "parameters": {
     "perf.polyphony": 1,
     "out.stereo_spread": 0.0

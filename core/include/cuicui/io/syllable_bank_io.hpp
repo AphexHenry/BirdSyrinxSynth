@@ -68,6 +68,91 @@ inline control::SyllableBank parseSyllableBank(std::string_view text) {
     if (!j.contains("phrases") || !j["phrases"].is_array() || j["phrases"].empty()) {
         fail("phrases must be a non-empty array");
     }
+    b.setBirds({j.value("name", std::string())});
+    // WP-R3 (D-036): the optional shape model ("variation" section + per-syllable type / model / scores)
+    std::vector<int> modelModes; // modes per model, to check the syllables' scores
+    if (j.contains("variation")) {
+        const auto& v = j["variation"];
+        if (!v.is_object() || v.value("format", std::string()) != "cuicui.variation_model" || v.value("version", 0) != 1) {
+            fail("variation must be a cuicui.variation_model v1 object");
+        }
+        const int points = v.value("points", 0);
+        if (points < 2 || points > control::kMaxModelPoints) {
+            fail("variation.points must be 2.." + std::to_string(control::kMaxModelPoints));
+        }
+        auto num = [&](const json& o, const char* key, const std::string& where) {
+            if (!o.contains(key) || !o[key].is_number() || !std::isfinite(o[key].get<double>())) {
+                fail(where + "." + key + " missing or not a finite number");
+            }
+            return o[key].get<double>();
+        };
+        auto pair = [&](const json& o, const char* key, const std::string& where) {
+            if (!o.contains(key) || !o[key].is_array() || o[key].size() != 2) {
+                fail(where + "." + key + " must be [mean, sd]");
+            }
+            const auto x = o[key].get<std::vector<double>>();
+            if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || x[1] < 0.0) {
+                fail(where + "." + key + " must be finite with sd ≥ 0");
+            }
+            return x;
+        };
+        auto curve = [&](const json& c, const std::string& where) {
+            if (!c.is_array() || static_cast<int>(c.size()) != points) {
+                fail(where + " must have variation.points values");
+            }
+            std::array<double, control::kMaxModelPoints> out{};
+            for (int i = 0; i < points; ++i) {
+                out[static_cast<std::size_t>(i)] = c[static_cast<std::size_t>(i)].get<double>();
+                if (!std::isfinite(out[static_cast<std::size_t>(i)])) {
+                    fail(where + " has a non-finite value");
+                }
+            }
+            return out;
+        };
+        if (!v.contains("spread_median") || !v["spread_median"].is_object()) {
+            fail("variation.spread_median missing");
+        }
+        const auto& sp = v["spread_median"];
+        control::VariationSpread spread{num(sp, "note", "variation.spread_median"),
+                                        num(sp, "logdur", "variation.spread_median"),
+                                        num(sp, "peak_db", "variation.spread_median")};
+        b.setVariation(points, {spread});
+        if (!v.contains("types") || !v["types"].is_array()) {
+            fail("variation.types must be an array");
+        }
+        int ti = 0;
+        for (const auto& t : v["types"]) {
+            const std::string w = "variation.types[" + std::to_string(ti++) + "]";
+            control::TypeModel m;
+            const auto note = pair(t, "note", w);
+            const auto logdur = pair(t, "logdur", w);
+            const auto peak = pair(t, "peak_db", w);
+            m.noteMean = note[0];
+            m.noteSd = note[1];
+            m.logdurMean = logdur[0];
+            m.logdurSd = logdur[1];
+            m.peakMean = peak[0];
+            m.peakSd = peak[1];
+            if (!t.contains("mean") || !t.contains("modes") || !t.contains("mode_sd") || !t["modes"].is_array() ||
+                !t["mode_sd"].is_array() || t["modes"].size() != t["mode_sd"].size() ||
+                t["modes"].size() > static_cast<std::size_t>(control::kMaxModes)) {
+                fail(w + ": mean, modes and mode_sd are required (at most " + std::to_string(control::kMaxModes) +
+                     " modes)");
+            }
+            m.mean = curve(t["mean"], w + ".mean");
+            m.numModes = static_cast<int>(t["modes"].size());
+            for (int k = 0; k < m.numModes; ++k) {
+                m.modes[static_cast<std::size_t>(k)] = curve(t["modes"][static_cast<std::size_t>(k)], w + ".modes");
+                const auto& sd = t["mode_sd"][static_cast<std::size_t>(k)];
+                if (!sd.is_number() || !std::isfinite(sd.get<double>()) || sd.get<double>() < 0.0) {
+                    fail(w + ".mode_sd must be finite and ≥ 0");
+                }
+                m.modeSd[static_cast<std::size_t>(k)] = sd.get<double>();
+            }
+            b.addModel(m);
+            modelModes.push_back(m.numModes);
+        }
+    }
     int pi = 0;
     for (const auto& p : j["phrases"]) {
         const std::string pw = "phrase " + std::to_string(pi);
@@ -118,6 +203,7 @@ inline control::SyllableBank parseSyllableBank(std::string_view text) {
                 spanE = span[1];
             }
             bool tap = true; // D-032: "no_note" / "no_tap" keep it from starting a key press
+            bool hop = false; // WP-R3: a tracker jump (its pitch range is never widened)
             if (s.contains("flags")) {
                 if (!s["flags"].is_array()) {
                     fail(sw + ": flags must be an array of strings");
@@ -128,9 +214,28 @@ inline control::SyllableBank parseSyllableBank(std::string_view text) {
                     }
                     const auto flag = f.get<std::string>();
                     tap = tap && flag != control::kNoNoteFlag && flag != control::kNoTapFlag;
+                    hop = hop || flag == "hop";
                 }
             }
-            b.addSyllable(tMs, hz, amp, anchors, spanB, spanE, s.value("label", std::string()), tap);
+            b.addSyllable(tMs, hz, amp, anchors, spanB, spanE, s.value("label", std::string()), tap, hop);
+            if (s.contains("type") || s.contains("model")) { // WP-R3 (D-036)
+                const int type = s.value("type", -1);
+                const int model = s.value("model", -1);
+                std::array<double, control::kMaxModes> scores{};
+                if (model >= 0) {
+                    if (model >= static_cast<int>(modelModes.size())) {
+                        fail(sw + ": model " + std::to_string(model) + " does not exist");
+                    }
+                    if (!s.contains("scores") || !s["scores"].is_array() ||
+                        static_cast<int>(s["scores"].size()) != modelModes[static_cast<std::size_t>(model)]) {
+                        fail(sw + ": scores must have one value per mode of its model");
+                    }
+                    for (int k = 0; k < modelModes[static_cast<std::size_t>(model)]; ++k) {
+                        scores[static_cast<std::size_t>(k)] = s["scores"][static_cast<std::size_t>(k)].get<double>();
+                    }
+                }
+                b.setSyllableVariation(0, type, model, scores);
+            }
             ++si;
         }
         ++pi;

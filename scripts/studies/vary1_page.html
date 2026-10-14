@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bird Variation Test</title>
+<style>
+  :root {
+    --bg: #f7f6f1; --card: #ffffff; --fg: #1f1e1b; --muted: #6d6b64; --line: #e2e0d8;
+    --accent: #2e6b4f; --accent-fg: #ffffff; --track: #d9d6cc; --chip: #eef3ef; --warn: #a3471b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141413; --card: #1d1d1b; --fg: #ecebe5; --muted: #9b998f; --line: #34332f;
+      --accent: #7cc49d; --accent-fg: #10231a; --track: #3a3934; --chip: #23302a; --warn: #f0a070;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.45rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; }
+  ol { padding-left: 1.2rem; } li { margin: 4px 0; }
+  button { font: inherit; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--fg); padding: 8px 12px; cursor: pointer; }
+  button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+  button.playing { outline: 3px solid var(--accent); outline-offset: 1px; }
+  button:disabled { opacity: .45; cursor: default; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 10px 0; }
+  .progress { display: flex; justify-content: space-between; color: var(--muted); font-size: .9rem; }
+  .bar { height: 6px; background: var(--track); border-radius: 3px; margin: 6px 0 14px; overflow: hidden; }
+  .bar > div { height: 100%; background: var(--accent); width: 0; }
+  .ref { display: flex; align-items: center; gap: 12px; background: var(--chip); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+  .vrow { display: grid; grid-template-columns: 64px 1fr 44px; gap: 12px; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  .vrow:last-child { border-bottom: 0; }
+  .vrow button { width: 64px; }
+  .vrow .val { font-variant-numeric: tabular-nums; text-align: right; color: var(--muted); }
+  .vrow.touched .val { color: var(--fg); font-weight: 600; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  .scale { display: grid; grid-template-columns: 64px 1fr 44px; gap: 12px; color: var(--muted); font-size: .78rem; }
+  .scale div { display: flex; justify-content: space-between; }
+  kbd { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; margin-left: 6px; color: var(--muted); background: var(--bg); }
+  .hint { color: var(--muted); font-size: .88rem; }
+  .status { color: var(--muted); font-size: .9rem; min-height: 1.4em; }
+  .warn { color: var(--warn); }
+  textarea { width: 100%; min-height: 100px; font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Does it sound like this bird singing?</h1>
+  <p class="sub" id="subline">progress is saved</p>
+
+  <section id="intro" class="card">
+    <ol>
+      <li>Each screen has the <b>real recording</b> (Reference): the bird singing two or three songs. The <b>versions</b> A, B, C… are sung by the plugin's whistle, with the same timing of songs.</li>
+      <li><b>The versions do not always sing the same notes as the reference.</b> Part 1 (screens 1–2): the bird sings <b>the same song again</b>, maybe a little differently each time. Part 2 (screens 3–4): <b>new songs</b>, made from the bird's own syllables.</li>
+      <li>For each version: <b>how much does it sound like this bird singing?</b> 100 = as natural as the recording; 0 = nothing like it. Judge the singing (the shapes, the order, the life of it), not the exact notes.</li>
+      <li>The real recording is also hidden among the versions. If you find it, give it 100.</li>
+      <li>Buttons switch instantly during playback, at the same point in time. Compare as much as you like.</li>
+    </ol>
+    <p class="hint">Headphones, same volume throughout. Keys: <b>R</b> reference, <b>1–9</b> and <b>0</b> versions, <b>Space</b> play/stop.</p>
+    <div class="row"><button id="start" class="primary">Start</button><button id="restart" hidden>Start over</button></div>
+    <p class="status" id="introStatus"></p>
+  </section>
+
+  <section id="screen" class="card" hidden>
+    <div class="progress"><span id="screenLabel"></span><span id="screenHint"></span></div>
+    <div class="bar"><div id="barFill"></div></div>
+    <div class="ref">
+      <button id="refBtn">▶ Reference<kbd>R</kbd></button>
+      <button id="stopBtn">■ Stop<kbd>space</kbd></button>
+      <label><input type="checkbox" id="loop" checked> Loop</label>
+    </div>
+    <p id="partText" style="margin:0 0 10px"></p>
+    <div class="scale"><span></span><div><span>nothing like this bird</span><span>as natural as the recording</span></div><span></span></div>
+    <div id="rows"></div>
+    <div class="row">
+      <button id="next" class="primary">Next screen ▶</button>
+      <span class="status" id="screenStatus"></span>
+    </div>
+  </section>
+
+  <section id="done" class="card" hidden>
+    <h2 style="margin-top:0">Done, thank you.</h2>
+    <p>Optional: what gave the versions away? Did any version sound mechanical, or too free?</p>
+    <textarea id="comment" placeholder="Your notes…"></textarea>
+    <div class="row"><button id="download" class="primary">Download results (.json)</button><button id="copy">Copy results</button></div>
+    <p class="status" id="doneStatus"></p>
+    <textarea id="resultsText" readonly hidden></textarea>
+  </section>
+</main>
+
+<!--DATA-->
+<script>
+(function () {
+  "use strict";
+  const D = window.COLOUR1;
+  const KEY = D.study.toLowerCase() + "-progress-" + D.design_hash;
+  const $ = (id) => document.getElementById(id);
+  let ctx = null, buffers = null, playing = null;   // playing = {id, src, gain, t0}
+  let state = load() || fresh();
+  let cur = null;
+
+  function fresh() { return { study: D.study, version: D.version, design_hash: D.design_hash, started: new Date().toISOString(), idx: 0, results: [], user_agent: navigator.userAgent }; }
+  function load() { try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ } }
+
+  function b64ToBuf(b64) { const bin = atob(b64); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
+  async function decodeScreen(sc) {
+    const out = { R: await ctx.decodeAudioData(b64ToBuf(sc.reference)) };
+    for (const v of sc.versions) out[v.id] = await ctx.decodeAudioData(b64ToBuf(v.audio));
+    return out;
+  }
+
+  // Seamless switching: every stimulus has the same length; a new one starts where the last one was.
+  function position() { if (!playing) return 0; const d = buffers.R.duration; const p = ctx.currentTime - playing.t0; return $("loop").checked ? p % d : Math.min(p, d); }
+  function play(id) {
+    if (!buffers) return;
+    if (ctx.state === "suspended") ctx.resume();
+    const pos = position(), now = ctx.currentTime;
+    const buf = buffers[id];
+    const g = ctx.createGain(); g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(1, now + 0.008);
+    const src = ctx.createBufferSource(); src.buffer = buf; src.loop = $("loop").checked;
+    src.connect(g).connect(ctx.destination);
+    const offset = pos >= buf.duration ? 0 : pos;
+    src.start(now, offset);
+    if (playing) { const old = playing; old.gain.gain.setValueAtTime(old.gain.gain.value, now); old.gain.gain.linearRampToValueAtTime(0, now + 0.008); old.src.stop(now + 0.02); }
+    playing = { id, src, gain: g, t0: now - offset };
+    src.onended = () => { if (playing && playing.src === src) { playing = null; mark(); } };
+    if (cur) { cur.listens[id] = (cur.listens[id] || 0) + 1; }
+    mark();
+  }
+  function stop() { if (playing) { try { playing.src.stop(); } catch (e) { /* stopped */ } playing = null; } mark(); }
+  function mark() { document.querySelectorAll("[data-play]").forEach((b) => b.classList.toggle("playing", !!playing && playing.id === b.dataset.play)); }
+
+  async function showScreen() {
+    stop();
+    const sc = D.screens[state.idx];
+    $("screenLabel").textContent = "Screen " + (state.idx + 1) + " / " + D.screens.length + (sc.part ? " · part " + (sc.part === "A" ? "1" : "2") : "");
+    $("partText").textContent = (D.parts && D.parts[sc.part]) || "";
+    $("barFill").style.width = (100 * state.idx / D.screens.length) + "%";
+    $("screenStatus").textContent = "Loading sounds…";
+    buffers = null;
+    buffers = await decodeScreen(sc);
+    $("screenStatus").textContent = "";
+    cur = { ratings: {}, touched: {}, listens: {}, t0: performance.now() };
+    const rows = $("rows"); rows.innerHTML = "";
+    $("refBtn").dataset.play = "R";
+    sc.versions.forEach((v, i) => {
+      const row = document.createElement("div"); row.className = "vrow";
+      row.innerHTML = '<button data-play="' + v.id + '">▶ ' + v.id + '</button><input type="range" min="0" max="100" step="1" value="50" aria-label="Rating for ' + v.id + '"><span class="val">–</span>';
+      const btn = row.querySelector("button"), sl = row.querySelector("input"), val = row.querySelector(".val");
+      btn.addEventListener("click", () => { btn.blur(); play(v.id); });
+      sl.addEventListener("input", () => { cur.ratings[v.id] = +sl.value; cur.touched[v.id] = true; row.classList.add("touched"); val.textContent = sl.value; });
+      rows.appendChild(row);
+    });
+    mark();
+  }
+
+  function next() {
+    const sc = D.screens[state.idx];
+    const missing = sc.versions.filter((v) => !cur.touched[v.id]).map((v) => v.id);
+    if (missing.length) { $("screenStatus").innerHTML = '<span class="warn">Rate every version (move each slider): ' + missing.join(", ") + "</span>"; return; }
+    stop();
+    state.results.push({ screen: state.idx + 1, passage: sc.passage, ratings: cur.ratings, listens: cur.listens, ms: Math.round(performance.now() - cur.t0), at: new Date().toISOString() });
+    state.idx++; save();
+    if (state.idx >= D.screens.length) { finish(); } else { showScreen(); window.scrollTo(0, 0); }
+  }
+
+  function resultsJson() { return JSON.stringify(Object.assign({}, state, { comment: $("comment").value, sample_rate: ctx ? ctx.sampleRate : null }), null, 1); }
+  function finish() { stop(); state.finished = state.finished || new Date().toISOString(); save(); $("intro").hidden = true; $("screen").hidden = true; $("done").hidden = false; }
+
+  $("start").addEventListener("click", async () => {
+    ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+    ctx.resume();
+    if (state.idx >= D.screens.length) { finish(); return; }
+    $("intro").hidden = true; $("screen").hidden = false;
+    await showScreen();
+  });
+  $("restart").addEventListener("click", () => { if (!confirm("Erase saved ratings and start from screen 1?")) return; state = fresh(); save(); $("restart").hidden = true; $("start").textContent = "Start"; $("introStatus").textContent = ""; });
+  $("refBtn").addEventListener("click", (e) => { e.currentTarget.blur(); play("R"); });
+  $("stopBtn").addEventListener("click", (e) => { e.currentTarget.blur(); stop(); });
+  $("loop").addEventListener("change", () => { if (playing) { const id = playing.id; stop(); play(id); } });
+  $("next").addEventListener("click", (e) => { e.currentTarget.blur(); next(); });
+  $("download").addEventListener("click", () => {
+    const blob = new Blob([resultsJson()], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = D.study.toLowerCase() + "_results_" + new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-") + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    $("doneStatus").textContent = "Saved to your Downloads folder as " + a.download;
+  });
+  $("copy").addEventListener("click", async () => {
+    const txt = resultsJson();
+    try { await navigator.clipboard.writeText(txt); $("doneStatus").textContent = "Copied. Paste it in the chat."; }
+    catch (e) { const ta = $("resultsText"); ta.hidden = false; ta.value = txt; ta.select(); $("doneStatus").textContent = "Select-all and copy the text below (⌘C)."; }
+  });
+  document.addEventListener("keydown", (e) => {
+    if ($("screen").hidden || (e.target && e.target.tagName === "TEXTAREA")) return;
+    if (e.key === " ") { e.preventDefault(); if (playing) stop(); else play("R"); }
+    else if (e.key === "r" || e.key === "R") play("R");
+    else if (/^[0-9]$/.test(e.key)) { const v = D.screens[state.idx].versions[e.key === "0" ? 9 : +e.key - 1]; if (v) play(v.id); }
+  });
+
+  $("subline").textContent = D.study + " · " + D.screens.length + " screens · about " + (D.minutes || 5 * D.screens.length) + " minutes · progress is saved";
+  if (state.idx > 0 && state.idx < D.screens.length) { $("start").textContent = "Resume at screen " + (state.idx + 1); $("restart").hidden = false; $("introStatus").textContent = state.idx + " screen(s) saved on this computer."; }
+  else if (state.idx >= D.screens.length) { $("start").textContent = "Show results"; $("restart").hidden = false; }
+})();
+</script>
+</body>
+</html>

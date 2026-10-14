@@ -5,7 +5,7 @@
   "category": "Character",
   "author": "Cuicui Instruments",
   "description": "The same finch a fifth lower, as if it were a bigger bird.",
-  "voice_bank": "zf_22938",
+  "voice_bank": "hf_22938+hf_22937",
   "parameters": {
     "perf.size_st": -7.0
   }

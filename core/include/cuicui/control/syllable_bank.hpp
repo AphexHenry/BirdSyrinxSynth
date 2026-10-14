@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cctype>
 #include <cmath>
 #include <cstddef>
 #include <string>
@@ -27,6 +28,30 @@ inline constexpr std::string_view kNoTapFlag = "no_tap";
 enum class NoteRule { Rule = 0, Steady = 1, Landing = 2, Average = 3 };
 inline constexpr int kNoteRuleCount = 4;
 
+/// WP-R3 shape model (D-036): limits of a type model's arrays.
+inline constexpr int kMaxModelPoints = 64;
+inline constexpr int kMaxModes = 4;
+
+/// A syllable type's model (WP-R3, `cuicui.variation_model`): the spread of its renditions. Shapes are
+/// time-normalised curves of `SyllableBank::modelPoints()` points, in cents, after removing each
+/// rendition's note.
+struct TypeModel {
+    double noteMean = 0.0, noteSd = 0.0;     ///< the rendition's note (MIDI cents)
+    double logdurMean = 0.0, logdurSd = 0.0; ///< natural log of its length in ms
+    double peakMean = 0.0, peakSd = 0.0;     ///< its loudest frame (dB re the phrase's loudest)
+    int numModes = 0;
+    std::array<double, kMaxModelPoints> mean{};
+    std::array<std::array<double, kMaxModelPoints>, kMaxModes> modes{};
+    std::array<double, kMaxModes> modeSd{};
+};
+
+/// A bird's median spread (used for syllables without a type model).
+struct VariationSpread {
+    double note = 0.0;   ///< cents
+    double logdur = 0.0; ///< natural log of the length
+    double peakDb = 0.0; ///< dB
+};
+
 /// One real syllable. Its 1 ms curves live in SyllableBank's flat arrays at [offset, offset + lengthMs).
 struct BankSyllable {
     int phrase = 0;   ///< phrase index
@@ -37,6 +62,15 @@ struct BankSyllable {
     std::array<double, kNoteRuleCount> anchorCents{}; ///< note under each rule, MIDI cents (6900 = A4)
     int ruleSpanBegin = 0; ///< contour span [begin, end) in ms that the default rule used
     int ruleSpanEnd = 0;
+    // WP-R3
+    int bird = 0;            ///< which source bank it came from (SyllableBank::birds())
+    int type = -1;           ///< its syllable type within its bird (−1 = unknown)
+    int model = -1;          ///< index into SyllableBank::model() (−1 = no type model)
+    std::array<double, kMaxModes> scores{}; ///< its shape-mode scores (model ≥ 0)
+    double peakDb = 0.0;     ///< 20·log10 of its loudest frame
+    double sweepCents = 0.0; ///< pitch at the end minus at the start (R6: "sweeps up / down")
+    bool swipe = false;      ///< its label names a swipe ("swipe", "Hswipe", "swipe+swipe"…): longer stretches
+    bool hop = false;        ///< bank flag "hop": a tracker jump in its curve (never widened)
 };
 
 struct BankPhrase {
@@ -92,6 +126,45 @@ public:
     [[nodiscard]] bool isTapSyllable(int syl) const noexcept { return tapFlag_[static_cast<std::size_t>(syl)] != 0; }
     [[nodiscard]] const std::vector<int>& tapSyllables() const noexcept { return tap_; }
 
+    // ---- WP-R3: birds, the shape model (D-036), queries (R6)
+    /// The source banks merged into this one (one name per bird; a plain bank has one).
+    [[nodiscard]] const std::vector<std::string>& birds() const noexcept { return birds_; }
+    /// Does the bank carry a shape model (every bird of it)? Without one, variation leaves syllables real.
+    [[nodiscard]] bool hasVariation() const noexcept { return hasVariation_; }
+    [[nodiscard]] int modelPoints() const noexcept { return modelPoints_; }
+    [[nodiscard]] int numModels() const noexcept { return static_cast<int>(models_.size()); }
+    [[nodiscard]] const TypeModel& model(int m) const noexcept { return models_[static_cast<std::size_t>(m)]; }
+    [[nodiscard]] const VariationSpread& spread(int bird) const noexcept { return spreads_[static_cast<std::size_t>(bird)]; }
+    /// Longest syllable (ms).
+    [[nodiscard]] int maxLengthMs() const noexcept { return maxLengthMs_; }
+
+    /// What a playing mode may ask for (R6): every condition left at its default matches everything.
+    struct Query {
+        std::string_view labelPrefix{}; ///< e.g. "swipe", "peep", "alarm"
+        int minMs = 0;
+        int maxMs = 1 << 30;
+        double minSweepCents = -1e9; ///< e.g. 200 = "sweeps up by at least 2 semitones"
+        double maxSweepCents = 1e9;
+        int bird = -1; ///< −1 = any
+        bool playableOnly = true; ///< leave the release calls out (D-030)
+    };
+    /// Syllables matching `q`, in bank order. Allocates: call off the audio thread and keep the result.
+    [[nodiscard]] std::vector<int> find(const Query& q) const {
+        std::vector<int> out;
+        for (int i = 0; i < numSyllables(); ++i) {
+            const auto& sy = syllables_[static_cast<std::size_t>(i)];
+            const auto& lab = labels_[static_cast<std::size_t>(i)];
+            if ((q.playableOnly && isReleaseSyllable(i)) || sy.lengthMs < q.minMs || sy.lengthMs > q.maxMs ||
+                sy.sweepCents < q.minSweepCents || sy.sweepCents > q.maxSweepCents ||
+                (q.bird >= 0 && sy.bird != q.bird) ||
+                std::string_view(lab).substr(0, q.labelPrefix.size()) != q.labelPrefix) {
+                continue;
+            }
+            out.push_back(i);
+        }
+        return out;
+    }
+
 private:
     friend struct SyllableBankBuilder;
     std::vector<double> logHz_;
@@ -105,6 +178,12 @@ private:
     double releaseGapMs_ = 60.0;
     std::array<double, kNoteRuleCount> centreCents_{};
     std::string name_, species_, hash_;
+    std::vector<std::string> birds_;
+    std::vector<TypeModel> models_;
+    std::vector<VariationSpread> spreads_;
+    int modelPoints_ = 0;
+    int maxLengthMs_ = 0;
+    bool hasVariation_ = false;
 };
 
 /// Write access for loaders and tests (keeps SyllableBank read-only for everyone else).
@@ -117,6 +196,29 @@ struct SyllableBankBuilder {
         bank.hash_ = std::move(hash);
     }
     void setCentres(const std::array<double, kNoteRuleCount>& c) { bank.centreCents_ = c; }
+    /// WP-R3: the bank's birds (default: one, named after the bank) and its shape model.
+    void setBirds(std::vector<std::string> names) { bank.birds_ = std::move(names); }
+    void setVariation(int points, std::vector<VariationSpread> spreads) {
+        bank.modelPoints_ = points;
+        bank.spreads_ = std::move(spreads);
+        bank.hasVariation_ = true;
+    }
+    void addModel(const TypeModel& m) { bank.models_.push_back(m); }
+    /// Overwrite the last added syllable's pitch curve and measures with exact values (merging).
+    void setLastExact(const double* logHz, double peakDb, double sweepCents) {
+        auto& sy = bank.syllables_.back();
+        std::copy(logHz, logHz + sy.lengthMs, bank.logHz_.begin() + sy.offset);
+        sy.peakDb = peakDb;
+        sy.sweepCents = sweepCents;
+    }
+    /// The last added syllable's bird, type, model and scores.
+    void setSyllableVariation(int bird, int type, int model, const std::array<double, kMaxModes>& scores) {
+        auto& sy = bank.syllables_.back();
+        sy.bird = bird;
+        sy.type = type;
+        sy.model = model;
+        sy.scores = scores;
+    }
     void beginPhrase(double startS) {
         BankPhrase p;
         p.first = bank.numSyllables();
@@ -127,7 +229,7 @@ struct SyllableBankBuilder {
     /// starts a key press (bank flags "no_note" / "no_tap", D-032).
     void addSyllable(int tMs, const std::vector<double>& hz, const std::vector<float>& amp,
                      const std::array<double, kNoteRuleCount>& anchors, int spanBegin, int spanEnd,
-                     std::string label, bool tap = true) {
+                     std::string label, bool tap = true, bool hop = false) {
         auto& p = bank.phrases_.back();
         BankSyllable s;
         s.phrase = bank.numPhrases() - 1;
@@ -138,10 +240,22 @@ struct SyllableBankBuilder {
         s.anchorCents = anchors;
         s.ruleSpanBegin = spanBegin;
         s.ruleSpanEnd = spanEnd;
+        s.hop = hop;
+        {
+            std::string lower = label;
+            std::transform(lower.begin(), lower.end(), lower.begin(),
+                           [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+            s.swipe = lower.find("swipe") != std::string::npos;
+        }
+        float peak = 0.0f;
         for (std::size_t i = 0; i < hz.size(); ++i) {
             bank.logHz_.push_back(std::log(hz[i]));
             bank.amp_.push_back(amp[i]);
+            peak = std::max(peak, amp[i]);
         }
+        s.peakDb = 20.0 * std::log10(std::max(static_cast<double>(peak), 1e-6));
+        s.sweepCents = hz.size() >= 2 ? 1200.0 * std::log2(hz.back() / hz.front()) : 0.0;
+        bank.maxLengthMs_ = std::max(bank.maxLengthMs_, s.lengthMs);
         const bool release = std::string_view(label).substr(0, kReleaseLabelPrefix.size()) == kReleaseLabelPrefix;
         const int index = static_cast<int>(bank.syllables_.size());
         if (release && p.count > 0) { // the silence before it, after the previous syllable of its phrase
@@ -164,5 +278,76 @@ struct SyllableBankBuilder {
         ++p.count;
     }
 };
+
+/// WP-R3 (D-036): several birds' banks as one, built when the plugin starts; the files stay separate.
+/// Phrases and syllables are appended in order (bank 0 first); each syllable remembers its bird; type
+/// models are appended (indices shifted). Centres are the median over all syllables, as the bank builder
+/// computes them. The merged bank has a shape model only if every source bank has one.
+/// Offline only (allocates).
+[[nodiscard]] inline SyllableBank mergeBanks(const std::vector<const SyllableBank*>& banks) {
+    SyllableBankBuilder b;
+    std::string name, hash;
+    std::vector<std::string> birds;
+    std::vector<VariationSpread> spreads;
+    bool variation = !banks.empty();
+    int points = 0;
+    for (const auto* src : banks) {
+        name += (name.empty() ? "" : "+") + src->name();
+        hash += (hash.empty() ? "" : "+") + src->hash();
+        variation = variation && src->hasVariation();
+        points = std::max(points, src->modelPoints());
+    }
+    b.setInfo(name, banks.empty() ? std::string() : banks.front()->species(), hash);
+    std::vector<std::array<double, kNoteRuleCount>> anchors;
+    for (std::size_t bi = 0; bi < banks.size(); ++bi) {
+        const auto& src = *banks[bi];
+        const int modelBase = b.bank.numModels();
+        for (int m = 0; m < src.numModels(); ++m) {
+            b.addModel(src.model(m));
+        }
+        const int birdBase = static_cast<int>(birds.size());
+        for (std::size_t k = 0; k < src.birds().size(); ++k) {
+            birds.push_back(src.birds()[k]);
+            spreads.push_back(src.hasVariation() ? src.spread(static_cast<int>(k)) : VariationSpread{});
+        }
+        for (int p = 0; p < src.numPhrases(); ++p) {
+            const auto& ph = src.phrase(p);
+            b.beginPhrase(ph.startS);
+            for (int k = 0; k < ph.count; ++k) {
+                const int i = ph.first + k;
+                const auto& sy = src.syllable(i);
+                std::vector<double> hz(static_cast<std::size_t>(sy.lengthMs));
+                std::vector<float> amp(static_cast<std::size_t>(sy.lengthMs));
+                for (int t = 0; t < sy.lengthMs; ++t) {
+                    hz[static_cast<std::size_t>(t)] = std::exp(src.logHz()[sy.offset + t]);
+                    amp[static_cast<std::size_t>(t)] = src.amp()[sy.offset + t];
+                }
+                b.addSyllable(sy.tMs, hz, amp, sy.anchorCents, sy.ruleSpanBegin, sy.ruleSpanEnd, src.label(i),
+                              src.isTapSyllable(i) || src.isReleaseSyllable(i), sy.hop);
+                b.setSyllableVariation(birdBase + sy.bird, sy.type, sy.model >= 0 ? modelBase + sy.model : -1,
+                                       sy.scores);
+                b.setLastExact(src.logHz() + sy.offset, sy.peakDb, sy.sweepCents); // no exp/log round trip
+                anchors.push_back(sy.anchorCents);
+            }
+        }
+    }
+    std::array<double, kNoteRuleCount> centres{};
+    for (int r = 0; r < kNoteRuleCount; ++r) {
+        std::vector<double> v;
+        v.reserve(anchors.size());
+        for (const auto& a : anchors) {
+            v.push_back(a[static_cast<std::size_t>(r)]);
+        }
+        std::sort(v.begin(), v.end());
+        const std::size_t m = v.size();
+        centres[static_cast<std::size_t>(r)] = m == 0 ? 0.0 : (m % 2 == 1 ? v[m / 2] : 0.5 * (v[m / 2 - 1] + v[m / 2]));
+    }
+    b.setCentres(centres);
+    b.setBirds(birds);
+    if (variation) {
+        b.setVariation(points, spreads);
+    }
+    return std::move(b.bank);
+}
 
 } // namespace cuicui::control

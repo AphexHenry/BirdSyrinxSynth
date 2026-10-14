@@ -95,13 +95,32 @@ SyrinxAudioProcessor::SyrinxAudioProcessor()
     : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       apvts(*this, nullptr, "PARAMS", createParameterLayout()) {
     cacheParamPointers();
-    try {
-        bank_ = cuicui::io::parseSyllableBank(
-            std::string_view(BinaryData::bank_json, static_cast<std::size_t>(BinaryData::bank_jsonSize)));
+    try { // WP-R3 (D-036): one bank per bird, merged here
+        const auto a = cuicui::io::parseSyllableBank(std::string_view(
+            BinaryData::hf_22938_bank_json, static_cast<std::size_t>(BinaryData::hf_22938_bank_jsonSize)));
+        const auto b = cuicui::io::parseSyllableBank(std::string_view(
+            BinaryData::hf_22937_bank_json, static_cast<std::size_t>(BinaryData::hf_22937_bank_jsonSize)));
+        bank_ = cuicui::control::mergeBanks({&a, &b});
     } catch (const std::exception& e) {
-        juce::Logger::writeToLog(juce::String("Syrinx: the syllable bank did not load: ") + e.what());
+        juce::Logger::writeToLog(juce::String("Syrinx: the syllable banks did not load: ") + e.what());
     }
     presets_ = std::make_unique<PresetManager>(apvts);
+    presets_->setVoiceBankName(juce::String(bank_.name()));
+}
+
+void SyrinxAudioProcessor::useBankFiles(const std::vector<std::string>& paths) {
+    std::vector<cuicui::control::SyllableBank> banks;
+    for (const auto& path : paths) {
+        banks.push_back(cuicui::io::loadSyllableBank(path));
+    }
+    std::vector<const cuicui::control::SyllableBank*> ptrs;
+    for (const auto& b : banks) {
+        ptrs.push_back(&b);
+    }
+    auto merged = ptrs.size() == 1 ? std::move(banks.front()) : cuicui::control::mergeBanks(ptrs);
+    whistle_.setBank(nullptr);
+    bank_ = std::move(merged);
+    whistle_.setBank(&bank_);
     presets_->setVoiceBankName(juce::String(bank_.name()));
 }
 
@@ -147,6 +166,7 @@ cuicui::control::WhistleSettings SyrinxAudioProcessor::readWhistleSettings() con
     s.play.polyphony = polyParam_ != nullptr ? polyParam_->get() : 4;
     s.play.spread = static_cast<double>(raw(cuicui::ParamId::OutStereoSpread));
     s.play.releaseAlarm = releaseAlarm_.load(std::memory_order_relaxed);
+    s.play.variation = static_cast<double>(raw(cuicui::ParamId::PerfNaturalVariation));
     s.harmonics = raw(cuicui::ParamId::VoiceHarmonics) >= 0.5f;
     s.room = raw(cuicui::ParamId::OutRoom) >= 0.5f;
     return s;

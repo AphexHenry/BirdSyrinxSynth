@@ -1,5 +1,7 @@
 #include "SongDisplay.h"
 
+#include "cuicui/control/variation.hpp"
+
 #include "../PluginProcessor.h"
 
 #include <algorithm>
@@ -91,7 +93,20 @@ void SongDisplay::update() {
                 continue;
             }
             const auto& syl = bank.syllable(e.syllable);
-            items_.push_back({e, static_cast<double>(e.sample) + syl.lengthMs * 0.001 * sr_});
+            Item item{e, static_cast<double>(e.sample) + syl.lengthMs * 0.001 * sr_, {}, {}};
+            if ((e.shape > 0.0f && bank.hasVariation()) || e.lengthScale != 1.0 || e.rangeScale != 1.0) { // WP-R3
+                constexpr int cap = cuicui::control::SyllableEngine::kMaxVariantMs;
+                item.logHz.resize(static_cast<std::size_t>(cap));
+                item.amp.resize(static_cast<std::size_t>(cap));
+                const auto v = cuicui::control::makeVariant(
+                    bank, e.syllable, static_cast<double>(e.shape),
+                    e.shape > 0.0f ? cuicui::control::variantDraws(e.variantSeed) : cuicui::control::VariantDraws{},
+                    e.lengthScale, e.rangeScale, item.logHz.data(), item.amp.data(), cap); // the same rendition
+                item.logHz.resize(static_cast<std::size_t>(v.lengthMs));
+                item.amp.resize(static_cast<std::size_t>(v.lengthMs));
+                item.endSample = static_cast<double>(e.sample) + v.lengthMs * 0.001 * sr_;
+            }
+            items_.push_back(std::move(item));
             if (e.note >= 0 && e.note < 128) {
                 singerOfNote_[static_cast<std::size_t>(e.note)] = e.singer;
                 noteSeenAt_[static_cast<std::size_t>(e.note)] = static_cast<double>(e.sample);
@@ -228,10 +243,11 @@ void SongDisplay::paintStatic(juce::Graphics& g, juce::Rectangle<float> r, juce:
                juce::Justification::centredRight, false);
     const auto& bank = proc_.syllableBank();
     g.setFont(titleFont(9.5f));
-    const auto info = (juce::String(bank.species()).isNotEmpty() ? juce::String(bank.species()) : juce::String("bird"))
-                          .toUpperCase() +
-                      "  " + juce::String(bank.name()).toUpperCase() + "  ·  " + juce::String(bank.numSyllables()) +
-                      " SYLLABLES";
+    const auto species = juce::String(bank.species()).isNotEmpty() ? juce::String(bank.species()) : juce::String("bird");
+    const auto nb = static_cast<int>(bank.birds().size());
+    const auto info = species.toUpperCase() + "  " +
+                      (nb > 1 ? juce::String(nb) + " BIRDS" : juce::String(bank.name()).toUpperCase()) + "  ·  " +
+                      juce::String(bank.numSyllables()) + " SYLLABLES";
     g.drawText(info, r.withHeight(34.0f).reduced(14.0f, 0.0f), juce::Justification::centredRight, false);
 }
 
@@ -376,10 +392,12 @@ void SongDisplay::paintTraces(juce::Graphics& g, juce::Rectangle<float> plot) co
             continue;
         }
         const auto& syl = bank.syllable(e.syllable);
-        const double* lh = bank.logHz() + syl.offset;
-        const float* amp = bank.amp() + syl.offset;
+        const bool varied = !it.logHz.empty();
+        const double* lh = varied ? it.logHz.data() : bank.logHz() + syl.offset;
+        const float* amp = varied ? it.amp.data() : bank.amp() + syl.offset;
+        const int lengthMs = varied ? static_cast<int>(it.logHz.size()) : syl.lengthMs;
         const double playedMs = (now_ - static_cast<double>(e.sample)) * 1000.0 / sr_;
-        const int iEnd = std::min(syl.lengthMs - 1, static_cast<int>(std::floor(playedMs)));
+        const int iEnd = std::min(lengthMs - 1, static_cast<int>(std::floor(playedMs)));
         const int iStart = std::max(0, static_cast<int>(std::ceil((now_ - window - static_cast<double>(e.sample)) * 1000.0 / sr_)));
         if (iEnd < iStart) {
             continue;

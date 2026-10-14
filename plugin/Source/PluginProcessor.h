@@ -77,8 +77,13 @@ public:
 
     /// WP-R1: is the whistle voice selected (voice.type = whistle, the default)?
     [[nodiscard]] bool whistleSelected() const noexcept;
-    /// The bird's syllables (embedded factory bank zf_22938).
+    /// The birds' syllables: the factory banks hf_22938 + hf_22937, merged when the plugin starts (WP-R3,
+    /// D-036; the files stay separate).
     [[nodiscard]] const cuicui::control::SyllableBank& syllableBank() const noexcept { return bank_; }
+    /// Offline renderer / tests: sing these bank files instead (merged in order; one file = that bird only).
+    /// Call it while the plugin is not playing (it replaces the bank the audio thread reads). Throws
+    /// io::SyllableBankError on a bad file and keeps the current bank.
+    void useBankFiles(const std::vector<std::string>& paths);
     /// Offline renderer / tests: log every syllable start into a caller-owned buffer (nullptr = off).
     /// Samples are absolute since prepareToPlay, before the latency delay.
     void setSyllableLog(cuicui::control::SyllableLogEntry* buffer, int capacity) noexcept {

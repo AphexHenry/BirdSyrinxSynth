@@ -41,6 +41,8 @@ private:
     struct Item {
         SyllableFeed::Event e;
         double endSample = 0.0;
+        std::vector<double> logHz; ///< WP-R3: the varied curve (empty = the bank's real syllable)
+        std::vector<float> amp;
     };
 
     [[nodiscard]] double currentSample() const;

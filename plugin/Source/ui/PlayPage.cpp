@@ -79,16 +79,19 @@ PlayPage::PlayPage(SyrinxAudioProcessor& proc) : proc_(proc), display_(proc) {
         height_.addAndMakeVisible(c);
     }
 
-    // Song
-    pauseKnob_ = std::make_unique<Knob>(
-        apvts, "perf.pause_s", "Pause", [](double v) { return juce::String(v, 1) + " s"; }, "0.1 s", "2 s");
+    // Song (WP-R3: Variation is its main control; Pause moved to a small slider)
+    variationKnob_ = std::make_unique<Knob>(
+        apvts, "perf.natural_variation", "Variation",
+        [](double v) { return juce::String(static_cast<int>(std::lround(v * 100.0))) + "%"; }, "real", "varied");
     order_ = std::make_unique<Segmented>(apvts, "perf.order", juce::StringArray{"Random", "Phrase", "Shuffle"});
     styleCaption(orderCaption_, "Each key starts");
-    styleHint(songHint_);
-    setHelp(*pauseKnob_, "perf.pause_s");
+    pause_ = std::make_unique<MiniSlider>(apvts, "perf.pause_s", "Pause",
+                                          [](double v) { return juce::String(v, 1) + " s"; });
+    setHelp(*variationKnob_, "perf.natural_variation");
     setHelp(*order_, "perf.order");
-    for (juce::Component* c : {static_cast<juce::Component*>(pauseKnob_.get()), static_cast<juce::Component*>(&orderCaption_),
-                               static_cast<juce::Component*>(order_.get()), static_cast<juce::Component*>(&songHint_)}) {
+    setHelp(*pause_, "perf.pause_s");
+    for (juce::Component* c : {static_cast<juce::Component*>(variationKnob_.get()), static_cast<juce::Component*>(&orderCaption_),
+                               static_cast<juce::Component*>(order_.get()), static_cast<juce::Component*>(pause_.get())}) {
         song_.addAndMakeVisible(c);
     }
 
@@ -154,10 +157,10 @@ void PlayPage::resized() {
     mapping_->setBounds(cx, 182, cw, 28);
     heightHint_.setBounds(cx, 216, cw, 36);
 
-    pauseKnob_->setBounds(knob);
+    variationKnob_->setBounds(knob);
     orderCaption_.setBounds(cx, 164, cw, 16);
     order_->setBounds(cx, 182, cw, 28);
-    songHint_.setBounds(cx, 216, cw, 36);
+    pause_->setBounds(cx, 216, cw, 38);
 
     birdsKnob_->setBounds(knob);
     spread_->setBounds(cx, 168, cw, 38);
@@ -176,14 +179,6 @@ void PlayPage::updateHints() {
         heightHint_.setText(mapping == 1 ? "The bird sings three octaves above your key, so tunes keep their shape."
                                          : "Each key sings its note name at the bird's own height.",
                             juce::dontSendNotification);
-    }
-    const int order = static_cast<int>(proc_.apvts.getRawParameterValue("perf.order")->load());
-    if (order != shownOrder_) {
-        shownOrder_ = order;
-        songHint_.setText(order == 1   ? "From the start of a real phrase, then the phrases in order."
-                          : order == 2 ? "Syllables in random order, without the real phrases."
-                                       : "On a random syllable, then the real phrase goes on.",
-                          juce::dontSendNotification);
     }
 }
 

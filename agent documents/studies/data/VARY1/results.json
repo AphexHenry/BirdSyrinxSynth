@@ -1,0 +1,116 @@
+{
+ "study": "VARY1",
+ "version": 1,
+ "design_hash": "d57bdc29849e",
+ "started": "2026-10-13T22:16:17.143Z",
+ "idx": 4,
+ "results": [
+  {
+   "screen": 1,
+   "passage": "A2",
+   "ratings": {
+    "A": 56,
+    "B": 42,
+    "C": 70,
+    "D": 71,
+    "E": 2,
+    "F": 71,
+    "G": 70,
+    "H": 29
+   },
+   "listens": {
+    "R": 2,
+    "A": 1,
+    "B": 2,
+    "C": 2,
+    "D": 1,
+    "E": 1,
+    "F": 1,
+    "H": 1
+   },
+   "ms": 72968,
+   "at": "2026-10-13T22:21:48.511Z"
+  },
+  {
+   "screen": 2,
+   "passage": "A1",
+   "ratings": {
+    "A": 82,
+    "B": 63,
+    "C": 63,
+    "D": 5,
+    "E": 98,
+    "F": 98,
+    "G": 98,
+    "H": 76
+   },
+   "listens": {
+    "R": 2,
+    "A": 1,
+    "B": 2,
+    "C": 1,
+    "D": 1,
+    "E": 2,
+    "F": 1,
+    "G": 3,
+    "H": 1
+   },
+   "ms": 64815,
+   "at": "2026-10-13T22:22:53.626Z"
+  },
+  {
+   "screen": 3,
+   "passage": "B2",
+   "ratings": {
+    "A": 98,
+    "B": 1,
+    "C": 59,
+    "D": 32,
+    "E": 77,
+    "F": 76,
+    "G": 85
+   },
+   "listens": {
+    "A": 1,
+    "R": 2,
+    "B": 1,
+    "C": 1,
+    "D": 1,
+    "E": 3,
+    "F": 1,
+    "G": 1
+   },
+   "ms": 55091,
+   "at": "2026-10-13T22:23:48.952Z"
+  },
+  {
+   "screen": 4,
+   "passage": "B1",
+   "ratings": {
+    "A": 100,
+    "B": 100,
+    "C": 73,
+    "D": 79,
+    "E": 59,
+    "F": 3,
+    "G": 76
+   },
+   "listens": {
+    "R": 2,
+    "A": 1,
+    "B": 2,
+    "C": 1,
+    "D": 1,
+    "E": 1,
+    "F": 1,
+    "G": 1
+   },
+   "ms": 72471,
+   "at": "2026-10-13T22:25:01.625Z"
+  }
+ ],
+ "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:157.0) Gecko/20100101 Firefox/157.0",
+ "finished": "2026-10-13T22:25:01.626Z",
+ "comment": "the quality of the bird sound is not catastrophic but sometimes misses a bit of timbre complexity",
+ "sample_rate": 44100
+}

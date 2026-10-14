@@ -3,6 +3,7 @@
 #include "cuicui/control/score_player.hpp"
 #include "cuicui/control/side_switcher.hpp"
 #include "cuicui/control/syllable_engine.hpp"
+#include "cuicui/control/variation.hpp"
 #include "cuicui/dsp/oversampling.hpp"
 #include "cuicui/io/gesture_score.hpp"
 #include "cuicui/io/offline_render.hpp"
@@ -142,12 +143,32 @@ int enum_setting(const nb::dict& d, const char* key, const std::array<const char
     return cuicui::enumIndexFromValue(nb::cast<double>(v), static_cast<int>(N));
 }
 
+/// One bank file, or several merged at load time (WP-R3, D-036: the files stay separate).
+cuicui::control::SyllableBank load_banks(const nb::handle& paths) {
+    using namespace cuicui::control;
+    if (nb::isinstance<nb::str>(paths)) {
+        return cuicui::io::loadSyllableBank(nb::cast<std::string>(paths));
+    }
+    std::vector<SyllableBank> banks;
+    for (nb::handle p : nb::cast<nb::list>(paths)) {
+        banks.push_back(cuicui::io::loadSyllableBank(nb::cast<std::string>(p)));
+    }
+    if (banks.empty()) {
+        throw std::invalid_argument("bank_path: a path or a non-empty list of paths");
+    }
+    std::vector<const SyllableBank*> ptrs;
+    for (const auto& b : banks) {
+        ptrs.push_back(&b);
+    }
+    return mergeBanks(ptrs);
+}
+
 cuicui::control::WhistleSettings whistle_settings_from_dict(const nb::dict& d) {
     using namespace cuicui::control;
     static const char* const kKnown[] = {"perf.note_rule", "perf.mapping", "perf.size_st", "perf.first_on_note",
                                          "perf.snap", "perf.order", "perf.pause_s", "perf.polyphony",
                                          "out.stereo_spread", "voice.harmonics", "out.room", "release_alarm",
-                                         "release_alarm_hold_s"};
+                                         "release_alarm_hold_s", "perf.natural_variation"};
     for (nb::handle k : d.keys()) {
         const std::string key = nb::cast<std::string>(k);
         if (std::find_if(std::begin(kKnown), std::end(kKnown), [&](const char* x) { return key == x; }) ==
@@ -173,6 +194,7 @@ cuicui::control::WhistleSettings whistle_settings_from_dict(const nb::dict& d) {
     s.play.spread = num("out.stereo_spread", 0.3);
     s.play.releaseAlarm = num("release_alarm", 1.0) >= 0.5;    // D-030; 0 = R1 / PROTO1 behaviour
     s.play.releaseAlarmHoldS = num("release_alarm_hold_s", 0.6);
+    s.play.variation = num("perf.natural_variation", cuicui::specOf(cuicui::ParamId::PerfNaturalVariation).def);
     s.harmonics = num("voice.harmonics", 1.0) >= 0.5;
     s.room = num("out.room", 1.0) >= 0.5;
     return s;
@@ -731,13 +753,13 @@ NB_MODULE(cuicui_core, m) {
 
     m.def(
         "sing",
-        [](const std::string& bank_path, const nb::list& events, const nb::dict& settings, double sample_rate,
+        [](const nb::object& bank_path, const nb::list& events, const nb::dict& settings, double sample_rate,
            double duration_s, std::uint64_t seed, int block) {
             using namespace cuicui::control;
             if (sample_rate <= 0.0 || duration_s < 0.0 || block < 1) {
                 throw std::invalid_argument("sing: sample_rate > 0, duration_s >= 0 and block >= 1 required");
             }
-            const SyllableBank bank = cuicui::io::loadSyllableBank(bank_path);
+            const SyllableBank bank = load_banks(bank_path);
             struct Timed {
                 long long sample;
                 PlayEvent e;
@@ -820,6 +842,12 @@ NB_MODULE(cuicui_core, m) {
                 d["key"] = e.request.note;
                 d["target_cents"] = e.request.targetCents;
                 d["release_alarm"] = e.request.releaseAlarm;
+                d["variation"] = e.request.variation;
+                d["length_scale"] = e.request.lengthScale;
+                d["range_scale"] = e.request.rangeScale;
+                d["variant_note_cents"] = e.request.variantNoteCents;
+                d["variant_seed"] = e.request.variantSeed;
+                d["bird"] = syl.bird;
                 out.append(d);
             }
             nb::capsule owner(heap, [](void* p) noexcept { delete static_cast<std::vector<float>*>(p); });
@@ -835,8 +863,77 @@ NB_MODULE(cuicui_core, m) {
         nb::arg("block") = 256,
         "WP-R1 whistle path (core SyllableEngine: modes A + B, whistle voices, room). events: (time_s, type, "
         "note, value) with type on/off/sustain/wheel/all_notes_off/all_sound_off and value = velocity or "
-        "controller 0-1. settings: R1 parameter ids (numbers or names). Returns (stereo float32 (n, 2), list of "
+        "controller 0-1. settings: R1 parameter ids (numbers or names) and perf.natural_variation (R3). "
+        "bank_path: a path, or a list of paths merged at load time (R3). Returns (stereo float32 (n, 2), list of "
         "syllable starts). No master gain, latency or limiter (those belong to the plugin). Releases the GIL.");
+
+    m.def(
+        "variant",
+        [](const nb::object& bank_path, int syllable, double v, const std::vector<double>& z, double length_scale,
+           double range_scale) {
+            using namespace cuicui::control;
+            const SyllableBank bank = load_banks(bank_path);
+            if (syllable < 0 || syllable >= bank.numSyllables()) {
+                throw std::invalid_argument("variant: no such syllable");
+            }
+            VariantDraws d{};
+            for (std::size_t i = 0; i < d.size() && i < z.size(); ++i) {
+                d[i] = z[i];
+            }
+            std::vector<double> lg(SyllableEngine::kMaxVariantMs);
+            std::vector<float> am(SyllableEngine::kMaxVariantMs);
+            const Variant var =
+                makeVariant(bank, syllable, v, d, length_scale, range_scale, lg.data(), am.data(),
+                            SyllableEngine::kMaxVariantMs);
+            nb::list cents, amp;
+            for (int i = 0; i < var.lengthMs; ++i) {
+                cents.append(1200.0 * (lg[static_cast<std::size_t>(i)] - std::log(440.0)) / std::log(2.0) + 6900.0);
+                amp.append(static_cast<double>(am[static_cast<std::size_t>(i)]));
+            }
+            return nb::make_tuple(cents, amp, var.noteShiftCents);
+        },
+        nb::arg("bank_path"), nb::arg("syllable"), nb::arg("v"), nb::arg("z"), nb::arg("length_scale") = 1.0,
+        nb::arg("range_scale") = 1.0,
+        "WP-R3: the core's varied rendition of a syllable (control::makeVariant): shape model amount v with standard "
+        "normals z (note, length, loudness, modes…), then the length and pitch-range scales. Returns (cents per ms, "
+        "amplitude per ms, note change in cents).");
+
+    m.def(
+        "stretch_draw",
+        [](std::uint64_t seed, double v, bool swipe, bool hop) {
+            const auto s = cuicui::control::drawStretch(seed, v, swipe, hop);
+            return nb::make_tuple(s.length, s.range);
+        },
+        nb::arg("seed"), nb::arg("v"), nb::arg("swipe") = false, nb::arg("hop") = false,
+        "WP-R3: the (length, pitch range) scales the playing mode draws for a variant seed at Variation v.");
+
+    m.def(
+        "variant_draws",
+        [](std::uint64_t seed) {
+            const auto z = cuicui::control::variantDraws(seed);
+            return std::vector<double>(z.begin(), z.end());
+        },
+        nb::arg("seed"), "WP-R3: the standard normals the core draws for a variant seed.");
+
+    m.def(
+        "bank_summary",
+        [](const nb::object& bank_path) {
+            const auto bank = load_banks(bank_path);
+            nb::dict d;
+            d["name"] = bank.name();
+            d["syllables"] = bank.numSyllables();
+            d["phrases"] = bank.numPhrases();
+            d["birds"] = bank.birds();
+            d["has_variation"] = bank.hasVariation();
+            d["models"] = bank.numModels();
+            nb::list c;
+            for (int r = 0; r < cuicui::control::kNoteRuleCount; ++r) {
+                c.append(bank.centreCents(static_cast<cuicui::control::NoteRule>(r)));
+            }
+            d["centres"] = c;
+            return d;
+        },
+        nb::arg("bank_path"), "WP-R3: what a bank (or several, merged) holds.");
 
     nb::class_<cuicui::BirdVoice>(m, "Voice")
         .def(

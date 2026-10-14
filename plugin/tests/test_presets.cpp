@@ -154,7 +154,9 @@ TEST_CASE("presets: 'Finch, melody' is for tunes: follow the keyboard, every syl
     for (int i = 0; i < n; ++i) {
         const auto& r = log[static_cast<std::size_t>(i)].request;
         INFO("syllable " << i << " key " << r.note);
-        CHECK(std::abs(bank.anchorCents(r.syllable, cuicui::control::NoteRule::Rule) + r.shiftCents - r.targetCents) < 1e-6);
+        // the sounding note: the rendition's own note (moved by variation, WP-R3) plus the shift
+        CHECK(std::abs(bank.anchorCents(r.syllable, cuicui::control::NoteRule::Rule) + r.variantNoteCents +
+                       r.shiftCents - r.targetCents) < 1e-6);
         CHECK(std::abs(r.targetCents - (r.note + 36) * 100.0) < 1e-9); // three octaves above the key
         if (r.first) {
             CHECK(r.note != lastKeyStart);

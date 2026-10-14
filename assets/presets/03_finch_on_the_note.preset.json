@@ -5,7 +5,7 @@
   "category": "Finch",
   "author": "Cuicui Instruments",
   "description": "Every syllable lands on your key's note: the most tonal setting.",
-  "voice_bank": "zf_22938",
+  "voice_bank": "hf_22938+hf_22937",
   "parameters": {
     "perf.first_on_note": true,
     "perf.snap": 1.0

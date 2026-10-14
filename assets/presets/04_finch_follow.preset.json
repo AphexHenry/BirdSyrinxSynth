@@ -5,7 +5,7 @@
   "category": "Finch",
   "author": "Cuicui Instruments",
   "description": "The bird sings three octaves above your key, so tunes keep their shape. Best between C4 and C6.",
-  "voice_bank": "zf_22938",
+  "voice_bank": "hf_22938+hf_22937",
   "parameters": {
     "perf.mapping": "Follow the keyboard"
   }

@@ -4,6 +4,7 @@
 #include "cuicui/control/placement.hpp"
 #include "cuicui/control/playing_mode.hpp"
 #include "cuicui/control/syllable_bank.hpp"
+#include "cuicui/control/variation.hpp"
 #include "cuicui/dsp/rng.hpp"
 
 #include <algorithm>
@@ -147,6 +148,9 @@ private:
         float gain = 0.3f;
         float pan = 0.0f;
         dsp::Rng rng{1};
+        std::uint64_t seed = 1;      ///< its stream's seed (variant seeds derive from it, WP-R3)
+        std::uint32_t requests = 0;  ///< syllables it asked for (variant seeds)
+        double driftS = 0.0;         ///< how much later its syllables start, after stretched ones (WP-R3)
         PhraseOrder order{};
         bool hasNext = false;
         int nextSyl = 0;
@@ -165,6 +169,7 @@ private:
         float gain = 0.3f;
         float pan = 0.0f;
         double target = 0.0;
+        std::uint64_t variantSeed = 0;
     };
 
     struct Emit {
@@ -258,7 +263,10 @@ private:
         s.lastEnd = te;
         const std::uint64_t hi = master_.next();
         const std::uint64_t lo = master_.next();
-        s.rng.setSeed((hi << 32) | lo);
+        s.seed = (hi << 32) | lo;
+        s.requests = 0;
+        s.driftS = 0.0;
+        s.rng.setSeed(s.seed);
         const double u = uniform01(s.rng); // drawn even in mono, so the stream does not depend on polyphony
         s.pan = poly > 1 ? static_cast<float>((2.0 * u - 1.0) * std::clamp(ctx.spread, 0.0, 1.0)) : 0.0f;
         s.gain = static_cast<float>(velocityGain(velocity));
@@ -275,6 +283,12 @@ private:
         auto& s = singers_[static_cast<std::size_t>(si)];
         const int syl = s.nextSyl;
         const double k = (first && ctx.firstOnNote) ? 1.0 : std::clamp(ctx.snap + modWheel_, 0.0, 1.0);
+        // WP-R3: its length and pitch range (drawn from its own seed, never from the order stream)
+        const double v = std::clamp(ctx.variation, 0.0, 1.0);
+        const std::uint64_t vseed = variantSeed(s.seed, s.requests);
+        const auto& sy = bank_->syllable(syl);
+        const Stretch st = drawStretch(vseed, v, sy.swipe, sy.hop, ctx.spans);
+        const int lenMs = st.length == 1.0 ? sy.lengthMs : stretchedLengthMs(sy.lengthMs, st.length);
         if (em.count < em.maxOut) {
             SyllableRequest& r = em.out[em.count++];
             r.syllable = syl;
@@ -288,13 +302,22 @@ private:
             r.note = s.note;
             r.targetCents = s.target;
             r.releaseAlarm = false;
+            r.variation = v;
+            r.variantSeed = vseed;
+            r.lengthScale = st.length;
+            r.rangeScale = st.range;
+            r.shape = 0.0;
+            r.snapK = k;
         }
+        ++s.requests;
         ++serial_;
-        s.lastEnd = ts + std::llround(static_cast<double>(bank_->syllable(syl).lengthMs) * 0.001 * sr_);
-        const OrderStep st = s.order.next(*bank_, s.nextStartS, ctx.pauseS, s.rng, phrasePointer_);
-        s.nextSyl = st.syllable;
-        s.nextStartS = st.startS;
-        s.nextSample = std::max(s.t0 + static_cast<std::int64_t>(std::llround(st.startS * sr_)), ts + 1);
+        // a longer (shorter) syllable moves what follows later (earlier): the bird's real gaps are kept
+        s.driftS += static_cast<double>(lenMs - sy.lengthMs) / 1000.0;
+        s.lastEnd = ts + std::llround(static_cast<double>(lenMs) * 0.001 * sr_);
+        const OrderStep nx = s.order.next(*bank_, s.nextStartS, ctx.pauseS, s.rng, phrasePointer_);
+        s.nextSyl = nx.syllable;
+        s.nextStartS = nx.startS;
+        s.nextSample = std::max(s.t0 + static_cast<std::int64_t>(std::llround((nx.startS + s.driftS) * sr_)), ts + 1);
         s.hasNext = true;
     }
 
@@ -328,6 +351,7 @@ private:
         f->gain = s.gain;
         f->pan = s.pan;
         f->target = s.target;
+        f->variantSeed = variantSeed(s.seed, s.requests++);
     }
 
     void emitFinal(int fi, std::int64_t ts, const PlayContext& ctx, Emit& em) noexcept {
@@ -348,6 +372,14 @@ private:
             r.note = f.note;
             r.targetCents = f.target;
             r.releaseAlarm = true;
+            const auto& sy = bank_->syllable(f.syllable);
+            const Stretch st = drawStretch(f.variantSeed, std::clamp(ctx.variation, 0.0, 1.0), sy.swipe, sy.hop, ctx.spans);
+            r.variation = std::clamp(ctx.variation, 0.0, 1.0);
+            r.variantSeed = f.variantSeed;
+            r.lengthScale = st.length;
+            r.rangeScale = st.range;
+            r.shape = 0.0;
+            r.snapK = k;
         }
         ++serial_;
     }

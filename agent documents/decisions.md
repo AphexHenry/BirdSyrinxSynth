@@ -357,3 +357,78 @@
   - The order is now R3 → R6; G1 (release polish) stays after them in the table.
   - R3 should keep its variation controls and syllable families usable from a playing mode (note in WP-R3).
 
+
+### D-035 — 22938 is a house finch; new recordings, the automatic marker and 48 kHz analysis
+- **Status:** accepted · 2026-10-14 · WP-R3 (species: the human, "2b"; accepted with the WP-R3 commit)
+- **Context:**
+  - D-023 called 22938 a zebra finch. Its sound (tonal sweeps at 2.5–4.9 kHz, no low harmonic stacks, songs ending in a long rising note) fits a house finch. Its Macaulay neighbour 22937 is a house finch. The human: 22938 is a house finch.
+  - The human annotation of 22938 stops at 53.3 s; the rest of the recording (134 s, about 313 syllables of the same bird) was one SILENCE segment.
+  - The human added `recordings/22937 - House Finch.wav` (cleaned by the human, 108 s, 44.1 kHz).
+- **Decision (proposed):**
+  - **Species:** 22938 and 22937 are **house finches** (corrects D-023). New banks carry `species: "house finch"`. The factory bank keeps its ID `zf_22938` until the bank choice is decided (R3), so presets and tests keep working.
+  - **New tool `cuicui.bank.segment`:** it marks syllables automatically and writes the tseg JSON shape the bank builder reads. It keeps a human annotation's segments unchanged when given one. It was checked against the human's 22938 annotation (all 123 syllables found).
+  - **Analysis at 48 kHz:** the bank builder and the marker resample recordings whose rate does not make the tracker's 1 ms hop a whole number of samples (44.1 kHz: 0.998 ms, a drift of 2.3 ms per second) to 48 kHz (`cuicui.bank.build.read_mono`). 48 kHz recordings (22938, the factory bank) are unchanged, bit for bit.
+  - Automatic syllables are checked by the human by ear before they enter a bank (INGEST1).
+- **Consequences:** `01_research.md` §2.7 (zebra finch priors) does not describe our birds; D-023's design-target remark stands (the recordings set the targets).
+
+### D-036 — Variations within the bird's style: the shape model, two birds merged at load
+- **Status:** accepted · 2026-10-14 (with the WP-R3 commit) · WP-R3 (the choices: the human, "1a 2a 3c but keep the data separated. the merge should happen when running"; the details: WP-R3)
+- **Amended the same day (feedback round, see the end of this entry):** the plugin's variation is **length and pitch range**, not the shape model.
+- **Context:** VARY1 (`studies/VARY1_variations.md`, blind):
+  - identical repetition sounded 25 points less like the bird than its own renditions (59.5 vs 84.5);
+  - the shape model at the bird's natural spread matched the real renditions (84.0); the nudge reached 73.5;
+  - twice the spread broke the bird (46 / 62);
+  - new songs (new order) reached 79 against 88.5 for the real songs.
+  The pre-registered rule kept nothing (the hidden reference itself got 70 on one screen) and handed the choice to the human.
+- **Decision:**
+  - **Syllable variation = the shape model** (1a). For one syllable, each value moves from the real rendition's r toward a fresh draw t from its type's spread: r + v·(t − r). The values are the note, the log length, the loudness and 3 shape-mode scores. The real rendition's fine detail is kept. The shape change is centred on the syllable's loud part (rule E), so only the calibrated note change moves the note. Syllables without a type model move their note, length and loudness with the bird's median spread. The nudge is not shipped.
+  - **No new order** (2a): the birds sing their real phrases.
+  - **Two birds, separate files, merged when the plugin starts** (3c):
+    - factory banks `assets/voicebanks/hf_22938/bank.json` (436 syllables, the whole recording) and `hf_22937/bank.json` (358);
+    - each with its own `annotation.json`, so one file can be corrected alone, or a bird separated later;
+    - `zf_22938` (123 syllables, R1 / R5) stays in the repository for the reference tests and renders; the plugin no longer compiles it.
+  - **Bank format v1, additive:**
+    - a top-level `variation` section (`cuicui.variation_model` v1: points, the bird's median spread, per type note / log length / loudness mean and sd, mean shape, ≤ 4 modes and their sd);
+    - per syllable `type`, `model`, `scores`;
+    - schema updated. Built by `python -m cuicui.bank --variation` (`BuildSettings.variation`, off by default, so older banks rebuild unchanged).
+  - **New parameter `perf.natural_variation`** ("Natural variation", 0–1, default **1** = the bird's natural spread; Performance; since "R3"). The UI calls it "Variation" (the main knob of the Song card; Pause becomes a small slider there). The C5 `perf.variation` (anatomical generator) is unchanged.
+  - **Core API (additive):**
+    - `control/variation.hpp`: `makeVariant`, `variantDraws`, `variantSeed`, `resampleLinear` (same arithmetic as `cuicui.variation.variant`);
+    - `SyllableBank`: `birds()`, `hasVariation()`, `model()`, `spread()`, `maxLengthMs()`, `find(Query)` (label / length / sweep / bird, for R6), per syllable `bird`, `type`, `model`, `scores`, `peakDb`, `sweepCents`;
+    - `mergeBanks(...)`;
+    - `SyllableRequest`: `variation`, `variantSeed`, `snapK`, `lengthScale` (R6), `variantNoteCents` (filled by the engine);
+    - `PlayContext::variation`;
+    - `WhistleVoice::startCurve`; `SyllableEngine::kMaxVariantMs` (per-voice buffers allocated in prepare).
+    - The engine removes snapK × the rendition's note change from the placement shift, so at Snap to note 100 % every syllable still lands exactly on the key.
+  - **Determinism:** each request's draws come from its own seed (the singer's seed + its request count), never from the order stream. Variation 0 therefore plays the R1 / R5 choices draw for draw. The editor rebuilds the same curve from the seed (`SyllableFeed::Event` gains variation, lengthScale, variantSeed).
+  - **Plugin and tools:**
+    - plugin: `useBankFiles(paths)` (offline / tests);
+    - `plugin_render --bank a.json[,b.json]`; syllable logs gain `variation`, `variant_seed`, `variant_note_cents`, `bird`;
+    - Python `cuicui_core.sing(bank_path | [paths], …, {"perf.natural_variation": v})`, `variant(...)`, `variant_draws(seed)`, `bank_summary(paths)`; packages `cuicui.variation` and `cuicui.bank.segment` (D-035).
+  - Factory presets: `voice_bank` = "hf_22938+hf_22937" (informative, D-028).
+- **Consequences:**
+  - The default sound changes: two birds (794 syllables, 59 phrases) and new renditions at the natural spread. Variation 0 = the birds' real syllables. The R5 sound is `--bank assets/voicebanks/zf_22938/bank.json` (zf_22938 has no shape model, so Variation leaves it real).
+  - The merged centre (median of both birds, rule E) is 10579.2 c (hf_22938 alone: 10561.2 c, zf_22938: 10545.7 c). At Snap to note 0 (own height) the bird therefore sits 33 c lower than in R5.
+  - R6 can drive the amount and the length per request, and find syllables by family, length and sweep.
+- **Amendment (2026-10-14, feedback round; VARY2, STRETCH1):**
+  - **What happened:**
+    - On the listening page the human heard one varied syllable too quiet. The cause was the shape model's loudness variation (a rare draw, a spread inflated by the per-phrase normalisation, a pull toward the type's average). It was removed ("1b"), and every draw is now capped at ±2 sd.
+    - VARY2 then found the remaining shape model inaudible ("i cannot tell the difference"): same 73.0, 100 % 71.0, 130 % 75.5, 160 % 75.0, real 80.5.
+    - The human asked for length and pitch range only, and chose the spans on the STRETCH1 page: "that's working nicely".
+  - **The plugin's Variation** (`perf.natural_variation`, 0–1, default 1):
+    - each syllable gets a length scale (80–160 %; labels containing "swipe" up to 200 %) and a pitch-range scale (60–160 %, around its note);
+    - draws are log-uniform between lo^v and hi^v (`control::drawStretch`, `StretchSpans`), from the request's own seed;
+    - syllables flagged "hop" (tracker jumps) are only narrowed;
+    - the loudness and the note are the real ones;
+    - ModeAB schedules the next syllable after the stretched one, so the bird's real gaps are kept (`stretchedLengthMs`).
+    - Variation 0 = the R1 / R5 playing, draw for draw.
+  - **The shape model stays** in the bank files and in `makeVariant` (amount `SyllableRequest::shape`, 0 in the plugin), for later. The nudge and the new order are not used.
+  - **API changes (additive):**
+    - `makeVariant(…, lengthScale, rangeScale, …)`;
+    - `SyllableRequest::rangeScale`, `shape`;
+    - `PlayContext::spans`;
+    - `BankSyllable::swipe`, `hop`;
+    - `SyllableFeed::Event` lengthScale / rangeScale / shape;
+    - logs `length_scale`, `range_scale`;
+    - Python `cuicui_core.stretch_draw(seed, v, swipe, hop)`, `variant(…, length_scale, range_scale)`, `cuicui.variation.variant(…, range_scale)`.
+  - **On zf_22938:** the R5 bank has no shape model, but it varies length and range too; Variation 0 gives the R5 sound.

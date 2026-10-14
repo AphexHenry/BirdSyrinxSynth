@@ -5,7 +5,7 @@
   "category": "Character",
   "author": "Cuicui Instruments",
   "description": "An occasional singer: long silences between phrases while you hold a key.",
-  "voice_bank": "zf_22938",
+  "voice_bank": "hf_22938+hf_22937",
   "parameters": {
     "perf.pause_s": 2.0
   }

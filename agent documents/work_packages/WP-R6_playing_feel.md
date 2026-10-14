@@ -148,3 +148,27 @@ Prototype where the human can play and switch behaviours live: the web prototype
 - **References must stay exact.** If syllable choice changes, keep the R1 / PROTO1 reference playing (the `release_alarm` off path) unchanged, or put the new behaviours behind settings. `test_r1_whistle.py` must stay exact.
 - **Interplay with what exists:** the D-030 call, "Finch, melody" (Birds 1, Snap 100 %), the D-032 `no_tap` flags, the mod wheel on Snap, polyphony and the release of the oldest key.
 - **The keyboard itself:** velocity curves differ between keyboards, and aftertouch may be missing. Ask at scoping, and make the mapping adjustable if needed.
+
+## Notes from WP-R3
+
+- **Two birds now (D-036).**
+  - The plugin sings `hf_22938` (436 syllables, the whole recording) + `hf_22937` (358), merged when it starts. The files stay separate.
+  - `SyllableBank::birds()` names them, and each syllable knows its `bird`.
+  - `useBankFiles(paths)` / `plugin_render --bank` sing one bird alone, or the R5 bank (`zf_22938`).
+- **Variation per request** (D-036, amended after STRETCH1). `SyllableRequest` carries:
+  - **`lengthScale`**: time stretch, 1 = as sung;
+  - **`rangeScale`**: the pitch movement around the note, 1 = as sung;
+  - `variation` (the amount they were drawn with), `variantSeed`;
+  - `shape` (the bird's shape model, 0: not audible, VARY2).
+
+  ModeAB draws the scales per syllable with `control::drawStretch` within `PlayContext::spans`: length 80–160 % (labels with "swipe": up to 200 %) and range 60–160 %, the spans the human chose by ear in STRETCH1, scaled by the Variation knob. It schedules the next syllable after the stretched length (`stretchedLengthMs`), so the bird's real gaps stay.
+  - A new playing mode can set the scales itself, e.g. a held key → longer syllables, velocity → a wider sweep.
+  - The engine renders any values (long stretches are clamped to `SyllableEngine::kMaxVariantMs` = 2048 ms). Beyond the human's spans is untested.
+- **Finding syllables.** `SyllableBank::find(Query)` filters by label prefix ("peep", "swipe", "alarm"…), length (ms), sweep (end − start pitch, cents) and bird. It allocates, so call it off the audio thread and keep the lists.
+  - Per syllable you also get `lengthMs`, `sweepCents`, `peakDb`, `type` (cluster of renditions within its bird) and `model`.
+  - The labels of the new syllables are proposals (about 2 in 3 right for swipe vs peep). Length and sweep are measured, so they are more reliable.
+- **The bird's vocabulary** (both birds): syllables 50–160 ms (median ≈ 85), gaps between syllables ≈ 41 ms ± 4 ms within a song, songs 1.5–4 s.
+  - 22937 sings fixed songs (4 song types, the same order every time).
+  - 22938 branches: every song starts the same way, then takes one of a few paths.
+  - The long rising calls (D-030) are the song endings. They sound thinner than the bird (INGEST1, backlog).
+- **New order was not adopted** (the human, 2a). Phrases are the real ones. `cuicui.variation.Model.new_phrase` exists in Python if R6 wants to try recombining at branch points.

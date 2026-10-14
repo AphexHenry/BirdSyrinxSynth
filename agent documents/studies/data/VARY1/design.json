@@ -1,0 +1,168 @@
+{
+ "study": "VARY1",
+ "design_hash": "d57bdc29849e",
+ "seed": 20261014,
+ "key": {
+  "A1": {
+   "part": "A",
+   "recording": "22937",
+   "span_s": [
+    16.15,
+    27.25
+   ],
+   "songs": [
+    [
+     16.452,
+     4
+    ],
+    [
+     20.235,
+     5
+    ],
+    [
+     24.445,
+     6
+    ]
+   ],
+   "letters": {
+    "A": "nudge2",
+    "B": "shape2",
+    "C": "same",
+    "D": "anchor",
+    "E": "ref",
+    "F": "shape1",
+    "G": "real",
+    "H": "nudge1"
+   }
+  },
+  "A2": {
+   "part": "A",
+   "recording": "22938",
+   "span_s": [
+    63.8,
+    73.17
+   ],
+   "songs": [
+    [
+     64.093,
+     14
+    ],
+    [
+     69.87,
+     15
+    ]
+   ],
+   "letters": {
+    "A": "same",
+    "B": "nudge2",
+    "C": "shape1",
+    "D": "real",
+    "E": "anchor",
+    "F": "nudge1",
+    "G": "ref",
+    "H": "shape2"
+   }
+  },
+  "B1": {
+   "part": "B",
+   "recording": "22938",
+   "span_s": [
+    43.1,
+    51.7
+   ],
+   "songs": [
+    [
+     43.367,
+     9
+    ],
+    [
+     49.735,
+     10
+    ]
+   ],
+   "letters": {
+    "A": "real",
+    "B": "ref",
+    "C": "order2",
+    "D": "order1",
+    "E": "shuffle",
+    "F": "anchor",
+    "G": "order2s"
+   }
+  },
+  "B2": {
+   "part": "B",
+   "recording": "22938",
+   "span_s": [
+    139.4,
+    149.2
+   ],
+   "songs": [
+    [
+     139.682,
+     28
+    ],
+    [
+     145.676,
+     29
+    ]
+   ],
+   "letters": {
+    "A": "ref",
+    "B": "anchor",
+    "C": "order1",
+    "D": "shuffle",
+    "E": "real",
+    "F": "order2s",
+    "G": "order2"
+   }
+  }
+ },
+ "screen_order": [
+  "A2",
+  "A1",
+  "B2",
+  "B1"
+ ],
+ "provisional": false,
+ "banks": {
+  "22938": "5bc449a1d4c4",
+  "22937": "39c926b8b0cb"
+ },
+ "models": {
+  "22938": {
+   "syllables": 436,
+   "types": 134,
+   "modelled_types": 23,
+   "syllables_in_modelled_types": 231,
+   "spread_median": {
+    "note": 25.9606,
+    "logdur": 0.0251,
+    "peak": 1.3687
+   },
+   "phrases": 36,
+   "phrase_lengths": [
+    1,
+    28
+   ],
+   "next_type_determinism_median": 0.62
+  },
+  "22937": {
+   "syllables": 358,
+   "types": 113,
+   "modelled_types": 19,
+   "syllables_in_modelled_types": 153,
+   "spread_median": {
+    "note": 25.5719,
+    "logdur": 0.0278,
+    "peak": 1.992
+   },
+   "phrases": 23,
+   "phrase_lengths": [
+    4,
+    32
+   ],
+   "next_type_determinism_median": 0.71
+  }
+ }
+}

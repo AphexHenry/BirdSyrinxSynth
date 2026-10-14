@@ -1,0 +1,63 @@
+{
+ "study": "VARY2",
+ "version": 1,
+ "design_hash": "8d46398ad3a7",
+ "started": "2026-10-14T07:46:04.522Z",
+ "idx": 2,
+ "results": [
+  {
+   "screen": 1,
+   "passage": "A2",
+   "ratings": {
+    "A": 83,
+    "B": 84,
+    "C": 97,
+    "D": 83,
+    "E": 97,
+    "F": 11,
+    "G": 84
+   },
+   "listens": {
+    "R": 2,
+    "A": 1,
+    "B": 1,
+    "C": 2,
+    "D": 1,
+    "E": 1,
+    "F": 1,
+    "G": 1
+   },
+   "ms": 51425,
+   "at": "2026-10-14T07:49:53.291Z"
+  },
+  {
+   "screen": 2,
+   "passage": "A1",
+   "ratings": {
+    "A": 96,
+    "B": 58,
+    "C": 67,
+    "D": 67,
+    "E": 6,
+    "F": 64,
+    "G": 63
+   },
+   "listens": {
+    "A": 2,
+    "R": 1,
+    "B": 1,
+    "C": 1,
+    "D": 1,
+    "E": 1,
+    "F": 1,
+    "G": 1
+   },
+   "ms": 46717,
+   "at": "2026-10-14T07:50:40.283Z"
+  }
+ ],
+ "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:157.0) Gecko/20100101 Firefox/157.0",
+ "finished": "2026-10-14T07:50:40.284Z",
+ "comment": "i cannot tell the difference between the synthesising versions. did you add variation?",
+ "sample_rate": 44100
+}

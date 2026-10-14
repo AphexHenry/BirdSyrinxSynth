@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cuicuiinstruments.com/schemas/syllable_bank.schema.json",
   "title": "cuicui.syllable_bank",
-  "description": "A bird's real syllables (1 ms pitch and amplitude curves) grouped into its real phrases, with each syllable's note under four rules. Built by `python -m cuicui.bank`. WP-R1, decision D-026; notes set by ear and rule_used values added in WP-R5 (D-032).",
+  "description": "A bird's real syllables (1 ms pitch and amplitude curves) grouped into its real phrases, with each syllable's note under four rules. Built by `python -m cuicui.bank`. WP-R1, decision D-026; notes set by ear and rule_used values added in WP-R5 (D-032); the optional shape model (`variation`, per-syllable `type` / `model` / `scores`) added in WP-R3 (D-036).",
   "type": "object",
   "additionalProperties": true,
   "required": ["format", "version", "name", "contour_rate_hz", "centres_cents", "phrases"],
@@ -21,6 +21,40 @@
     "bird_centre_cents": { "type": "number" },
     "stats": { "type": "object" },
     "hash": { "type": "string" },
+    "variation": {
+      "description": "WP-R3 (D-036): the bird's shape model, fitted by `cuicui.variation.attach_section`. Types are clusters of renditions; a type with enough renditions has a model.",
+      "type": "object",
+      "required": ["format", "version", "points", "spread_median", "types"],
+      "properties": {
+        "format": { "const": "cuicui.variation_model" },
+        "version": { "const": 1 },
+        "points": { "type": "integer", "minimum": 2, "maximum": 64 },
+        "settings": { "type": "object" },
+        "spread_median": {
+          "type": "object",
+          "required": ["note", "logdur", "peak_db"],
+          "properties": { "note": { "type": "number" }, "logdur": { "type": "number" }, "peak_db": { "type": "number" } }
+        },
+        "types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["note", "logdur", "peak_db", "mean", "modes", "mode_sd"],
+            "properties": {
+              "id": { "type": "integer" },
+              "renditions": { "type": "integer" },
+              "fitted_on": { "type": "integer" },
+              "note": { "$ref": "#/$defs/mean_sd" },
+              "logdur": { "$ref": "#/$defs/mean_sd" },
+              "peak_db": { "$ref": "#/$defs/mean_sd" },
+              "mean": { "type": "array", "items": { "type": "number" } },
+              "modes": { "type": "array", "maxItems": 4, "items": { "type": "array", "items": { "type": "number" } } },
+              "mode_sd": { "type": "array", "maxItems": 4, "items": { "type": "number", "minimum": 0 } }
+            }
+          }
+        }
+      }
+    },
     "phrases": {
       "type": "array",
       "minItems": 1,
@@ -40,6 +74,7 @@
     }
   },
   "$defs": {
+    "mean_sd": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } },
     "per_rule": {
       "type": "object",
       "required": ["rule", "steady", "landing", "average"],
@@ -88,7 +123,10 @@
           ]
         },
         "max_step_cents": { "type": "number", "minimum": 0 },
-        "flags": { "type": "array", "items": { "type": "string" } }
+        "flags": { "type": "array", "items": { "type": "string" } },
+        "type": { "type": "integer", "description": "WP-R3: its syllable type (cluster of renditions) within its bird" },
+        "model": { "type": "integer", "minimum": 0, "description": "WP-R3: index into variation.types (its type has a model)" },
+        "scores": { "type": "array", "maxItems": 4, "items": { "type": "number" }, "description": "WP-R3: its shape-mode scores" }
       }
     }
   }

@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Syllable Check</title>
+<style>
+  :root {
+    --bg: #f7f6f1; --card: #ffffff; --fg: #1f1e1b; --muted: #6d6b64; --line: #e2e0d8;
+    --accent: #2e6b4f; --accent-fg: #ffffff; --track: #d9d6cc; --chip: #eef3ef;
+    --keep: #2e6b4f; --bird: #8a877e; --whistle: #c9752b; --sel: #2563c9; --now: #e8572a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141413; --card: #1d1d1b; --fg: #ecebe5; --muted: #9b998f; --line: #34332f;
+      --accent: #7cc49d; --accent-fg: #10231a; --track: #3a3934; --chip: #23302a;
+      --keep: #7cc49d; --bird: #77756d; --whistle: #f0a35a; --sel: #7fb0ff; --now: #ff8a5c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.45rem; margin: 0 0 4px; }
+  h2 { font-size: 1.1rem; margin: 0 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; }
+  ol, ul { padding-left: 1.2rem; } li { margin: 4px 0; }
+  button, select { font: inherit; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--fg); padding: 5px 10px; cursor: pointer; }
+  button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+  button.small { padding: 2px 8px; font-size: .85rem; }
+  button:disabled { opacity: .45; cursor: default; }
+  button.on { outline: 2px solid currentColor; font-weight: 700; }
+  .b-keep { color: var(--keep); } .b-bird { color: var(--bird); } .b-whistle { color: var(--whistle); }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 6px 0; }
+  .muted { color: var(--muted); }
+  .hint { color: var(--muted); font-size: .88rem; }
+  .status { color: var(--muted); font-size: .9rem; min-height: 1.4em; }
+  .bar { height: 6px; background: var(--track); border-radius: 3px; margin: 6px 0 8px; overflow: hidden; }
+  .bar > div { height: 100%; background: var(--accent); width: 0; }
+  .toolbar { position: sticky; top: 0; z-index: 5; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+  .toolbar .title { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .phrase .head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .phrase .head .count { margin-left: auto; font-size: .85rem; color: var(--muted); }
+  .phrase .scroll { overflow-x: auto; margin-top: 8px; border-radius: 6px; }
+  .phrase canvas { display: block; height: 200px; border-radius: 6px; cursor: pointer; }
+  .panel { margin-top: 8px; padding: 8px 10px; border: 1px dashed var(--line); border-radius: 8px; min-height: 44px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .panel .who { font-weight: 600; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; margin-right: 14px; font-size: .88rem; }
+  .legend i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; }
+  .checkgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
+  .checkgrid .card { margin: 0; }
+  .checkgrid canvas { display: block; width: 100%; height: 120px; border-radius: 6px; margin: 6px 0; }
+  textarea { width: 100%; min-height: 100px; font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+  kbd { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; margin-left: 4px; color: var(--muted); background: var(--bg); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Is it the bird?</h1>
+  <p class="sub" id="subline">progress is saved</p>
+
+  <section id="intro" class="card">
+    <p>The new syllables were marked by the computer: the end of <b>22938</b> (the part your annotation left out) and the whole of <b>22937</b>. Before they go into a bank, please check them.</p>
+    <ol>
+      <li>Each card is one phrase: its <b>spectrogram</b> (grey) with the computer's <b>pitch curve</b> on top, one coloured line per syllable, with its proposed label.</li>
+      <li>Play <b>▶ Real</b> (the recording) and <b>▶ Whistle</b> (the copy the plugin would sing), or <b>▶ Both</b> one after the other.</li>
+      <li>If a syllable is <b>not the bird</b> (a click, a noise, another bird) or its <b>whistle copy is wrong</b> (the curve jumps off the sound, a wrong shape), click it on the picture and mark it. Everything you don't mark is kept.</li>
+      <li>Labels are proposed by comparing with your 22938 labels (about 2 in 3 right; swipe and peep are often mixed up). Change them only if you want to. <b>"alarm"</b> matters: those become the release call (D-030) and never sing inside phrases.</li>
+      <li>At the end, a short <b>check round</b> (10 syllables again), then download the results.</li>
+    </ol>
+    <p class="hint" id="codes"></p>
+    <div class="legend"><span><i style="background:var(--keep)"></i>kept</span><span><i style="background:var(--bird)"></i>not the bird</span><span><i style="background:var(--whistle)"></i>whistle wrong</span><span><i style="background:var(--sel)"></i>selected</span></div>
+    <p class="hint">Headphones. Keys: <b>←/→</b> previous/next syllable of the selected phrase, <b>R</b> real, <b>W</b> whistle, <b>K</b> keep, <b>N</b> not the bird, <b>X</b> whistle wrong, <b>Esc</b> stop.</p>
+    <div class="row"><button id="start" class="primary">Start</button><button id="restart" hidden>Start over</button></div>
+    <p class="status" id="introStatus"></p>
+  </section>
+
+  <section id="work" hidden>
+    <div class="card toolbar">
+      <div class="title"><b id="screenLabel"></b><span class="muted" id="screenHint"></span></div>
+      <div class="bar"><div id="barFill"></div></div>
+      <div class="row">
+        <button id="stopBtn">■ Stop<kbd>esc</kbd></button>
+        <span class="legend"><span><i style="background:var(--keep)"></i>kept</span><span><i style="background:var(--bird)"></i>not the bird</span><span><i style="background:var(--whistle)"></i>whistle wrong</span></span>
+      </div>
+    </div>
+    <div id="cards"></div>
+    <div class="row" style="margin-top:14px">
+      <button id="prevBtn">◀ Previous</button>
+      <button id="nextBtn" class="primary">Next ▶</button>
+      <span class="status" id="workStatus"></span>
+    </div>
+  </section>
+
+  <section id="check" hidden>
+    <div class="card toolbar">
+      <div class="title"><b>Check round</b><span class="muted">10 syllables once more: keep, not the bird, or whistle wrong?</span></div>
+      <div class="row"><button id="stopBtn2">■ Stop</button></div>
+    </div>
+    <div id="checkCards" class="checkgrid"></div>
+    <div class="row" style="margin-top:14px"><button id="finishBtn" class="primary">Finish ▶</button><span class="status" id="checkStatus"></span></div>
+  </section>
+
+  <section id="done" class="card" hidden>
+    <h2>Done, thank you.</h2>
+    <p id="doneSummary" class="muted"></p>
+    <p>Optional: anything you noticed (a kind of sound that is often wrong, labels…)?</p>
+    <textarea id="comment" placeholder="Your notes…"></textarea>
+    <div class="row"><button id="download" class="primary">Download results (.json)</button><button id="copy">Copy results</button><button id="backBtn">◀ Back to the phrases</button></div>
+    <p class="status" id="doneStatus"></p>
+    <textarea id="resultsText" readonly hidden></textarea>
+  </section>
+</main>
+
+<!--DATA-->
+<script>
+(function () {
+  "use strict";
+  const D = window.STUDY;
+  const KEY = D.study.toLowerCase() + "-progress-" + D.design_hash;
+  const $ = (id) => document.getElementById(id);
+  const ITEMS = D.items, PHRASES = D.phrases, PX_MS = 0.32;   // long phrases scroll sideways
+  const SHORT = { "swipe": "sw", "peep": "pe", "swipe+swipe": "s+s", "Hswipe": "Hs", "Lswipe": "Ls", "Lpeep": "Lp",
+                  "peep_grillon": "pg", "double": "dbl", "alarm": "ALARM", "alarm_grillon": "ALg", "other": "?" };
+  let state = load() || fresh();
+  let timers = [], selected = null;   // selected = { phrase, item }
+  const imgs = {}, bufs = {};
+
+  function fresh() {
+    return { study: D.study, version: D.version, design_hash: D.design_hash, started: new Date().toISOString(),
+             phase: "intro", screen: 0, marks: {}, labels: {}, listens: {}, screen_ms: {}, check: null, user_agent: navigator.userAgent };
+  }
+  function load() { try { const s = localStorage.getItem(KEY); return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable: the page still works */ } }
+  const mark = (it) => state.marks[it.uid] || "keep";
+  const labelOf = (it) => state.labels[it.uid] || it.label;
+  function count(key) { state.listens[key] = (state.listens[key] || 0) + 1; save(); }
+
+  // ------------------------------------------------------------------ audio
+  const A = {
+    ctx: null, master: null, bus: null, live: [],
+    init() {
+      if (this.ctx) { if (this.ctx.state === "suspended") this.ctx.resume(); return; }
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.ctx = ctx;
+      this.master = ctx.createGain(); this.master.gain.value = Math.pow(10, -6 / 20);
+      const lim = ctx.createDynamicsCompressor();
+      lim.threshold.value = -6; lim.ratio.value = 12; lim.attack.value = 0.002; lim.release.value = 0.12;
+      this.master.connect(lim).connect(ctx.destination);
+      this.bus = ctx.createGain(); this.bus.connect(this.master);
+      const conv = ctx.createConvolver(); conv.buffer = this.roomIR(0.22);
+      const wet = ctx.createGain(); wet.gain.value = 0.09;
+      this.bus.connect(conv).connect(wet).connect(this.master);
+    },
+    roomIR(rt60) {
+      const ctx = this.ctx, n = Math.round(0.4 * ctx.sampleRate), b = ctx.createBuffer(2, n, ctx.sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const d = b.getChannelData(ch); let lp = 0;
+        for (let i = 0; i < n; i++) { const t = i / ctx.sampleRate; lp += 0.35 * ((Math.random() * 2 - 1) - lp); d[i] = t < 0.004 ? 0 : lp * Math.exp(-6.91 * t / rt60); }
+      }
+      return b;
+    },
+    syllable(it) {                                              // the PROTO1 voice (colour on)
+      const ctx = this.ctx, sr = ctx.sampleRate, F = it.f, Am = it.a, m = F.length;
+      const n = Math.round(m / 1000 * sr), buf = ctx.createBuffer(1, n, sr), d = buf.getChannelData(0), gain = 0.315;
+      let ph = 0;
+      for (let i = 0; i < n; i++) {
+        const tms = i / sr * 1000; let j = Math.floor(tms), fr = tms - j;
+        if (j >= m - 1) { j = m - 2; fr = 1; }
+        const f = Math.exp(Math.log(F[j]) * (1 - fr) + Math.log(F[j + 1]) * fr);
+        const a = Am[j] * (1 - fr) + Am[j + 1] * fr;
+        ph += 2 * Math.PI * f / sr; if (ph > 2 * Math.PI) ph -= 2 * Math.PI;
+        d[i] = gain * a * (Math.sin(ph) + 0.0316 * Math.sin(2 * ph + 0.6) + 0.0224 * Math.sin(3 * ph + 0.9));
+      }
+      return buf;
+    },
+    at(buf, t, dest, offset, dur) {
+      const s = this.ctx.createBufferSource(); s.buffer = buf; s.connect(dest || this.bus);
+      if (offset !== undefined) s.start(t, Math.max(0, offset), dur); else s.start(t);
+      this.live.push(s); s.onended = () => { this.live = this.live.filter((x) => x !== s); };
+    },
+    stop() { this.live.forEach((s) => { try { s.stop(); } catch (e) { /* already stopped */ } }); this.live = []; timers.forEach(clearTimeout); timers = []; cursor = null; redrawAll(); },
+  };
+  function b64ToBuf(b64) { const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
+  async function realBuf(p) { if (!bufs[p.id]) bufs[p.id] = await A.ctx.decodeAudioData(b64ToBuf(p.audio)); return bufs[p.id]; }
+
+  let cursor = null;   // { phrase, t0 (ctx time), offsetMs }
+  function startCursor(p, t0, offsetMs, durMs) {
+    cursor = { phrase: p.id, t0, offsetMs, durMs };
+    const tick = () => { if (!cursor || cursor.phrase !== p.id) return; const now = (A.ctx.currentTime - cursor.t0) * 1000; if (now > cursor.durMs + 50) { cursor = null; draw(p); return; } draw(p); requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }
+  async function playReal(p, it) {
+    A.init(); A.stop();
+    const buf = await realBuf(p), t0 = A.ctx.currentTime + 0.05;
+    if (it) { A.at(buf, t0, A.master, (it.t_ms - 15) / 1000, (it.ms + 30) / 1000); startCursor(p, t0, it.t_ms - 15, it.ms + 30); count("real:" + it.uid); }
+    else { A.at(buf, t0, A.master); startCursor(p, t0, 0, p.ms); count("realp:" + p.id); }
+  }
+  function playWhistle(p, it, startAt) {
+    A.init(); if (startAt === undefined) A.stop();
+    const t0 = (startAt || A.ctx.currentTime + 0.05);
+    if (it) { A.at(A.syllable(it), t0); if (startAt === undefined) startCursor(p, t0 - it.t_ms / 1000 + 0, it.t_ms, it.ms); count("wh:" + it.uid); return t0 + it.ms / 1000; }
+    p.items.forEach((id) => { const x = ITEMS[id]; A.at(A.syllable(x), t0 + x.t_ms / 1000); });
+    timers.push(setTimeout(() => startCursor(p, t0, 0, p.ms), Math.max(0, (t0 - A.ctx.currentTime) * 1000)));
+    count("whp:" + p.id);
+    return t0 + p.ms / 1000;
+  }
+  async function playBoth(p, it) {
+    await playReal(p, it);
+    const len = it ? (it.ms + 30) / 1000 : p.ms / 1000;
+    const t1 = A.ctx.currentTime + len + 0.35;
+    timers.push(setTimeout(() => { cursor = null; playWhistle(p, it, t1 - 0.0); if (it) startCursor(p, t1 - it.t_ms / 1000, it.t_ms, it.ms); }, (len + 0.2) * 1000));
+  }
+
+  // ------------------------------------------------------------------ drawing
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const canvases = {};
+  function geom(p, cv) {
+    const w = cv.clientWidth || 900, h = cv.clientHeight || 200;
+    return { w, h, x: (ms) => ms / p.ms * w };
+  }
+  function draw(p) {
+    const cv = canvases[p.id]; if (!cv) return;
+    const box = cv.parentElement.clientWidth || 900;
+    cv.style.width = Math.max(box, Math.round(p.ms * PX_MS)) + "px";
+    const { w, h, x } = geom(p, cv), dpr = window.devicePixelRatio || 1;
+    cv.width = w * dpr; cv.height = h * dpr;
+    const g = cv.getContext("2d"); g.scale(dpr, dpr); g.clearRect(0, 0, w, h);
+    const im = imgs[p.id];
+    if (im && im.complete) { g.globalAlpha = 0.85; g.drawImage(im, 0, 0, w, h - 22); g.globalAlpha = 1; }
+    // spectrogram is linear 1-8 kHz; curves are drawn on the same linear axis
+    const ylin = (f) => (h - 22) - (f - D.fmin) / (D.fmax - D.fmin) * (h - 22);
+    p.items.forEach((id) => {
+      const it = ITEMS[id], m = mark(it), sel = selected && selected.item === id;
+      const col = sel ? css("--sel") : m === "bird" ? css("--bird") : m === "whistle" ? css("--whistle") : css("--keep");
+      g.strokeStyle = col; g.lineWidth = sel ? 3 : 2; g.setLineDash(m === "bird" ? [4, 3] : []);
+      g.beginPath();
+      for (let i = 0; i < it.f.length; i += 2) { const xx = x(it.t_ms + i), yy = ylin(it.f[i]); if (i === 0) g.moveTo(xx, yy); else g.lineTo(xx, yy); }
+      g.stroke(); g.setLineDash([]);
+      g.fillStyle = col; g.font = (sel ? "bold " : "") + "11px -apple-system, system-ui, sans-serif";
+      const lab = (SHORT[labelOf(it)] || labelOf(it)) + (state.labels[it.uid] ? "*" : "");
+      g.fillText(lab, x(it.t_ms), h - (it.k % 2 ? 2 : 12));
+      if (sel) { g.strokeStyle = css("--sel"); g.globalAlpha = 0.5; g.strokeRect(x(it.t_ms) - 2, 1, x(it.ms) + 4, h - 18); g.globalAlpha = 1; }
+    });
+    if (cursor && cursor.phrase === p.id && A.ctx) {
+      const now = cursor.offsetMs + (A.ctx.currentTime - cursor.t0) * 1000;
+      if (now >= 0 && now <= p.ms) { g.strokeStyle = css("--now"); g.lineWidth = 1.5; g.beginPath(); g.moveTo(x(now), 0); g.lineTo(x(now), h - 22); g.stroke(); }
+    }
+  }
+  function redrawAll() { Object.keys(canvases).forEach((k) => draw(PHRASES[k])); }
+
+  // ------------------------------------------------------------------ phrase cards
+  function panelHtml(p) {
+    if (!selected || selected.phrase !== p.id) return '<span class="muted">Click a syllable on the picture to hear it alone, mark it or change its label.</span>';
+    const it = ITEMS[selected.item], m = mark(it);
+    const opts = D.labels.map((l) => '<option' + (l === labelOf(it) ? " selected" : "") + ">" + l + "</option>").join("");
+    return '<span class="who">Syllable ' + (it.k + 1) + "</span><span class=\"muted\">" + it.ms + " ms" + (it.hop ? " · curve jumps" : "") + "</span>" +
+      '<button class="small" data-a="real">▶ Real<kbd>R</kbd></button><button class="small" data-a="wh">▶ Whistle<kbd>W</kbd></button><button class="small" data-a="both">▶ Both</button>' +
+      '<select data-a="label" title="Label (proposed: ' + it.label + ')">' + opts + "</select>" +
+      '<button class="small b-keep' + (m === "keep" ? " on" : "") + '" data-a="keep">Keep<kbd>K</kbd></button>' +
+      '<button class="small b-bird' + (m === "bird" ? " on" : "") + '" data-a="bird">Not the bird<kbd>N</kbd></button>' +
+      '<button class="small b-whistle' + (m === "whistle" ? " on" : "") + '" data-a="whistle">Whistle wrong<kbd>X</kbd></button>';
+  }
+  function setMark(it, m) { if (m === "keep") delete state.marks[it.uid]; else state.marks[it.uid] = m; save(); refreshCard(PHRASES[it.phrase]); }
+  function refreshCard(p) {
+    const el = $("p" + p.id); if (!el) return;
+    const n = p.items.filter((id) => mark(ITEMS[id]) !== "keep").length;
+    el.querySelector(".count").textContent = p.items.length + " syllables · " + (p.ms / 1000).toFixed(1) + " s" + (n ? " · " + n + " marked" : "");
+    const pn = el.querySelector(".panel"); pn.innerHTML = panelHtml(p);
+    pn.querySelectorAll("button").forEach((b) => b.addEventListener("click", (e) => { e.currentTarget.blur(); act(p, b.dataset.a); }));
+    const s = pn.querySelector("select");
+    if (s) s.addEventListener("change", () => { const it = ITEMS[selected.item]; if (s.value === it.label) delete state.labels[it.uid]; else state.labels[it.uid] = s.value; save(); draw(p); });
+    draw(p);
+  }
+  function act(p, a) {
+    if (!selected || selected.phrase !== p.id) return;
+    const it = ITEMS[selected.item];
+    if (a === "real") playReal(p, it); else if (a === "wh") playWhistle(p, it); else if (a === "both") playBoth(p, it);
+    else if (a === "keep" || a === "bird" || a === "whistle") setMark(it, a);
+  }
+  function select(p, id) { const old = selected && selected.phrase; selected = { phrase: p.id, item: id }; if (old !== undefined && old !== null && old !== p.id) refreshCard(PHRASES[old]); refreshCard(p); }
+  function makeCard(p) {
+    const el = document.createElement("div");
+    el.className = "card phrase"; el.id = "p" + p.id;
+    el.innerHTML = '<div class="head"><b>' + p.rec + " · phrase " + (p.bank_phrase + 1) + '</b><button class="primary small" data-a="real">▶ Real</button><button class="small" data-a="wh">▶ Whistle</button><button class="small" data-a="both">▶ Both</button><span class="count"></span></div>' +
+      '<div class="scroll"><canvas></canvas></div><div class="panel"></div>';
+    el.querySelectorAll(".head button").forEach((b) => b.addEventListener("click", (e) => {
+      e.currentTarget.blur(); const a = b.dataset.a;
+      if (a === "real") playReal(p); else if (a === "wh") playWhistle(p); else playBoth(p);
+    }));
+    const cv = el.querySelector("canvas"); canvases[p.id] = cv;
+    cv.addEventListener("click", (e) => {
+      const r = cv.getBoundingClientRect(), ms = (e.clientX - r.left) / r.width * p.ms;
+      let best = null, bd = 1e9;
+      p.items.forEach((id) => { const it = ITEMS[id], d = ms < it.t_ms ? it.t_ms - ms : ms > it.t_ms + it.ms ? ms - it.t_ms - it.ms : 0; if (d < bd) { bd = d; best = id; } });
+      if (best !== null && bd < 80) { select(p, best); playWhistle(p, ITEMS[best]); }
+    });
+    if (!imgs[p.id]) { const im = new Image(); im.onload = () => draw(p); im.src = "data:image/png;base64," + p.png; imgs[p.id] = im; }
+    return el;
+  }
+
+  // ------------------------------------------------------------------ screens
+  let screenT0 = 0;
+  function show(phase) { state.phase = phase; save(); ["intro", "work", "check", "done"].forEach((s) => { $(s).hidden = s !== (phase === "screens" ? "work" : phase); }); }
+  function leaveScreen() { if (screenT0) { const s = state.screen; state.screen_ms[s] = (state.screen_ms[s] || 0) + Math.round(performance.now() - screenT0); screenT0 = 0; save(); } }
+  function showScreen() {
+    A.stop(); selected = null;
+    const sc = D.screens[state.screen];
+    $("screenLabel").textContent = "Screen " + (state.screen + 1) + " / " + D.screens.length + " · recording " + sc.rec + (sc.rec === "22938" ? " (after 53 s)" : "");
+    $("screenHint").textContent = sc.phrases.length + " phrases";
+    $("barFill").style.width = (100 * state.screen / D.screens.length) + "%";
+    $("prevBtn").disabled = state.screen === 0;
+    $("nextBtn").textContent = state.screen === D.screens.length - 1 ? "To the check round ▶" : "Next ▶";
+    const cards = $("cards"); cards.innerHTML = "";
+    Object.keys(canvases).forEach((k) => delete canvases[k]);
+    sc.phrases.forEach((pid) => { cards.appendChild(makeCard(PHRASES[pid])); });
+    sc.phrases.forEach((pid) => refreshCard(PHRASES[pid]));
+    screenT0 = performance.now();
+  }
+  function startCheck() {
+    if (!state.check) {
+      const shuffle = (xs) => { const a = xs.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+      const marked = shuffle(ITEMS.filter((it) => mark(it) !== "keep").map((it) => it.id)).slice(0, 5);
+      const kept = shuffle(ITEMS.filter((it) => mark(it) === "keep").map((it) => it.id)).slice(0, 10 - marked.length);
+      state.check = { ids: shuffle(marked.concat(kept)), marks: {}, first: {}, started: new Date().toISOString() };
+      state.check.ids.forEach((id) => { state.check.first[ITEMS[id].uid] = mark(ITEMS[id]); });
+      save();
+    }
+    show("check"); A.stop();
+    const cc = $("checkCards"); cc.innerHTML = "";
+    state.check.ids.forEach((id, n) => {
+      const it = ITEMS[id], p = PHRASES[it.phrase];
+      const el = document.createElement("div"); el.className = "card";
+      const cur = () => state.check.marks[it.uid];
+      el.innerHTML = "<b>" + (n + 1) + " / " + state.check.ids.length + '</b><canvas></canvas><div class="row"><button class="small" data-a="real">▶ Real</button><button class="small" data-a="wh">▶ Whistle</button><button class="small" data-a="both">▶ Both</button></div>' +
+        '<div class="row"><button class="small b-keep" data-m="keep">Keep</button><button class="small b-bird" data-m="bird">Not the bird</button><button class="small b-whistle" data-m="whistle">Whistle wrong</button></div>';
+      const cv = el.querySelector("canvas");
+      const paint = () => {
+        const w = cv.clientWidth || 300, h = cv.clientHeight || 120, dpr = window.devicePixelRatio || 1;
+        cv.width = w * dpr; cv.height = h * dpr; const g = cv.getContext("2d"); g.scale(dpr, dpr);
+        const a = Math.max(0, it.t_ms - 120), b = Math.min(p.ms, it.t_ms + it.ms + 120), im = imgs[p.id];
+        if (im && im.complete) { const sx = a / p.ms * im.width, sw = (b - a) / p.ms * im.width; g.globalAlpha = 0.85; g.drawImage(im, sx, 0, sw, im.height, 0, 0, w, h); g.globalAlpha = 1; }
+        g.strokeStyle = css("--sel"); g.lineWidth = 2; g.beginPath();
+        for (let i = 0; i < it.f.length; i += 2) { const xx = (it.t_ms + i - a) / (b - a) * w, yy = h - (it.f[i] - D.fmin) / (D.fmax - D.fmin) * h; if (i === 0) g.moveTo(xx, yy); else g.lineTo(xx, yy); }
+        g.stroke();
+      };
+      if (!imgs[p.id]) { const im = new Image(); im.onload = paint; im.src = "data:image/png;base64," + p.png; imgs[p.id] = im; } else setTimeout(paint, 0);
+      el.querySelectorAll("button[data-a]").forEach((bt) => bt.addEventListener("click", (e) => { e.currentTarget.blur(); const x = bt.dataset.a; if (x === "real") playReal(p, it); else if (x === "wh") playWhistle(p, it); else playBoth(p, it); }));
+      const refresh = () => el.querySelectorAll("button[data-m]").forEach((bt) => bt.classList.toggle("on", cur() === bt.dataset.m));
+      el.querySelectorAll("button[data-m]").forEach((bt) => bt.addEventListener("click", (e) => { e.currentTarget.blur(); state.check.marks[it.uid] = bt.dataset.m; save(); refresh(); }));
+      refresh(); cc.appendChild(el);
+    });
+    window.scrollTo(0, 0);
+  }
+  function finish() {
+    A.stop();
+    const missing = state.check ? state.check.ids.filter((id) => !state.check.marks[ITEMS[id].uid]).length : 0;
+    if (missing && !confirm(missing + " check-round syllable(s) have no answer. Finish anyway?")) return;
+    state.finished = state.finished || new Date().toISOString(); save();
+    show("done");
+    const c = { bird: 0, whistle: 0 }; ITEMS.forEach((it) => { const m = mark(it); if (m !== "keep") c[m]++; });
+    const relab = Object.keys(state.labels).length;
+    $("doneSummary").textContent = (ITEMS.length - c.bird - c.whistle) + " syllables kept, " + c.bird + " not the bird, " + c.whistle + " whistle wrong; " + relab + " labels changed.";
+  }
+
+  // ------------------------------------------------------------------ wiring
+  $("codes").textContent = "Label codes under the picture: " + Object.entries(SHORT).map(([k, v]) => v + " = " + k).join(", ") + "; * = changed by you.";
+  const totalS = Math.round(PHRASES.reduce((s, p) => s + p.ms, 0) / 1000);
+  $("subline").textContent = D.study + " · " + ITEMS.length + " syllables in " + PHRASES.length + " phrases (" + totalS + " s of song) · " + D.screens.length + " screens · progress is saved";
+  $("start").addEventListener("click", () => {
+    A.init();
+    if (state.phase === "check") { startCheck(); return; }
+    if (state.phase === "done") { finish(); return; }
+    show("screens"); showScreen();
+  });
+  $("restart").addEventListener("click", () => { if (!confirm("Erase every saved mark and start from screen 1?")) return; state = fresh(); save(); location.reload(); });
+  $("stopBtn").addEventListener("click", (e) => { e.currentTarget.blur(); A.stop(); });
+  $("stopBtn2").addEventListener("click", (e) => { e.currentTarget.blur(); A.stop(); });
+  $("prevBtn").addEventListener("click", (e) => { e.currentTarget.blur(); if (state.screen > 0) { leaveScreen(); state.screen--; save(); showScreen(); window.scrollTo(0, 0); } });
+  $("nextBtn").addEventListener("click", (e) => {
+    e.currentTarget.blur(); leaveScreen();
+    if (state.screen < D.screens.length - 1) { state.screen++; save(); showScreen(); window.scrollTo(0, 0); } else startCheck();
+  });
+  $("finishBtn").addEventListener("click", (e) => { e.currentTarget.blur(); finish(); });
+  $("backBtn").addEventListener("click", () => { show("screens"); showScreen(); window.scrollTo(0, 0); });
+  function resultsJson() { return JSON.stringify(Object.assign({}, state, { comment: $("comment").value }), null, 1); }
+  $("download").addEventListener("click", () => {
+    const blob = new Blob([resultsJson()], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = D.study.toLowerCase() + "_results_" + new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-") + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    $("doneStatus").textContent = "Saved to your Downloads folder as " + a.download;
+  });
+  $("copy").addEventListener("click", async () => {
+    const txt = resultsJson();
+    try { await navigator.clipboard.writeText(txt); $("doneStatus").textContent = "Copied. Paste it in the chat."; }
+    catch (e) { const ta = $("resultsText"); ta.hidden = false; ta.value = txt; ta.select(); $("doneStatus").textContent = "Select-all and copy the text below (⌘C)."; }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.target && (e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT")) return;
+    if (e.key === "Escape") { A.stop(); return; }
+    if (!selected || $("work").hidden) return;
+    const p = PHRASES[selected.phrase], k = p.items.indexOf(selected.item), key = e.key.toLowerCase();
+    if (key === "arrowright" && k < p.items.length - 1) { e.preventDefault(); select(p, p.items[k + 1]); playWhistle(p, ITEMS[p.items[k + 1]]); }
+    else if (key === "arrowleft" && k > 0) { e.preventDefault(); select(p, p.items[k - 1]); playWhistle(p, ITEMS[p.items[k - 1]]); }
+    else if (key === "r") act(p, "real"); else if (key === "w") act(p, "wh");
+    else if (key === "k") act(p, "keep"); else if (key === "n") act(p, "bird"); else if (key === "x") act(p, "whistle");
+  });
+  window.addEventListener("resize", redrawAll);
+  if (state.phase !== "intro") {
+    $("start").textContent = state.phase === "done" ? "Show results" : state.phase === "check" ? "Resume the check round" : "Resume at screen " + (state.screen + 1);
+    $("restart").hidden = false;
+    $("introStatus").textContent = Object.keys(state.marks).length + " marks saved on this computer.";
+  }
+})();
+</script>
+</body>
+</html>

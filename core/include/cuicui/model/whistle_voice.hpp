@@ -34,9 +34,17 @@ public:
     void start(const control::SyllableBank& bank, int syllable, double shiftCents, float gain, float pan,
                int delaySamples, const Colour& colour, std::uint32_t age) noexcept {
         const auto& s = bank.syllable(syllable);
-        logF_ = bank.logHz() + s.offset;
-        amp_ = bank.amp() + s.offset;
-        m_ = s.lengthMs;
+        startCurve(bank.logHz() + s.offset, bank.amp() + s.offset, s.lengthMs, syllable, shiftCents, gain, pan,
+                   delaySamples, colour, age);
+    }
+
+    /// Start a curve that is not in a bank (WP-R3: a varied rendition). `logHz` / `amp` (one value per ms,
+    /// `lengthMs` of them) must stay valid until the voice ends; `syllable` is only reported back.
+    void startCurve(const double* logHz, const float* amp, int lengthMs, int syllable, double shiftCents, float gain,
+                    float pan, int delaySamples, const Colour& colour, std::uint32_t age) noexcept {
+        logF_ = logHz;
+        amp_ = amp;
+        m_ = lengthMs;
         ratio_ = std::pow(2.0, shiftCents / 1200.0);
         len_ = std::max<std::int64_t>(1, std::llround(static_cast<double>(m_) / 1000.0 * sr_));
         fadeN_ = static_cast<int>(std::min<std::int64_t>(std::llround(colour.edgeFadeMs * 0.001 * sr_), len_ / 2));

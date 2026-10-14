@@ -5,7 +5,7 @@
   "category": "Flock",
   "author": "Cuicui Instruments",
   "description": "Hold several keys: up to six birds, each in its own place left to right.",
-  "voice_bank": "zf_22938",
+  "voice_bank": "hf_22938+hf_22937",
   "parameters": {
     "perf.polyphony": 6,
     "out.stereo_spread": 0.6

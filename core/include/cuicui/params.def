@@ -70,3 +70,5 @@ CUICUI_PARAM(PerfOrder, "perf.order", "Order", "enum", 0.0, 2.0, 0.0, 1.0, 0.0, 
 CUICUI_PARAM(PerfPauseS, "perf.pause_s", "Phrase pause", "s", 0.1, 2.0, 0.5, 1.0, 0.0, Performance, false, "R1")
 CUICUI_PARAM(PerfSizeSt, "perf.size_st", "Size", "st", -12.0, 12.0, 0.0, 1.0, 0.0, Performance, false, "R1")
 CUICUI_PARAM(OutRoom, "out.room", "Room", "", 0.0, 1.0, 1.0, 1.0, 0.0, Performance, false, "R1")
+// WP-R3: new renditions of the bird's syllables from its shape model (D-036). 0 = the real syllables.
+CUICUI_PARAM(PerfNaturalVariation, "perf.natural_variation", "Natural variation", "", 0.0, 1.0, 1.0, 1.0, 0.0, Performance, false, "R3")

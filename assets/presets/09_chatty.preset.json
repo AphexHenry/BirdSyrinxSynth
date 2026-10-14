@@ -5,7 +5,7 @@
   "category": "Character",
   "author": "Cuicui Instruments",
   "description": "A busy bird: hardly any pause, and the syllables in shuffled order.",
-  "voice_bank": "zf_22938",
+  "voice_bank": "hf_22938+hf_22937",
   "parameters": {
     "perf.pause_s": 0.1,
     "perf.order": "Shuffled"

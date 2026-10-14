@@ -46,13 +46,22 @@ set(SYRINX_JUCE_COMPILE_DEFINITIONS
     JUCE_STRICT_REFCOUNTEDPOINTER=1
 )
 
-# WP-R1: the factory syllable bank is compiled in (BinaryData::bank_json), so the plugin needs no files.
+# WP-R1: the factory syllable bank is compiled in, so the plugin needs no files.
+# WP-R3 (D-036): one bank file per bird, merged when the plugin starts. Each is copied under a unique name
+# (BinaryData::hf_22938_bank_json, …) because every bank file is called bank.json.
 # WP-R4: so are the factory presets (assets/presets/*.preset.json, D-028).
+set(SYRINX_FACTORY_BANKS hf_22938 hf_22937)
+set(SYRINX_BANK_FILES "")
+foreach(bank IN LISTS SYRINX_FACTORY_BANKS)
+    configure_file("${CMAKE_SOURCE_DIR}/assets/voicebanks/${bank}/bank.json"
+                   "${CMAKE_CURRENT_BINARY_DIR}/banks/${bank}_bank.json" COPYONLY)
+    list(APPEND SYRINX_BANK_FILES "${CMAKE_CURRENT_BINARY_DIR}/banks/${bank}_bank.json")
+endforeach()
 file(GLOB SYRINX_FACTORY_PRESETS CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/assets/presets/*.preset.json")
 juce_add_binary_data(SyrinxBinaryData
     HEADER_NAME BinaryData.h
     NAMESPACE BinaryData
-    SOURCES "${CMAKE_SOURCE_DIR}/assets/voicebanks/zf_22938/bank.json" ${SYRINX_FACTORY_PRESETS}
+    SOURCES ${SYRINX_BANK_FILES} ${SYRINX_FACTORY_PRESETS}
 )
 set_target_properties(SyrinxBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 

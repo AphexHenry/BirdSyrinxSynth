@@ -115,7 +115,7 @@ def _settings(d: dict) -> ref.Settings:
 def test_cpp_core_plays_exactly_the_reference_syllables(bank, name):
     events, settings, dur = SCENARIOS[name]
     # the reference is the PROTO1 prototype: play as it did (no release alarm, D-030)
-    prototype = {**settings, "out.room": 0, "release_alarm": 0}
+    prototype = {**settings, "out.room": 0, "release_alarm": 0, "perf.natural_variation": 0.0}
     _, log = cc.sing(str(BANK_PATH), events, prototype, SR, dur, 20261011, 256)
     expect = ref.perform(bank, events, _settings(settings), SR, dur, 20261011)
     assert len(log) == len(expect) > 0
@@ -131,7 +131,8 @@ def test_cpp_core_plays_exactly_the_reference_syllables(bank, name):
 @pytest.mark.parametrize("name", ["taps_random", "chord_shuffled_follow"])
 def test_cpp_core_audio_matches_the_reference_voice(bank, name):
     events, settings, dur = SCENARIOS[name]
-    prototype = {**settings, "out.room": 0, "release_alarm": 0}  # as PROTO1 played (D-030 off)
+    prototype = {**settings, "out.room": 0, "release_alarm": 0,  # as PROTO1 played (D-030 off,
+                 "perf.natural_variation": 0.0}                    # no variation, WP-R3)
     audio, log = cc.sing(str(BANK_PATH), events, prototype, SR, dur, 7, 256)
     expect = ref.render(bank, log, SR, len(audio))
     err = np.max(np.abs(audio - expect))
@@ -177,12 +178,15 @@ def test_plugin_pitch_curve_matches_the_prototype_algorithm(bank, tmp_path):
              (55, 5.00, 2.00)]
     vels = (100, 70, 110, 50, 90)
     spec = ",".join(f"{n}:{t}:{d}:{v}" for (n, t, d), v in zip(notes, vels, strict=True))
-    params = {"out.room": 0, "out.master_db": 0, "voice.harmonics": 0, "perf.polyphony": 1}
+    params = {"out.room": 0, "out.master_db": 0, "voice.harmonics": 0, "perf.polyphony": 1,
+              "perf.natural_variation": 0}  # the prototype had no variation (WP-R3)
     (tmp_path / "params.json").write_text(json.dumps(params))
     wav, logp = tmp_path / "out.wav", tmp_path / "log.json"
     subprocess.run([str(PLUGIN_RENDER), "--notes", spec, "--params", str(tmp_path / "params.json"),
                     "--seed", "20261012", "--duration", "8.5", "--syllable-log", str(logp),
-                    "--no-release-alarm", "-o", str(wav)], check=True, capture_output=True)
+                    "--no-release-alarm",
+                    "--bank", str(BANK_PATH),  # the R1 bank (WP-R3: no longer the default)
+                    "-o", str(wav)], check=True, capture_output=True)
     import soundfile as sf
 
     y, sr = sf.read(str(wav), always_2d=True)

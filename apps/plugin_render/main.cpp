@@ -63,11 +63,12 @@ void usage(const char* argv0) {
               << "              [--sr 48000] [--block 256] [--tail 1.5] [--duration 0]\n"
               << "              [--seed 1] [--bpm 120] [--playing 0|1] [--preset \"Finch, natural\" | file.preset.json]\n"
               << "              [--screenshot editor.png] [--screenshot-page play|advanced] [--screenshot-scale 2]\n"
-              << "              [--syllable-log starts.json] [--no-release-alarm] -o out.wav\n"
+              << "              [--syllable-log starts.json] [--no-release-alarm] [--bank a.json[,b.json]] -o out.wav\n"
               << "  --preset applies a factory preset (by name) or a preset file before --seed and --params.\n"
               << "  --screenshot without -o draws the editor at rest; with -o, after the render (the display\n"
               << "  then shows the last seconds of the render).\n"
-              << "  --no-release-alarm plays as R1 / the PROTO1 prototype did (D-030 off; reference tests).\n";
+              << "  --no-release-alarm plays as R1 / the PROTO1 prototype did (D-030 off; reference tests).\n"
+              << "  --bank sings these bank files (merged in order) instead of the factory birds (WP-R3).\n";
 }
 
 std::vector<MidiEvt> parseNotes(const std::string& spec, double sr) {
@@ -223,7 +224,7 @@ int main(int argc, char** argv) {
     juce::ScopedJuceInitialiser_GUI juceInit;
     try {
         std::filesystem::path midiPath, paramsPath, autoPath, outPath, screenshotPath, sylLogPath;
-        std::string notes, presetArg;
+        std::string notes, presetArg, bankArg;
         bool releaseAlarm = true;
         int screenshotPage = 0;
         float screenshotScale = 1.0f;
@@ -282,6 +283,8 @@ int main(int argc, char** argv) {
                 presetArg = need("--preset");
             } else if (a == "--no-release-alarm") {
                 releaseAlarm = false;
+            } else if (a == "--bank") {
+                bankArg = need("--bank");
             } else if (a == "--bpm") {
                 bpm = std::stod(need("--bpm"));
                 bpmSet = true;
@@ -347,6 +350,14 @@ int main(int argc, char** argv) {
         SyrinxAudioProcessor proc;
         proc.setNonRealtime(true);
         proc.setReleaseAlarm(releaseAlarm);
+        if (!bankArg.empty()) { // WP-R3: one bird alone, or the R1 / R5 bank
+            std::vector<std::string> files;
+            std::stringstream ss(bankArg);
+            for (std::string f; std::getline(ss, f, ',');) {
+                files.push_back(f);
+            }
+            proc.useBankFiles(files);
+        }
         if (!presetArg.empty()) {
             applyPreset(proc, presetArg);
         }
@@ -451,7 +462,13 @@ int main(int argc, char** argv) {
                                {"first", e.request.first},
                                {"key", e.request.note},
                                {"target_cents", e.request.targetCents},
-                               {"release_alarm", e.request.releaseAlarm}});
+                               {"release_alarm", e.request.releaseAlarm},
+                               {"variation", e.request.variation},
+                               {"length_scale", e.request.lengthScale},
+                               {"range_scale", e.request.rangeScale},
+                               {"variant_seed", e.request.variantSeed},
+                               {"variant_note_cents", e.request.variantNoteCents},
+                               {"bird", syl.bird}});
             }
             std::ofstream(sylLogPath) << j.dump(1) << "\n";
         }

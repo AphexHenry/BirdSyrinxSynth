@@ -2,7 +2,7 @@
 
 > Updated by agents at the start and end of every WP (see `protocol.md` §2.4 and §5.5). The human may edit it at any time (e.g. change order, mark a WP `optional` or `todo`).
 
-**Last updated:** 2026-10-13 — by: R5 session (R5 done, tag wp-R5; plan: WP-R6 playing feel added after R3, D-034; next WP in line: R3)
+**Last updated:** 2026-10-14 — by: R3 session (R3 done, tag wp-R3; next WP in line: R6)
 
 ## Status legend
 
@@ -39,7 +39,7 @@
 | 15b | R1 | Real syllables + whistle voice + playing modes A/B in the plugin (modular) | R0 | done | 2026-10-12 | wp-R1 | `work_packages/WP-R1_real_syllables_whistle_voice.md` |
 | 15c | R4 | Perform UI + presets (revised C6) | R1 | done | 2026-10-12 | wp-R4 | `work_packages/WP-R4_perform_ui_presets.md` |
 | 15d | R5 | Melodies that sound right: syllable notes (MELODY2) + held keys | R4 | done | 2026-10-13 | wp-R5 | `work_packages/WP-R5_melodies.md` |
-| 15e | R3 | Variations within the bird's style (+ more recordings) | R1, R5 | todo | | | `work_packages/WP-R3_variations_within_style.md` |
+| 15e | R3 | Variations within the bird's style (+ more recordings) | R1, R5 | done | 2026-10-14 | wp-R3 | `work_packages/WP-R3_variations_within_style.md` |
 | 15f | R6 | Playing feel: the bird follows how you play (pizzicato, long notes, control, organic) | R3, R5 | todo | | | `work_packages/WP-R6_playing_feel.md` |
 | 15g | R2 | Anatomical engine as optional voice (click fix, colour, re-test) | R1 | optional | | | `work_packages/WP-R2_anatomical_voice_optional.md` |
 | 16 | C6 | Perform UI, Physiology page, presets v1 | C5 | optional | | | `work_packages/WP-C6_perform_ui_presets.md` |
@@ -56,6 +56,25 @@
 | 27 | G3 | Differentiable twin & amortised inference | E3 | optional | | | `work_packages/WP-G3_differentiable_amortized.md` |
 
 ## Current capabilities
+
+**2026-10-14 — WP-R3: variations within the bird's style** (done, tag wp-R3).
+- **Two house finches** (D-035: 22938 is a house finch):
+  - 22938 whole (`hf_22938`, 436 syllables; the hand annotation stopped at 53 s);
+  - 22937 (`hf_22937`, 358 syllables, the human's cleaned file).
+
+  Separate bank files, merged when the plugin starts (794 syllables, 59 phrases). The display reads "HOUSE FINCH · 2 BIRDS".
+- **Variation** (Song card, `perf.natural_variation`, default 100 %): each syllable a little shorter or longer (80–160 %; swipes up to 200 %) and with a narrower or wider sweep around its note (60–160 %). These are the spans the human chose by ear (STRETCH1: "that's working nicely").
+  - The next syllable waits for a longer one; notes and loudness stay real. 0 % = the real syllables.
+  - At Snap to note 100 % every syllable still lands exactly on its key.
+  - The bird's own shape model (types, 3 shape modes) is stored in the banks but off: VARY2 found it inaudible.
+- **New songs (recombined phrases) are not used** (the human, 2a); the birds sing their real phrases.
+- **Automatic syllable marker** `cuicui.bank.segment` (finds all 123 of the human's 22938 syllables) and the by-ear check page INGEST1.
+- **For R6:** variation and length per syllable request; `SyllableBank::find` by label, length, sweep and bird.
+- **Tools:**
+  - `plugin_render --bank a.json[,b.json]` (one bird alone, or the R5 bank `zf_22938`);
+  - `python -m cuicui.bank --variation`;
+  - `cuicui_core.sing([paths], …)`, `variant`, `variant_draws`, `bank_summary`.
+- **Studies with results:** INGEST1, VARY1, VARY2, STRETCH1 (`agent documents/studies/`).
 
 **2026-10-13 — WP-R5: melodies that sound right** (done, tag wp-R5).
 - **A syllable's note is the pitch of its loud part** (rule E, the loudness-weighted mean; chosen by the human after the blind test MELODY2). Frames more than 20 dB below the syllable's peak are ignored.
@@ -119,6 +138,12 @@
 | Blind tune rating, tapped Frère Jacques (MELODY3) | new bank 67.2, R1 bank 49.4 (5 seeds) | R5 | 2026-10-13 |
 | Editor CPU, message thread (Retina) | 2.0–2.3 % at rest; 8–10 % while four birds sing (30 fps) | R4 | 2026-10-12 |
 | Audio with the editor open + preset switching | 0 allocations; worst block 0.09–0.10 ms of 5.33 ms | R4 | 2026-10-12 |
+| Whistle CPU, 6 keys, room on, Variation 1 (two birds) | 1.20 % of one core; 0 allocations, worst block 0.244 ms of 5.33 ms | R3 | 2026-10-14 |
+| Marker vs human annotation (22938, 7.6–53.3 s) | 123 / 123 syllables found (3 merges, 4 extras) | R3 | 2026-10-14 |
+| Bird's natural spread per syllable type (median of 41) | note ±26 c, length ±2.5 %, loudness ±1.5 dB, shape 52 c RMS (3 modes = 91 %) | R3 | 2026-10-14 |
+| VARY1 (same song again) | own renditions 84.5, shape model 84.0, nudge 73.5, identical repetition 59.5 | R3 | 2026-10-14 |
+| VARY2 (shape model without loudness) | own renditions 80.5; 100 / 130 / 160 % 71.0 / 75.5 / 75.0; identical 73.0 (not audible) | R3 | 2026-10-14 |
+| Variation spans (STRETCH1, by ear) | length 80–160 % (swipes 200 %), pitch range 60–160 % | R3 | 2026-10-14 |
 | Generative density syl/s | 3.23 / 4.50 / 7.00 at Density 0.2 / 0.5 / 0.8 | C5 | 2026-09-18 |
 | Flock CPU (8 notes vs 1, generative) | 8.10× (limit 9.6×) | C5 | 2026-09-18 |
 | Syllable generate worst | 0.002 ms | C5 | 2026-09-18 |
@@ -150,7 +175,7 @@
 - **Approach review (2026-10-11):** C4/C5 gestures are not bird-like (on a bare sine they still sound like morse code). Real bird gestures carry the identity. See `reviews/2026-10-11_approach_review.md`.
 - Default OEC tracking (`f_H = 3000·(f0/1000)^0.7`) puts the resonance at 1.7–3× f0 (Riede 2006: on f0). This gives too much 2nd harmonic (−11 dB vs the bird's −33 dB) and a synthetic colour.
 - Attack clicks: at each onset the labial position jumps from rest (x ≈ 1.0) to the oscillation centre (≈ 0.12) in about 1 ms and leaks into the output.
-- Recording `22938` is a finch whose sounds are tonal sweeps at 2.5–4.9 kHz with no low harmonic stacks. `01_research.md` §2.7 zebra-finch priors do not match it.
+- Recordings `22938` and `22937` are **house finches** (D-035): tonal sweeps at 2.5–4.9 kHz with no low harmonic stacks. `01_research.md` §2.7 zebra-finch priors do not apply.
 - **Anatomical engine** (ENGINE1):
   - The clicks are cured offline by articulating with a volume envelope plus a 12 ms pre-roll and 10 ms post-roll, but this is not implemented in code yet (R2).
   - Even fixed, it scores 52 on a passage with a long alarm and low swipes (the whistle scores 100).
@@ -180,6 +205,12 @@
 - **With Birds 1**, a long press's release call (D-030) can overlap the next key's first syllable.
 - **Study scripts** in `scripts/review/` and `scripts/studies/` are research code outside the ruff gate. Some lint warnings remain (line length, `zip(strict=)`).
 
+- **WP-R3 (2026-10-14):**
+  - The long final calls ("alarm", song endings) sound thinner than the bird (INGEST1); 3 calls of 22937 were left out. The whistle "sometimes misses a bit of timbre complexity" (VARY1). Backlog.
+  - The new syllables' notes are rule E only (no ear check), and their labels are proposals.
+  - The length and range variation was chosen by ear (STRETCH1), not tested blind. "Some sounds sound higher the bigger the range" (high spikes, or tracker jumps; "hop" syllables are now only narrowed). "Swipe" (up to 200 %) is read from the labels, which are proposals for the new syllables.
+  - The default sound changed (two birds, Variation 1); at Snap to note 0 the bird sits 33 c lower than in R5 (merged centre). There is no bird selector yet (backlog).
+
 ## Open questions for the human
 
 - **Playing feel (the human, 2026-10-13):** "i need to move on to improve the performing part". Planned as **WP-R6, after R3** (D-034): "definitely not before 'Variations within the bird's style' since it can affect it". R6 starts with scoping questions and the human's own playing sketches.
@@ -188,8 +219,8 @@
 - B6 CPU: accept ~3 % per voice, or spend a WP on optimisation (skip gated-off RK4, UVT dirty-flag)? Recommendation: accept for now, revisit if the plugin feels heavy.
 - M3 feel: Motion default 0.3, onset, tuning on a real keyboard. Snap useful? Keyboard range D6–C8 OK?
 - C4 approved with a colour caveat: hand-designed gestures do not yet resemble real birds. D1 is still parked; resemblance work starts there.
-- **Where are the other zebra finch recordings** (and their annotations)? Needed for R3. The human said many are available.
-- **`recordings/`** (added 2026-10-12): three MP3s named "… - House Finch" (22937, 44967, 56843). They are for R3 and git-ignored (D-011). Their names say house finch, and 22937 is next to our bank's 22938, which D-023 calls a zebra finch. Which species is 22938, and do these files have annotations (tseg JSON)?
+- ~~Where are the other recordings?~~ R3: the human added `recordings/22937 - House Finch.wav` only (cleaned); the other two MP3s stay out.
+- ~~Which species is 22938?~~ R3: a house finch (the human, "2b"; D-035).
 - **R4 play test:** `agent documents/studies/R4PLAY_play_test.md` (Standalone, ~15 min). R4 was approved before it; your answers are still welcome and would feed a polish round (presets, look, wording).
 - **Prototype feel:** the human tried it and reported on pitch and fast playing; changes were made (random start, first on note, follow mapping). A further impression is welcome before R1 fixes defaults.
 - C5: Leash / Density / Variation defaults; is tempo sync useful in a DAW; should Leash ship mapped to the mod wheel in C6? (superseded by the re-plan)
@@ -272,3 +303,9 @@
 | 2026-10-13 | R5 | Claude Opus 5.5 | WP-R5 awaiting approval (criteria 1, 2, 4–7 PASS; criterion 3 FAIL, decision pending; listening page opened) |
 | 2026-10-13 | R5 | Claude Opus 5.5 | human: new notes "much better", 14/15 "sound the same", criterion 3 FAIL accepted ("i need to move on to improve the performing part"); D-031…D-033 accepted; committed and tagged wp-R5 |
 | 2026-10-13 | – | Claude Opus 5.5 | plan (human): WP-R6 "playing feel" (keep the bird natural, follow the keyboard's expressivity: pizzicato, long notes, control) added after R3 (D-034) |
+| 2026-10-13 | R3 | Claude Opus 5.5 | started WP-R3. Scoping (human): add 22937 house finch only; 22938 is a house finch; style = the species; shape model + new order, nudge as backup, blend dropped |
+| 2026-10-13 | R3 | Claude Opus 5.5 | material: the 22938 annotation stops at 53 s (313 more syllables); automatic marker `cuicui.bank.segment` (123/123 vs the human); 44.1 kHz drift fixed; the human cleaned 22937; INGEST1 run (3 of 674 rejected, check 9/10) |
+| 2026-10-14 | R3 | Claude Opus 5.5 | spread and order measured; VARY1 run (shape model 84.0 ≈ own renditions 84.5, identical 59.5, nudge 73.5, new songs 79 vs 88.5; rule kept nothing → human: "1a 2a 3c", files separate, merged at run time) |
+| 2026-10-14 | R3 | Claude Opus 5.5 | shape model in the core and plugin (Variation knob, default 1), two birds merged at load, R6 hooks; check.sh + pluginval 5 GUI pass; D-035, D-036 proposed; WP-R3 awaiting approval |
+| 2026-10-14 | R3 | Claude Opus 5.5 | feedback: loudness variation removed (a quiet syllable on the page); VARY2: the shape model is not audible; STRETCH1 (by ear): length 80–160 % (swipes 200 %), range 60–160 % → the plugin's Variation; checks re-run; still awaiting approval |
+| 2026-10-14 | R3 | Claude Opus 5.5 | approved, committed and tagged wp-R3 (D-035, D-036 accepted) |

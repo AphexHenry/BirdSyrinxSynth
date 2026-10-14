@@ -72,6 +72,8 @@ class BuildSettings:
     note_rule: str = "E"
     quiet_floor_db: float = 20.0  # notes ignore frames this far below the syllable's peak (B-E)
     loud_db: float = 10.0  # candidate B: the "loud part" is within this of the peak
+    # WP-R3: fit the shape model and store it in the bank (`cuicui.variation.attach_section`, D-036)
+    variation: bool = False
 
 
 # MELODY2 candidates for a syllable's note (WP-R5). B-E first drop the frames more than
@@ -239,6 +241,21 @@ def _syllable(tr: dict, k: int, s: dict, t0: float, settings: BuildSettings) -> 
     }
 
 
+def read_mono(wav_path: Path) -> tuple[np.ndarray, float, float]:
+    """A recording as mono, at a rate where the tracker's 1 ms hop is a whole number of samples.
+
+    Returns (signal, analysis rate, file rate). 48 kHz files (22938) are untouched. Other rates
+    (44.1 kHz: a 44-sample hop is 0.998 ms, which drifts by 2.3 ms per second) are resampled to
+    48 kHz (WP-R3).
+    """
+    x, sr = sf.read(str(wav_path), always_2d=True)
+    x = x.mean(axis=1)
+    if abs(sr * f0_track.HOP_S - round(sr * f0_track.HOP_S)) > 1e-9:
+        x = signal.resample_poly(x, 48000, int(sr))
+        return x, 48000.0, float(sr)
+    return x, float(sr), float(sr)
+
+
 def _median(xs: list[float]) -> float:
     """Median as the prototype computes it (middle value, or mean of the two middle values)."""
     s = sorted(xs)
@@ -324,8 +341,7 @@ def build_bank(
     """
     settings = settings or BuildSettings()
     ann = json.loads(Path(annotations_path).read_text())
-    x, sr = sf.read(str(wav_path), always_2d=True)
-    x = x.mean(axis=1)
+    x, sr, file_sr = read_mono(wav_path)
     sos = signal.butter(4, settings.highpass_hz, "highpass", fs=sr, output="sos")
 
     phrases: list[dict] = []
@@ -386,7 +402,7 @@ def build_bank(
             "annotations": Path(annotations_path).name,
             "recording_id": str(ann.get("recording_id", Path(wav_path).stem)),
             "source_sha256": ann.get("source_sha256"),
-            "sample_rate": int(sr),
+            "sample_rate": int(file_sr),
             "created_by": created_by,
             "tool": "python -m cuicui.bank",
             "tracker": "cuicui.analysis.f0_track (dominant trace, 1 ms hop)",
@@ -425,6 +441,11 @@ def build_bank(
         },
         "phrases": phrases,
     }
+    if settings.variation:
+        from cuicui.variation import attach_section  # noqa: PLC0415 - optional, needs scipy
+
+        attach_section(bank)
+        bank["build"]["variation"] = True
     bank["hash"] = bank_hash(bank)
     return bank
 

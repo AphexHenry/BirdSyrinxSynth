@@ -88,14 +88,74 @@ TEST_CASE("whistle: it is the default voice, with polyphony 4, harmonics and roo
     CHECK(p.apvts.getRawParameterValue("voice.harmonics")->load() == 1.0f);
     CHECK(p.apvts.getRawParameterValue("out.room")->load() == 1.0f);
     CHECK(p.apvts.getRawParameterValue("perf.first_on_note")->load() == 1.0f);
+    // WP-R3 (D-036): two birds' banks, merged when the plugin starts; the shape model on, at the natural spread
+    const auto& b = p.syllableBank();
+    CHECK(b.numSyllables() == 436 + 358);
+    CHECK(b.name() == "hf_22938+hf_22937");
+    CHECK(b.birds() == std::vector<std::string>{"hf_22938", "hf_22937"});
+    CHECK(b.hasVariation());
+    CHECK(p.apvts.getRawParameterValue("perf.natural_variation")->load() == 1.0f);
+}
+
+TEST_CASE("whistle: Variation 0 sings the real syllables; Variation 1 stretches length and pitch range (WP-R3)") {
+    std::vector<std::pair<int, juce::MidiMessage>> ev{
+        {2000, juce::MidiMessage::noteOn(1, 64, static_cast<juce::uint8>(100))},
+        {2000 + 120000, juce::MidiMessage::noteOff(1, 64)},
+        {130000, juce::MidiMessage::noteOn(1, 69, static_cast<juce::uint8>(80))},
+        {130000 + 2400, juce::MidiMessage::noteOff(1, 69)}};
+    std::vector<Render> rs;
+    for (float v : {0.0f, 1.0f, 1.0f}) {
+        SyrinxAudioProcessor p;
+        dryPlugin(p);
+        p.setParamPlain("perf.natural_variation", v);
+        rs.push_back(render(p, 256, 192000, ev));
+    }
+    const auto& bank = SyrinxAudioProcessor().syllableBank();
+    REQUIRE(rs[0].log.size() > 8);
+    REQUIRE(rs[1].log.size() > 8);
+    CHECK(rs[0].log[0].sample == rs[1].log[0].sample); // a key still starts on its note-on
+    CHECK(rs[0].log[0].request.syllable == rs[1].log[0].request.syllable); // the same choice
+    int stretched = 0;
+    for (const auto& e : rs[0].log) {
+        CHECK(e.request.lengthScale == 1.0);
+        CHECK(e.request.rangeScale == 1.0);
+    }
+    for (const auto& e : rs[1].log) {
+        const auto& sy = bank.syllable(e.request.syllable);
+        CHECK(e.request.lengthScale >= 0.8 - 1e-9);
+        CHECK(e.request.lengthScale <= (sy.swipe ? 2.0 : 1.6) + 1e-9);
+        CHECK(e.request.rangeScale >= 0.6 - 1e-9);
+        CHECK(e.request.rangeScale <= 1.6 + 1e-9);
+        CHECK(e.request.variantNoteCents == 0.0); // the note never moves
+        stretched += e.request.lengthScale != 1.0 ? 1 : 0;
+    }
+    CHECK(stretched == static_cast<int>(rs[1].log.size()));
+    float d01 = 0.0f, d11 = 0.0f;
+    for (std::size_t i = 0; i < rs[0].left.size(); ++i) {
+        d01 = std::max(d01, std::abs(rs[0].left[i] - rs[1].left[i]));
+        d11 = std::max(d11, std::abs(rs[1].left[i] - rs[2].left[i]));
+    }
+    CHECK(d01 > 1e-3f); // the variation is heard
+    CHECK(d11 == 0.0f); // and is reproducible (same seed, same song)
+}
+
+TEST_CASE("whistle: useBankFiles sings one bird alone, or the R1 / R5 bank (WP-R3)") {
+    SyrinxAudioProcessor p;
+    p.useBankFiles({std::string(CUICUI_SOURCE_DIR) + "/assets/voicebanks/zf_22938/bank.json"});
     CHECK(p.syllableBank().numSyllables() == 123);
-    CHECK(p.syllableBank().name() == "zf_22938");
+    CHECK_FALSE(p.syllableBank().hasVariation()); // the R5 bank: Variation leaves it real
+    p.useBankFiles({std::string(CUICUI_SOURCE_DIR) + "/assets/voicebanks/hf_22937/bank.json"});
+    CHECK(p.syllableBank().numSyllables() == 358);
+    CHECK(p.syllableBank().birds().size() == 1);
+    CHECK_THROWS(p.useBankFiles({"/nonexistent/bank.json"}));
+    CHECK(p.syllableBank().numSyllables() == 358); // unchanged after a bad file
 }
 
 TEST_CASE("whistle A: a 30 ms tap sounds one syllable that starts within 5 ms of the note-on") {
     for (int block : {64, 256, 1024}) {
         SyrinxAudioProcessor p;
         dryPlugin(p);
+        p.setParamPlain("perf.natural_variation", 0.0f); // the real syllable's length (checked below)
         const int on = 4800 + 13;
         const auto r = render(p, block, 48000,
                               {{on, juce::MidiMessage::noteOn(1, 69, static_cast<juce::uint8>(100))},
@@ -126,6 +186,7 @@ TEST_CASE("whistle B: hold 2 s → real order and gaps; release mid-syllable →
     SyrinxAudioProcessor p;
     dryPlugin(p);
     p.setReleaseAlarm(false); // the R1 rule (a long press ending with the call: D-030, below)
+    p.setParamPlain("perf.natural_variation", 0.0f); // real lengths (checked below)
     p.setParamPlain("perf.order", 1.0f); // phrase start: phrase 0, 1, … in the bank's order
     const int on = 2400;
     const int off = on + 96000;
@@ -162,6 +223,7 @@ TEST_CASE("whistle B: a release during the phrase pause is silent") {
     SyrinxAudioProcessor p;
     dryPlugin(p);
     p.setReleaseAlarm(false); // the R1 rule
+    p.setParamPlain("perf.natural_variation", 0.0f); // real lengths (checked below)
     p.setParamPlain("perf.order", 1.0f);
     p.setParamPlain("perf.pause_s", 1.0f);
     const auto& b = p.syllableBank();
@@ -207,8 +269,9 @@ TEST_CASE("whistle: a long press ends with the bird's rising call; short presses
     // and it is heard: the last sound is the call, to its end
     const auto& last = r.log.back();
     REQUIRE(last.request.releaseAlarm);
-    const int end = static_cast<int>(last.sample) + r.latency +
-                    static_cast<int>(std::llround(b.syllable(last.request.syllable).lengthMs * 48.0));
+    const int lenMs = cuicui::control::stretchedLengthMs(b.syllable(last.request.syllable).lengthMs,
+                                                        last.request.lengthScale); // WP-R3: stretched
+    const int end = static_cast<int>(last.sample) + r.latency + static_cast<int>(std::llround(lenMs * 48.0));
     const auto reg = regions(r.left);
     REQUIRE_FALSE(reg.empty());
     CHECK(reg.back().second <= end);

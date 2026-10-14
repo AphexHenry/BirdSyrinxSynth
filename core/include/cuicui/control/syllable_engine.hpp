@@ -3,6 +3,7 @@
 #include "cuicui/control/mode_ab.hpp"
 #include "cuicui/control/playing_mode.hpp"
 #include "cuicui/control/syllable_bank.hpp"
+#include "cuicui/control/variation.hpp"
 #include "cuicui/dsp/room.hpp"
 #include "cuicui/model/whistle_voice.hpp"
 
@@ -10,6 +11,7 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <vector>
 
 namespace cuicui::control {
 
@@ -38,9 +40,12 @@ public:
     static constexpr int kChunk = 256;         ///< internal block (bounds the requests per call)
     static constexpr int kMaxRequests = 64;
     static constexpr double kStealFadeMs = 5.0;
+    static constexpr int kMaxVariantMs = 2048; ///< longest varied syllable a voice can hold (WP-R3)
 
     void prepare(double sampleRate) {
         sr_ = sampleRate > 0.0 ? sampleRate : 48000.0;
+        variantLogHz_.assign(static_cast<std::size_t>(kMaxVoices) * kMaxVariantMs, 0.0);
+        variantAmp_.assign(static_cast<std::size_t>(kMaxVoices) * kMaxVariantMs, 0.0f);
         modeAB_.prepare(sr_);
         for (auto& v : voices_) {
             v.prepare(sr_);
@@ -178,7 +183,22 @@ public:
 private:
     static constexpr int kMaxChunkEvents = 128;
 
-    void start(const SyllableRequest& r, const model::WhistleVoice::Colour& colour) noexcept {
+    void start(const SyllableRequest& req, const model::WhistleVoice::Colour& colour) noexcept {
+        SyllableRequest r = req;
+        // WP-R3: a varied rendition (length, pitch range; the shape model if r.shape > 0). A note change (shape
+        // model only) is cancelled by the placement's snap (k = 1: the syllable still lands exactly on the note).
+        const bool varied = (r.shape > 0.0 && bank_->hasVariation()) || r.lengthScale != 1.0 || r.rangeScale != 1.0;
+        Variant var{};
+        double* vLog = nullptr;
+        float* vAmp = nullptr;
+        if (varied && !variantLogHz_.empty()) {
+            vLog = scratchLog_.data();
+            vAmp = scratchAmp_.data();
+            var = makeVariant(*bank_, r.syllable, r.shape, r.shape > 0.0 ? variantDraws(r.variantSeed) : VariantDraws{},
+                              r.lengthScale, r.rangeScale, vLog, vAmp, kMaxVariantMs);
+            r.shiftCents -= r.snapK * var.noteShiftCents;
+            r.variantNoteCents = var.noteShiftCents;
+        }
         if (log_ != nullptr && logCount_ < logCapacity_) {
             log_[logCount_++] = SyllableLogEntry{samples_ + r.offset, r};
         }
@@ -209,7 +229,15 @@ private:
             }
             ++dropped_;
         }
-        slot->start(*bank_, r.syllable, r.shiftCents, r.gain, r.pan, r.offset, colour, voiceAge_++);
+        if (vLog != nullptr) { // the voice keeps its own copy of the varied curve
+            const auto vi = static_cast<std::size_t>(slot - voices_.data()) * kMaxVariantMs;
+            std::copy(vLog, vLog + var.lengthMs, variantLogHz_.begin() + static_cast<std::ptrdiff_t>(vi));
+            std::copy(vAmp, vAmp + var.lengthMs, variantAmp_.begin() + static_cast<std::ptrdiff_t>(vi));
+            slot->startCurve(variantLogHz_.data() + vi, variantAmp_.data() + vi, var.lengthMs, r.syllable, r.shiftCents,
+                             r.gain, r.pan, r.offset, colour, voiceAge_++);
+        } else {
+            slot->start(*bank_, r.syllable, r.shiftCents, r.gain, r.pan, r.offset, colour, voiceAge_++);
+        }
     }
 
     ModeAB modeAB_;
@@ -219,6 +247,10 @@ private:
     std::array<int, kMaxVoices> order_{};
     std::array<PlayEvent, kMaxChunkEvents> chunkEvents_{};
     std::array<SyllableRequest, kMaxRequests> requests_{};
+    std::vector<double> variantLogHz_; ///< kMaxVoices × kMaxVariantMs (allocated in prepare)
+    std::vector<float> variantAmp_;
+    std::array<double, kMaxVariantMs> scratchLog_{}; ///< the variant is made here before a voice is chosen
+    std::array<float, kMaxVariantMs> scratchAmp_{};
     dsp::Room room_;
     SyllableLogEntry* log_ = nullptr;
     double sr_ = 48000.0;

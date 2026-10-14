@@ -24,6 +24,9 @@ inline constexpr std::pair<std::string_view, std::string_view> kParamHelp[] = {
     {"perf.order", "Random: each key starts on a random syllable, then follows the real phrase. Phrase: always "
                    "from the start of a phrase. Shuffle: syllables in random order."},
     {"perf.pause_s", "Pause between phrases while you hold a key."},
+    {"perf.natural_variation", "Variation. 0%: the bird's real syllables, exactly as recorded. 100%: each syllable a "
+                               "little shorter or longer (80-160 %, swipes up to 200 %) and with a narrower or wider "
+                               "sweep around its note (60-160 %); the next syllable waits for it."},
     {"perf.size_st", "Size. Moves the whole bird up or down, in semitones: down is a bigger, lower bird, up a "
                      "smaller, higher one."},
     {"perf.polyphony", "Birds. How many keys can sing at once: each held key is one bird. Over the limit, the "

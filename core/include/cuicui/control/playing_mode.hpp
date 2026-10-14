@@ -3,6 +3,7 @@
 #include "cuicui/control/phrase_order.hpp"
 #include "cuicui/control/placement.hpp"
 #include "cuicui/control/syllable_bank.hpp"
+#include "cuicui/control/variation.hpp"
 
 #include <cstdint>
 
@@ -30,6 +31,14 @@ struct SyllableRequest {
     int note = -1;           ///< MIDI note of the key that asked (−1 = none); displays (WP-R4)
     double targetCents = 0.0; ///< that key's target pitch, MIDI cents (placementTarget); displays (WP-R4)
     bool releaseAlarm = false; ///< the call that ends a long key press (D-030)
+    // WP-R3 (D-036): a varied rendition of the syllable (control/variation.hpp)
+    double variation = 0.0;        ///< the Variation amount it was drawn with (logs, display)
+    std::uint64_t variantSeed = 0; ///< its draws (the same seed always gives the same rendition)
+    double lengthScale = 1.0;      ///< time stretch: 1 = as sung (ModeAB draws it from StretchSpans; R6 may set it)
+    double rangeScale = 1.0;       ///< pitch movement around its note: 1 = as sung (idem)
+    double shape = 0.0;            ///< the shape model's amount (off in the plugin: VARY2, not audible)
+    double snapK = 0.0;            ///< the placement's snap for this syllable: the engine removes k × its note change
+    double variantNoteCents = 0.0; ///< filled by the engine: how far the rendition's own note moved (shape model)
 };
 
 /// Live settings a playing mode reads every block (parameters of the plugin, WP-R1 §3.4).
@@ -49,6 +58,10 @@ struct PlayContext {
     /// false = the R1 / PROTO1 behaviour (reference comparisons).
     bool releaseAlarm = true;
     double releaseAlarmHoldS = 0.6;
+    /// WP-R3 (D-036): 0 = the real syllables (R1 / R5, sample for sample); 1 = each syllable at a random length and
+    /// pitch range within `spans` (the ones the human chose in STRETCH1).
+    double variation = 0.0;
+    StretchSpans spans{};
 };
 
 /// Input → syllable requests. Modes A + B (ModeAB) today; C (conductor/flock), D (drawn gestures) and

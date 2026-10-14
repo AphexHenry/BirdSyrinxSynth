@@ -1,0 +1,5798 @@
+{
+ "recording_id": "22937",
+ "sample_rate": 44100.0,
+ "schema_version": "1.2",
+ "segments": [
+  {
+   "category": "SILENCE",
+   "start": 0.0,
+   "end": 1.696
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 1.696,
+   "end": 1.809,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 1.809,
+   "end": 1.856
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 1.856,
+   "end": 1.992,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 1.992,
+   "end": 2.036
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 2.036,
+   "end": 2.154,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 2.154,
+   "end": 2.179
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 2.179,
+   "end": 2.269,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 2.269,
+   "end": 2.3
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 2.3,
+   "end": 2.398,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 2.398,
+   "end": 2.421
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 2.421,
+   "end": 2.56,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 2.56,
+   "end": 2.584
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 2.584,
+   "end": 2.673,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 2.673,
+   "end": 2.692
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 2.692,
+   "end": 2.832,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 2.832,
+   "end": 2.854
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 2.854,
+   "end": 3.051,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 3.051,
+   "end": 3.09
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 3.09,
+   "end": 3.227,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 3.227,
+   "end": 3.26
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 3.26,
+   "end": 3.428,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 3.428,
+   "end": 3.432
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 3.432,
+   "end": 3.55,
+   "elements": [
+    {
+     "type_label": "Lpeep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 3.55,
+   "end": 3.57
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 3.57,
+   "end": 3.706,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 3.706,
+   "end": 3.71
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 3.71,
+   "end": 3.98,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 3.98,
+   "end": 4.025
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 4.025,
+   "end": 4.282,
+   "elements": [
+    {
+     "type_label": "alarm"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 4.282,
+   "end": 5.258
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 5.258,
+   "end": 5.347,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 5.347,
+   "end": 5.397
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 5.397,
+   "end": 5.537,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 5.537,
+   "end": 5.577
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 5.577,
+   "end": 5.695,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 5.695,
+   "end": 5.725
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 5.725,
+   "end": 5.816,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 5.816,
+   "end": 5.847
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 5.847,
+   "end": 5.946,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 5.946,
+   "end": 5.971
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 5.971,
+   "end": 6.224,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 6.224,
+   "end": 6.247
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 6.247,
+   "end": 6.386,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 6.386,
+   "end": 6.411
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 6.411,
+   "end": 6.608,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 6.608,
+   "end": 6.645
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 6.645,
+   "end": 6.786,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 6.786,
+   "end": 6.816
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 6.816,
+   "end": 6.958,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 6.958,
+   "end": 6.996
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 6.996,
+   "end": 7.113,
+   "elements": [
+    {
+     "type_label": "Lpeep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 7.113,
+   "end": 7.135
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 7.135,
+   "end": 7.238,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 7.238,
+   "end": 7.264
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 7.264,
+   "end": 7.554,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 7.554,
+   "end": 7.602
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 7.602,
+   "end": 7.881,
+   "elements": [
+    {
+     "type_label": "alarm"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 7.881,
+   "end": 9.585
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 9.585,
+   "end": 9.644,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 9.644,
+   "end": 9.728
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 9.728,
+   "end": 9.81,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 9.81,
+   "end": 9.901
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 9.901,
+   "end": 9.998,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 9.998,
+   "end": 10.039
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 10.039,
+   "end": 10.177,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 10.177,
+   "end": 10.205
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 10.205,
+   "end": 10.328,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 10.328,
+   "end": 10.353
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 10.353,
+   "end": 10.444,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 10.444,
+   "end": 10.472
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 10.472,
+   "end": 10.573,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 10.573,
+   "end": 10.595
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 10.595,
+   "end": 10.734,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 10.734,
+   "end": 10.766
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 10.766,
+   "end": 10.854,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 10.854,
+   "end": 10.879
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 10.879,
+   "end": 11.018,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 11.018,
+   "end": 11.049
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 11.049,
+   "end": 11.243,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 11.243,
+   "end": 12.767
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 12.767,
+   "end": 12.829,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 12.829,
+   "end": 12.961
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 12.961,
+   "end": 13.058,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 13.058,
+   "end": 13.091
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 13.091,
+   "end": 13.236,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 13.236,
+   "end": 13.267
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 13.267,
+   "end": 13.391,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 13.391,
+   "end": 16.447
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 16.447,
+   "end": 16.508,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 16.508,
+   "end": 16.562
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 16.562,
+   "end": 16.701,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 16.701,
+   "end": 16.737
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 16.737,
+   "end": 16.857,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 16.857,
+   "end": 16.882
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 16.882,
+   "end": 16.972,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 16.972,
+   "end": 17.028
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 17.028,
+   "end": 17.125,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 17.125,
+   "end": 17.154
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 17.154,
+   "end": 17.292,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 17.292,
+   "end": 17.322
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 17.322,
+   "end": 17.406,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 17.406,
+   "end": 17.434
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 17.434,
+   "end": 17.577,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 17.577,
+   "end": 17.6
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 17.6,
+   "end": 17.797,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 17.797,
+   "end": 17.834
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 17.834,
+   "end": 17.978,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 17.978,
+   "end": 18.001
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 18.001,
+   "end": 18.139,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 18.139,
+   "end": 18.177
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 18.177,
+   "end": 18.295,
+   "elements": [
+    {
+     "type_label": "Lpeep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 18.295,
+   "end": 18.319
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 18.319,
+   "end": 18.422,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 18.422,
+   "end": 18.446
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 18.446,
+   "end": 18.729,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 18.729,
+   "end": 18.774
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 18.774,
+   "end": 19.049,
+   "elements": [
+    {
+     "type_label": "alarm"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 19.049,
+   "end": 20.236
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 20.236,
+   "end": 20.301,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 20.301,
+   "end": 20.365
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 20.365,
+   "end": 20.463,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 20.463,
+   "end": 20.495
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 20.495,
+   "end": 20.639,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 20.639,
+   "end": 20.669
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 20.669,
+   "end": 20.791,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 20.791,
+   "end": 20.824
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 20.824,
+   "end": 20.91,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 20.91,
+   "end": 20.953
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 20.953,
+   "end": 21.057,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 21.057,
+   "end": 21.081
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 21.081,
+   "end": 21.219,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 21.219,
+   "end": 21.244
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 21.244,
+   "end": 21.338,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 21.338,
+   "end": 21.36
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 21.36,
+   "end": 21.496,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 21.496,
+   "end": 21.52
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 21.52,
+   "end": 21.722,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 21.722,
+   "end": 21.757
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 21.757,
+   "end": 21.902,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 21.902,
+   "end": 21.937
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 21.937,
+   "end": 22.08,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 22.08,
+   "end": 22.125
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 22.125,
+   "end": 22.242,
+   "elements": [
+    {
+     "type_label": "Lpeep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 22.242,
+   "end": 24.44
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 24.44,
+   "end": 24.534,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 24.534,
+   "end": 24.57
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 24.57,
+   "end": 24.708,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 24.708,
+   "end": 24.737
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 24.737,
+   "end": 24.856,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 24.856,
+   "end": 24.879
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 24.879,
+   "end": 24.968,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 24.968,
+   "end": 24.993
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 24.993,
+   "end": 25.091,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 25.091,
+   "end": 25.111
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 25.111,
+   "end": 25.249,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 25.249,
+   "end": 25.271
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 25.271,
+   "end": 25.356,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 25.356,
+   "end": 25.381
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 25.381,
+   "end": 25.515,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 25.515,
+   "end": 25.536
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 25.536,
+   "end": 25.73,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 25.73,
+   "end": 25.765
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 25.765,
+   "end": 25.905,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 25.905,
+   "end": 25.929
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 25.929,
+   "end": 26.067,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 26.067,
+   "end": 26.096
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 26.096,
+   "end": 26.217,
+   "elements": [
+    {
+     "type_label": "Lpeep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 26.217,
+   "end": 26.235
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 26.235,
+   "end": 26.344,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 26.344,
+   "end": 26.364
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 26.364,
+   "end": 26.646,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 26.646,
+   "end": 26.691
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 26.691,
+   "end": 26.973,
+   "elements": [
+    {
+     "type_label": "alarm"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 26.973,
+   "end": 29.917
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 29.917,
+   "end": 29.982,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 29.982,
+   "end": 30.021
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 30.021,
+   "end": 30.158,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 30.158,
+   "end": 30.198
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 30.198,
+   "end": 30.313,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 30.313,
+   "end": 30.339
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 30.339,
+   "end": 30.43,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 30.43,
+   "end": 30.46
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 30.46,
+   "end": 30.556,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 30.556,
+   "end": 30.576
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 30.576,
+   "end": 30.715,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 30.715,
+   "end": 30.735
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 30.735,
+   "end": 30.823,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 30.823,
+   "end": 30.846
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 30.846,
+   "end": 30.984,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 30.984,
+   "end": 31.01
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 31.01,
+   "end": 31.204,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 31.204,
+   "end": 31.209
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 31.209,
+   "end": 31.398,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 31.398,
+   "end": 31.406
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 31.406,
+   "end": 31.566,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 31.566,
+   "end": 31.58
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 31.58,
+   "end": 31.701,
+   "elements": [
+    {
+     "type_label": "Lpeep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 31.701,
+   "end": 31.721
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 31.721,
+   "end": 31.824,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 31.824,
+   "end": 31.847
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 31.847,
+   "end": 32.127,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 32.127,
+   "end": 32.173
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 32.173,
+   "end": 32.47,
+   "elements": [
+    {
+     "type_label": "alarm"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 32.47,
+   "end": 32.556
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 32.556,
+   "end": 32.607,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 32.607,
+   "end": 32.835
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 32.835,
+   "end": 32.905,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 32.905,
+   "end": 33.346
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 33.346,
+   "end": 33.41,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 33.41,
+   "end": 33.453
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 33.453,
+   "end": 33.589,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 33.589,
+   "end": 33.633
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 33.633,
+   "end": 33.751,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 33.751,
+   "end": 33.783
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 33.783,
+   "end": 33.871,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 33.871,
+   "end": 33.907
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 33.907,
+   "end": 34.004,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 34.004,
+   "end": 34.028
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 34.028,
+   "end": 34.173,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 34.173,
+   "end": 34.201
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 34.201,
+   "end": 34.287,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 34.287,
+   "end": 34.314
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 34.314,
+   "end": 34.45,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 34.45,
+   "end": 34.487
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 34.487,
+   "end": 34.68,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 34.68,
+   "end": 34.725
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 34.725,
+   "end": 34.868,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 34.868,
+   "end": 34.899
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 34.899,
+   "end": 35.038,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 35.038,
+   "end": 35.08
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 35.08,
+   "end": 35.197,
+   "elements": [
+    {
+     "type_label": "Lpeep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 35.197,
+   "end": 35.221
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 35.221,
+   "end": 35.325,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 35.325,
+   "end": 35.356
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 35.356,
+   "end": 35.641,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 35.641,
+   "end": 35.694
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 35.694,
+   "end": 35.949,
+   "elements": [
+    {
+     "type_label": "alarm"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 35.949,
+   "end": 37.673
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 37.673,
+   "end": 37.867,
+   "elements": [
+    {
+     "type_label": "double"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 37.867,
+   "end": 37.877
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 37.877,
+   "end": 38.016,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 38.016,
+   "end": 38.034
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 38.034,
+   "end": 38.2,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 38.2,
+   "end": 38.202
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 38.202,
+   "end": 38.32,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 38.32,
+   "end": 38.321
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 38.321,
+   "end": 38.604,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 38.604,
+   "end": 38.611
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 38.611,
+   "end": 38.697,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 38.697,
+   "end": 38.721
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 38.721,
+   "end": 38.86,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 38.86,
+   "end": 38.866
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 38.866,
+   "end": 39.09,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 39.09,
+   "end": 39.122
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 39.122,
+   "end": 39.267,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 39.267,
+   "end": 39.272
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 39.272,
+   "end": 39.593,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 39.593,
+   "end": 39.61
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 39.61,
+   "end": 39.722,
+   "elements": [
+    {
+     "type_label": "peep_grillon"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 39.722,
+   "end": 39.742
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 39.742,
+   "end": 40.034,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 40.034,
+   "end": 41.591
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 41.591,
+   "end": 41.658,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 41.658,
+   "end": 41.707
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 41.707,
+   "end": 41.849,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 41.849,
+   "end": 42.076
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 42.076,
+   "end": 42.161,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 42.161,
+   "end": 42.198
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 42.198,
+   "end": 42.296,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 42.296,
+   "end": 42.332
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 42.332,
+   "end": 42.44,
+   "elements": [
+    {
+     "type_label": "peep_grillon"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 42.44,
+   "end": 42.464
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 42.464,
+   "end": 42.572,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 42.572,
+   "end": 42.607
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 42.607,
+   "end": 42.705,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 42.705,
+   "end": 42.732
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 42.732,
+   "end": 42.842,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 42.842,
+   "end": 42.867
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 42.867,
+   "end": 42.96,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 42.96,
+   "end": 42.986
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 42.986,
+   "end": 43.095,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 43.095,
+   "end": 43.117
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 43.117,
+   "end": 43.201,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 43.201,
+   "end": 43.226
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 43.226,
+   "end": 43.311,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 43.311,
+   "end": 43.341
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 43.341,
+   "end": 43.513,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 43.513,
+   "end": 43.548
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 43.548,
+   "end": 43.658,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 43.658,
+   "end": 43.688
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 43.688,
+   "end": 43.799,
+   "elements": [
+    {
+     "type_label": "peep_grillon"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 43.799,
+   "end": 43.847
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 43.847,
+   "end": 43.974,
+   "elements": [
+    {
+     "type_label": "Lpeep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 43.974,
+   "end": 44.003
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 44.003,
+   "end": 44.095,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 44.095,
+   "end": 44.119
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 44.119,
+   "end": 44.254,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 44.254,
+   "end": 44.281
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 44.281,
+   "end": 44.476,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 44.476,
+   "end": 44.521
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 44.521,
+   "end": 44.662,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 44.662,
+   "end": 46.196
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 46.196,
+   "end": 46.289,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 46.289,
+   "end": 46.58
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 46.58,
+   "end": 46.656,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 46.656,
+   "end": 46.719
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 46.719,
+   "end": 46.817,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 46.817,
+   "end": 46.875
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 46.875,
+   "end": 46.975,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 46.975,
+   "end": 47.048
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 47.048,
+   "end": 47.14,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 47.14,
+   "end": 47.206
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 47.206,
+   "end": 47.314,
+   "elements": [
+    {
+     "type_label": "peep_grillon"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 47.314,
+   "end": 47.339
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 47.339,
+   "end": 47.432,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 47.432,
+   "end": 47.463
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 47.463,
+   "end": 47.574,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 47.574,
+   "end": 47.6
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 47.6,
+   "end": 47.683,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 47.683,
+   "end": 47.71
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 47.71,
+   "end": 47.793,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 47.793,
+   "end": 47.827
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 47.827,
+   "end": 47.997,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 47.997,
+   "end": 48.038
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 48.038,
+   "end": 48.147,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 48.147,
+   "end": 48.184
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 48.184,
+   "end": 48.3,
+   "elements": [
+    {
+     "type_label": "peep_grillon"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 48.3,
+   "end": 49.195
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 49.195,
+   "end": 49.265,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 49.265,
+   "end": 49.434
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 49.434,
+   "end": 49.523,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 49.523,
+   "end": 49.832
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 49.832,
+   "end": 49.928,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 49.928,
+   "end": 49.978
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 49.978,
+   "end": 50.117,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 50.117,
+   "end": 50.145
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 50.145,
+   "end": 50.279,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 50.279,
+   "end": 50.311
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 50.311,
+   "end": 50.396,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 50.396,
+   "end": 50.432
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 50.432,
+   "end": 50.529,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 50.529,
+   "end": 50.555
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 50.555,
+   "end": 50.693,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 50.693,
+   "end": 50.723
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 50.723,
+   "end": 50.809,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 50.809,
+   "end": 50.834
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 50.834,
+   "end": 50.97,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 50.97,
+   "end": 50.995
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 50.995,
+   "end": 51.19,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 51.19,
+   "end": 51.263
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 51.263,
+   "end": 51.395,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 51.395,
+   "end": 51.435
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 51.435,
+   "end": 51.568,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 51.568,
+   "end": 51.622
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 51.622,
+   "end": 51.734,
+   "elements": [
+    {
+     "type_label": "Lpeep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 51.734,
+   "end": 51.762
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 51.762,
+   "end": 51.862,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 51.862,
+   "end": 51.897
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 51.897,
+   "end": 52.177,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 52.177,
+   "end": 52.22
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 52.22,
+   "end": 52.525,
+   "elements": [
+    {
+     "type_label": "alarm"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 52.525,
+   "end": 53.439
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 53.439,
+   "end": 53.494,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 53.494,
+   "end": 53.805
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 53.805,
+   "end": 53.868,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 53.868,
+   "end": 53.924
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 53.924,
+   "end": 54.012,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 54.012,
+   "end": 54.048
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 54.048,
+   "end": 54.156,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 54.156,
+   "end": 54.188
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 54.188,
+   "end": 54.29,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 54.29,
+   "end": 54.333
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 54.333,
+   "end": 54.424,
+   "elements": [
+    {
+     "type_label": "peep_grillon"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 54.424,
+   "end": 54.456
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 54.456,
+   "end": 54.566,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 54.566,
+   "end": 54.587
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 54.587,
+   "end": 54.676,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 54.676,
+   "end": 54.707
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 54.707,
+   "end": 54.816,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 54.816,
+   "end": 54.838
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 54.838,
+   "end": 54.924,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 54.924,
+   "end": 54.945
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 54.945,
+   "end": 55.03,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 55.03,
+   "end": 55.058
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 55.058,
+   "end": 55.227,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 55.227,
+   "end": 55.26
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 55.26,
+   "end": 55.367,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 55.367,
+   "end": 55.4
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 55.4,
+   "end": 55.512,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 55.512,
+   "end": 55.604
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 55.604,
+   "end": 55.701,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 55.701,
+   "end": 57.248
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 57.248,
+   "end": 57.312,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 57.312,
+   "end": 57.391
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 57.391,
+   "end": 57.527,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 57.527,
+   "end": 57.528
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 57.528,
+   "end": 57.609,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 57.609,
+   "end": 57.676
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 57.676,
+   "end": 57.742,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 57.742,
+   "end": 57.778
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 57.778,
+   "end": 57.969,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 57.969,
+   "end": 58.023
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 58.023,
+   "end": 58.086,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 58.086,
+   "end": 58.112
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 58.112,
+   "end": 58.311,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 58.311,
+   "end": 58.347
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 58.347,
+   "end": 58.483,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 58.483,
+   "end": 58.523
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 58.523,
+   "end": 58.633,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 58.633,
+   "end": 58.665
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 58.665,
+   "end": 58.759,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 58.759,
+   "end": 62.298
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 62.298,
+   "end": 62.366,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 62.366,
+   "end": 62.444
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 62.444,
+   "end": 62.685,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 62.685,
+   "end": 62.777
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 62.777,
+   "end": 62.846,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 62.846,
+   "end": 62.876
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 62.876,
+   "end": 63.067,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 63.067,
+   "end": 63.118
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 63.118,
+   "end": 63.182,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 63.182,
+   "end": 63.232
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 63.232,
+   "end": 63.406,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 63.406,
+   "end": 63.442
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 63.442,
+   "end": 63.584,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 63.584,
+   "end": 64.232
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 64.232,
+   "end": 64.304,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 64.304,
+   "end": 64.376
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 64.376,
+   "end": 64.517,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 64.517,
+   "end": 64.524
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 64.524,
+   "end": 64.606,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 64.606,
+   "end": 64.777
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 64.777,
+   "end": 64.845,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 64.845,
+   "end": 64.909
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 64.909,
+   "end": 65.102,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 65.102,
+   "end": 65.188
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 65.188,
+   "end": 65.249,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 65.249,
+   "end": 65.28
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 65.28,
+   "end": 65.473,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 65.473,
+   "end": 65.531
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 65.531,
+   "end": 65.651,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 65.651,
+   "end": 67.235
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 67.235,
+   "end": 67.307,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 67.307,
+   "end": 67.376
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 67.376,
+   "end": 67.465,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 67.465,
+   "end": 67.513
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 67.513,
+   "end": 67.581,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 67.581,
+   "end": 67.666
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 67.666,
+   "end": 67.732,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 67.732,
+   "end": 67.775
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 67.775,
+   "end": 67.852,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 67.852,
+   "end": 67.878
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 67.878,
+   "end": 67.949,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 67.949,
+   "end": 68.066
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 68.066,
+   "end": 68.142,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 68.142,
+   "end": 68.175
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 68.175,
+   "end": 68.283,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 68.283,
+   "end": 68.316
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 68.316,
+   "end": 68.451,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 68.451,
+   "end": 68.473
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 68.473,
+   "end": 68.581,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 68.581,
+   "end": 68.616
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 68.616,
+   "end": 68.724,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 68.724,
+   "end": 68.756
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 68.756,
+   "end": 68.854,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 68.854,
+   "end": 68.893
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 68.893,
+   "end": 69.01,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 69.01,
+   "end": 69.041
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 69.041,
+   "end": 69.147,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 69.147,
+   "end": 69.174
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 69.174,
+   "end": 69.284,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 69.284,
+   "end": 69.322
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 69.322,
+   "end": 69.433,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 69.433,
+   "end": 69.465
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 69.465,
+   "end": 69.617,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 69.617,
+   "end": 69.73
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 69.73,
+   "end": 69.947,
+   "elements": [
+    {
+     "type_label": "double"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 69.947,
+   "end": 70.009
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 70.009,
+   "end": 70.137,
+   "elements": [
+    {
+     "type_label": "Lpeep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 70.137,
+   "end": 70.228
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 70.228,
+   "end": 70.553,
+   "elements": [
+    {
+     "type_label": "alarm"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 70.553,
+   "end": 75.013
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 75.013,
+   "end": 75.076,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 75.076,
+   "end": 75.176
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 75.176,
+   "end": 75.311,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 75.311,
+   "end": 75.313
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 75.313,
+   "end": 75.399,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 75.399,
+   "end": 75.466
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 75.466,
+   "end": 75.535,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 75.535,
+   "end": 75.566
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 75.566,
+   "end": 75.761,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 75.761,
+   "end": 75.821
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 75.821,
+   "end": 75.889,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 75.889,
+   "end": 75.917
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 75.917,
+   "end": 76.114,
+   "elements": [
+    {
+     "type_label": "double"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 76.114,
+   "end": 76.151
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 76.151,
+   "end": 76.294,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 76.294,
+   "end": 76.337
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 76.337,
+   "end": 76.442,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 76.442,
+   "end": 76.47
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 76.47,
+   "end": 76.567,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 76.567,
+   "end": 76.602
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 76.602,
+   "end": 76.746,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 76.746,
+   "end": 76.77
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 76.77,
+   "end": 76.858,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 76.858,
+   "end": 76.884
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 76.884,
+   "end": 76.974,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 76.974,
+   "end": 76.994
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 76.994,
+   "end": 77.085,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 77.085,
+   "end": 77.115
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 77.115,
+   "end": 77.203,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 77.203,
+   "end": 77.246
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 77.246,
+   "end": 77.504,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 77.504,
+   "end": 77.621
+  },
+  {
+   "category": "NOISE",
+   "start": 77.621,
+   "end": 77.916,
+   "ingest1": "whistle wrong"
+  },
+  {
+   "category": "SILENCE",
+   "start": 77.916,
+   "end": 78.543
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 78.543,
+   "end": 78.604,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 78.604,
+   "end": 78.774
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 78.774,
+   "end": 78.84,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 78.84,
+   "end": 78.903
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 78.903,
+   "end": 79.129,
+   "elements": [
+    {
+     "type_label": "swipe+swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 79.129,
+   "end": 79.226
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 79.226,
+   "end": 79.288,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 79.288,
+   "end": 79.32
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 79.32,
+   "end": 79.505,
+   "elements": [
+    {
+     "type_label": "double"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 79.505,
+   "end": 79.568
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 79.568,
+   "end": 79.632,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 79.632,
+   "end": 79.681
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 79.681,
+   "end": 79.861,
+   "elements": [
+    {
+     "type_label": "double"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 79.861,
+   "end": 79.93
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 79.93,
+   "end": 80.037,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 80.037,
+   "end": 80.084
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 80.084,
+   "end": 80.195,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 80.195,
+   "end": 80.223
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 80.223,
+   "end": 80.317,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 80.317,
+   "end": 80.366
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 80.366,
+   "end": 80.505,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 80.505,
+   "end": 80.537
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 80.537,
+   "end": 80.623,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 80.623,
+   "end": 80.65
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 80.65,
+   "end": 80.738,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 80.738,
+   "end": 80.772
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 80.772,
+   "end": 80.854,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 80.854,
+   "end": 80.91
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 80.91,
+   "end": 81.152,
+   "elements": [
+    {
+     "type_label": "double"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 81.152,
+   "end": 81.313
+  },
+  {
+   "category": "NOISE",
+   "start": 81.313,
+   "end": 81.632,
+   "ingest1": "whistle wrong"
+  },
+  {
+   "category": "SILENCE",
+   "start": 81.632,
+   "end": 82.518
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 82.518,
+   "end": 82.585,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 82.585,
+   "end": 82.686
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 82.686,
+   "end": 82.796,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 82.796,
+   "end": 83.169
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 83.169,
+   "end": 83.247,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 83.247,
+   "end": 83.304
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 83.304,
+   "end": 83.395,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 83.395,
+   "end": 83.447
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 83.447,
+   "end": 83.538,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 83.538,
+   "end": 83.574
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 83.574,
+   "end": 83.644,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 83.644,
+   "end": 83.689
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 83.689,
+   "end": 83.757,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 83.757,
+   "end": 83.796
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 83.796,
+   "end": 83.874,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 83.874,
+   "end": 83.908
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 83.908,
+   "end": 83.983,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 83.983,
+   "end": 84.092
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 84.092,
+   "end": 84.168,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 84.168,
+   "end": 84.204
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 84.204,
+   "end": 84.312,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 84.312,
+   "end": 84.35
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 84.35,
+   "end": 84.401,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 84.401,
+   "end": 84.482,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 84.482,
+   "end": 84.507
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 84.507,
+   "end": 84.611,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 84.611,
+   "end": 84.647
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 84.647,
+   "end": 84.757,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 84.757,
+   "end": 84.788
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 84.788,
+   "end": 84.889,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 84.889,
+   "end": 84.935
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 84.935,
+   "end": 85.047,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 85.047,
+   "end": 85.082
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 85.082,
+   "end": 85.188,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 85.188,
+   "end": 85.211
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 85.211,
+   "end": 85.332,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 85.332,
+   "end": 85.377
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 85.377,
+   "end": 85.488,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 85.488,
+   "end": 85.518
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 85.518,
+   "end": 85.675,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 85.675,
+   "end": 85.798
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 85.798,
+   "end": 86.004,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 86.004,
+   "end": 86.062
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 86.062,
+   "end": 86.172,
+   "elements": [
+    {
+     "type_label": "Lpeep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 86.172,
+   "end": 86.266
+  },
+  {
+   "category": "NOISE",
+   "start": 86.266,
+   "end": 86.595,
+   "ingest1": "whistle wrong"
+  },
+  {
+   "category": "SILENCE",
+   "start": 86.595,
+   "end": 88.573
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 88.573,
+   "end": 88.66,
+   "elements": [
+    {
+     "type_label": "peep_grillon"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 88.66,
+   "end": 88.724
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 88.724,
+   "end": 88.796,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 88.796,
+   "end": 88.876
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 88.876,
+   "end": 88.943,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 88.943,
+   "end": 89.437
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 89.437,
+   "end": 89.527,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 89.527,
+   "end": 89.575
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 89.575,
+   "end": 89.646,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 89.646,
+   "end": 89.72
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 89.72,
+   "end": 89.793,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 89.793,
+   "end": 89.828
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 89.828,
+   "end": 89.905,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 89.905,
+   "end": 89.936
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 89.936,
+   "end": 90.005,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 90.005,
+   "end": 90.134
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 90.134,
+   "end": 90.21,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 90.21,
+   "end": 90.25
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 90.25,
+   "end": 90.358,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 90.358,
+   "end": 90.391
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 90.391,
+   "end": 90.527,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 90.527,
+   "end": 90.553
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 90.553,
+   "end": 90.658,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 90.658,
+   "end": 90.697
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 90.697,
+   "end": 90.804,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 90.804,
+   "end": 90.84
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 90.84,
+   "end": 90.941,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 90.941,
+   "end": 90.99
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 90.99,
+   "end": 91.105,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 91.105,
+   "end": 91.137
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 91.137,
+   "end": 91.244,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 91.244,
+   "end": 91.276
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 91.276,
+   "end": 91.384,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 91.384,
+   "end": 91.436
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 91.436,
+   "end": 91.543,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 91.543,
+   "end": 94.138
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 94.138,
+   "end": 94.219,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 94.219,
+   "end": 94.409
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 94.409,
+   "end": 94.503,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 94.503,
+   "end": 94.551
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 94.551,
+   "end": 94.628,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 94.628,
+   "end": 94.687
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 94.687,
+   "end": 94.757,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 94.757,
+   "end": 94.798
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 94.798,
+   "end": 94.879,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 94.879,
+   "end": 94.906
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 94.906,
+   "end": 94.982,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 94.982,
+   "end": 95.112
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 95.112,
+   "end": 95.191,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 95.191,
+   "end": 95.226
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 95.226,
+   "end": 95.333,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 95.333,
+   "end": 95.375
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 95.375,
+   "end": 95.51,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 95.51,
+   "end": 95.533
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 95.533,
+   "end": 95.642,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 95.642,
+   "end": 95.679
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 95.679,
+   "end": 95.787,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 95.787,
+   "end": 95.823
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 95.823,
+   "end": 95.923,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 95.923,
+   "end": 95.961
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 95.961,
+   "end": 96.075,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 96.075,
+   "end": 96.107
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 96.107,
+   "end": 96.213,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 96.213,
+   "end": 96.251
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 96.251,
+   "end": 96.352,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 96.352,
+   "end": 96.397
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 96.397,
+   "end": 96.499,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 96.499,
+   "end": 96.532
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 96.532,
+   "end": 96.614,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 96.614,
+   "end": 96.616
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 96.616,
+   "end": 96.681,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 96.681,
+   "end": 96.748
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 96.748,
+   "end": 96.844,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 96.844,
+   "end": 96.858
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 96.858,
+   "end": 96.988,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 96.988,
+   "end": 97.047
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 97.047,
+   "end": 97.149,
+   "elements": [
+    {
+     "type_label": "Lpeep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 97.149,
+   "end": 97.241
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 97.241,
+   "end": 97.548,
+   "elements": [
+    {
+     "type_label": "alarm"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 97.548,
+   "end": 102.655
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 102.655,
+   "end": 102.721,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 102.721,
+   "end": 102.906
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 102.906,
+   "end": 103.017,
+   "elements": [
+    {
+     "type_label": "peep_grillon"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 103.017,
+   "end": 103.107
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 103.107,
+   "end": 103.234,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 103.234,
+   "end": 103.274
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 103.274,
+   "end": 103.379,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 103.379,
+   "end": 103.436
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 103.436,
+   "end": 103.52,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 103.52,
+   "end": 103.568
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 103.568,
+   "end": 103.638,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 103.638,
+   "end": 103.674
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 103.674,
+   "end": 103.749,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 103.749,
+   "end": 103.79
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 103.79,
+   "end": 103.866,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 103.866,
+   "end": 103.893
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 103.893,
+   "end": 103.97,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 103.97,
+   "end": 104.087
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 104.087,
+   "end": 104.169,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 104.169,
+   "end": 104.198
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 104.198,
+   "end": 104.307,
+   "elements": [
+    {
+     "type_label": "Hswipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 104.307,
+   "end": 104.339
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 104.339,
+   "end": 104.476,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 104.476,
+   "end": 104.501
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 104.501,
+   "end": 104.607,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 104.607,
+   "end": 104.647
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 104.647,
+   "end": 104.757,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 104.757,
+   "end": 104.786
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 104.786,
+   "end": 104.889,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 104.889,
+   "end": 104.93
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 104.93,
+   "end": 105.043,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 105.043,
+   "end": 105.078
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 105.078,
+   "end": 105.185,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 105.185,
+   "end": 105.217
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 105.217,
+   "end": 105.325,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 105.325,
+   "end": 105.376
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 105.376,
+   "end": 105.478,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 105.478,
+   "end": 105.513
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 105.513,
+   "end": 105.669,
+   "elements": [
+    {
+     "type_label": "swipe"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 105.669,
+   "end": 105.741
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 105.741,
+   "end": 106.005,
+   "elements": [
+    {
+     "type_label": "peep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 106.005,
+   "end": 106.058
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 106.058,
+   "end": 106.159,
+   "elements": [
+    {
+     "type_label": "Lpeep"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 106.159,
+   "end": 106.258
+  },
+  {
+   "category": "BIRD_SOUND",
+   "start": 106.258,
+   "end": 106.6,
+   "elements": [
+    {
+     "type_label": "alarm"
+    }
+   ],
+   "label_source": "proposed (INGEST1)"
+  },
+  {
+   "category": "SILENCE",
+   "start": 106.6,
+   "end": 108.0
+  }
+ ],
+ "source_sha256": "cfcd2160c835324fdd482a2bcad3f57ba89ab6d9b2f4068bfa93e25c6389d145",
+ "tool_version": "cuicui.bank.segment 1 (WP-R3)",
+ "auto": {
+  "settings": {
+   "highpass_hz": 1000.0,
+   "fmin_hz": 1200.0,
+   "fmax_hz": 9000.0,
+   "rel_db": 40.0,
+   "prominence_db": 18.0,
+   "join_ms": 8,
+   "min_ms": 15,
+   "split_gap_ms": 12,
+   "min_voiced_ms": 15,
+   "min_syllable_ms": 40,
+   "block_gap_ms": 500,
+   "block_min_db": 20.0,
+   "phrase_gap_ms": 150,
+   "edge_ms": 5,
+   "chunk_s": 10.0,
+   "unlabelled_label": "?",
+   "keep_min_silence_s": 5.0
+  },
+  "syllables_found": 361,
+  "kept_human_segments": 0
+ },
+ "ingest1": {
+  "design_hash": "f6be5b90c077",
+  "check_agree": "9/10",
+  "results_finished": "2026-10-13T22:07:46.275Z"
+ }
+}

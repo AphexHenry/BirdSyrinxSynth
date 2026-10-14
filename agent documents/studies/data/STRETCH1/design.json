@@ -1,0 +1,139 @@
+{
+ "study": "STRETCH1",
+ "version": 1,
+ "levels": [
+  60,
+  80,
+  100,
+  130,
+  160,
+  200
+ ],
+ "random_range": [
+  60,
+  200
+ ],
+ "design_hash": "45656e147bf5",
+ "items": [
+  {
+   "rec": "22938",
+   "label": "swipe",
+   "title": "22938 · swipe (falling)",
+   "segment": 565,
+   "ms": 66,
+   "note": 10248.7,
+   "sweep": -677
+  },
+  {
+   "rec": "22938",
+   "label": "swipe",
+   "title": "22938 · swipe (rising)",
+   "segment": 747,
+   "ms": 106,
+   "note": 10363.2,
+   "sweep": 172
+  },
+  {
+   "rec": "22938",
+   "label": "peep",
+   "title": "22938 · peep",
+   "segment": 53,
+   "ms": 72,
+   "note": 10590.6,
+   "sweep": -282
+  },
+  {
+   "rec": "22938",
+   "label": "swipe+swipe",
+   "title": "22938 · swipe+swipe",
+   "segment": 71,
+   "ms": 190,
+   "note": 10253.7,
+   "sweep": -311
+  },
+  {
+   "rec": "22938",
+   "label": "Hswipe",
+   "title": "22938 · Hswipe",
+   "segment": 527,
+   "ms": 99,
+   "note": 10615.1,
+   "sweep": -32
+  },
+  {
+   "rec": "22938",
+   "label": "Lswipe",
+   "title": "22938 · Lswipe",
+   "segment": 285,
+   "ms": 163,
+   "note": 10006.6,
+   "sweep": 324
+  },
+  {
+   "rec": "22938",
+   "label": "alarm",
+   "title": "22938 · alarm",
+   "segment": 383,
+   "ms": 413,
+   "note": 10581.3,
+   "sweep": 849
+  },
+  {
+   "rec": "22937",
+   "label": "swipe",
+   "title": "22937 · swipe (falling)",
+   "segment": 409,
+   "ms": 103,
+   "note": 10410.4,
+   "sweep": -771
+  },
+  {
+   "rec": "22937",
+   "label": "peep",
+   "title": "22937 · peep",
+   "segment": 692,
+   "ms": 67,
+   "note": 11100.8,
+   "sweep": -325
+  },
+  {
+   "rec": "22937",
+   "label": "Hswipe",
+   "title": "22937 · Hswipe",
+   "segment": 289,
+   "ms": 100,
+   "note": 10852.1,
+   "sweep": 149
+  },
+  {
+   "rec": "22937",
+   "label": "Lpeep",
+   "title": "22937 · Lpeep",
+   "segment": 231,
+   "ms": 107,
+   "note": 10122.2,
+   "sweep": 275
+  },
+  {
+   "rec": "22937",
+   "label": "swipe+swipe",
+   "title": "22937 · swipe+swipe",
+   "segment": 253,
+   "ms": 214,
+   "note": 10347.0,
+   "sweep": -478
+  }
+ ],
+ "phrases": [
+  {
+   "rec": "22938",
+   "phrase": 4,
+   "syllables": 20
+  },
+  {
+   "rec": "22937",
+   "phrase": 0,
+   "syllables": 15
+  }
+ ]
+}

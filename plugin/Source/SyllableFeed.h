@@ -25,6 +25,11 @@ public:
         float targetCents = 0.0f; ///< the key's target pitch (MIDI cents)
         float gain = 0.0f;
         bool first = false;
+        // WP-R3: a varied rendition (the editor rebuilds the same curve, control::makeVariant)
+        float shape = 0.0f;
+        double lengthScale = 1.0;
+        double rangeScale = 1.0;
+        std::uint64_t variantSeed = 0;
     };
 
     /// Audio thread.
@@ -46,6 +51,10 @@ public:
         slot->targetCents = static_cast<float>(r.targetCents);
         slot->gain = r.gain;
         slot->first = r.first;
+        slot->shape = static_cast<float>(r.shape);
+        slot->lengthScale = r.lengthScale;
+        slot->rangeScale = r.rangeScale;
+        slot->variantSeed = r.variantSeed;
     }
 
     /// Audio thread, once per block: the whistle clock and live controller values.
